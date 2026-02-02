@@ -293,6 +293,47 @@
     "de": "German",
     "yo": "Yoruba"
   },
+  "notFound": {
+    "title": "Page Not Found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "dashboardDescription": "This dashboard page doesn't exist.",
+    "goHome": "Go Home",
+    "goToDashboard": "Go to Dashboard"
+  },
+  "reports": {
+    "title": "Reports",
+    "description": "Generate and download club reports",
+    "generate": "Generate New Report",
+    "recent": "Recent Reports",
+    "reportType": "Report Type",
+    "period": "Period",
+    "download": "Download",
+    "downloading": "Downloading",
+    "generateSuccess": "Report generated successfully!",
+    "financial": "Financial Report",
+    "membership": "Membership Report",
+    "events": "Events Report",
+    "analytics": "Analytics Report",
+    "currentMonth": "Current Month",
+    "lastMonth": "Last Month",
+    "quarter": "This Quarter",
+    "year": "This Year"
+  },
+  "activity": {
+    "title": "Activity Log",
+    "description": "View all recent activities",
+    "all": "All Activities",
+    "payment": "Payment Activities",
+    "member": "Member Activities",
+    "event": "Event Activities",
+    "report": "Report Activities",
+    "profile": "Profile Activities",
+    "madePayment": "made a payment",
+    "joinedMember": "joined as new member",
+    "createdEvent": "created event",
+    "submittedReport": "submitted report",
+    "updatedProfile": "updated profile"
+  },
   "common": {
     "loading": "Loading...",
     "save": "Save",

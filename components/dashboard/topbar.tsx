@@ -11,9 +11,9 @@ export function DashboardTopbar() {
   const { user } = useAuth();
 
   return (
-    <header className="h-16 border-b bg-card flex items-center justify-between px-6">
-      <div className="flex items-center gap-4 flex-1">
-        <div className="relative max-w-md w-full">
+    <header className="hidden lg:flex h-16 border-b bg-card items-center justify-between px-6">
+      <div className="flex items-center gap-4 flex-1 max-w-md">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search..."

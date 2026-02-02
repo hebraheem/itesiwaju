@@ -293,6 +293,47 @@
     "de": "Allemand",
     "yo": "Yoruba"
   },
+  "notFound": {
+    "title": "Page Non Trouvée",
+    "description": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "dashboardDescription": "Cette page du tableau de bord n'existe pas.",
+    "goHome": "Retour à l'Accueil",
+    "goToDashboard": "Aller au Tableau de Bord"
+  },
+  "reports": {
+    "title": "Rapports",
+    "description": "Générer et télécharger les rapports du club",
+    "generate": "Générer un Nouveau Rapport",
+    "recent": "Rapports Récents",
+    "reportType": "Type de Rapport",
+    "period": "Période",
+    "download": "Télécharger",
+    "downloading": "Téléchargement",
+    "generateSuccess": "Rapport généré avec succès!",
+    "financial": "Rapport Financier",
+    "membership": "Rapport d'Adhésion",
+    "events": "Rapport d'Événements",
+    "analytics": "Rapport Analytique",
+    "currentMonth": "Mois en Cours",
+    "lastMonth": "Mois Dernier",
+    "quarter": "Ce Trimestre",
+    "year": "Cette Année"
+  },
+  "activity": {
+    "title": "Journal d'Activité",
+    "description": "Voir toutes les activités récentes",
+    "all": "Toutes les Activités",
+    "payment": "Activités de Paiement",
+    "member": "Activités de Membre",
+    "event": "Activités d'Événement",
+    "report": "Activités de Rapport",
+    "profile": "Activités de Profil",
+    "madePayment": "a effectué un paiement",
+    "joinedMember": "a rejoint en tant que nouveau membre",
+    "createdEvent": "a créé un événement",
+    "submittedReport": "a soumis un rapport",
+    "updatedProfile": "a mis à jour le profil"
+  },
   "common": {
     "loading": "Chargement...",
     "save": "Enregistrer",

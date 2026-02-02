@@ -293,6 +293,47 @@
     "de": "Jẹmánì",
     "yo": "Yorùbá"
   },
+  "notFound": {
+    "title": "A Ko Ri Oju-iwe",
+    "description": "Oju-iwe ti o n wa ko si tabi a ti gbe.",
+    "dashboardDescription": "Oju-iwe dasibodu yii ko si.",
+    "goHome": "Pada Si Ile",
+    "goToDashboard": "Lọ Si Dasibodu"
+  },
+  "reports": {
+    "title": "Awọn Ijabọ",
+    "description": "Ṣẹda ati gba awọn ijabọ ẹgbẹ",
+    "generate": "Ṣẹda Ijabọ Tuntun",
+    "recent": "Awọn Ijabọ Aipẹ",
+    "reportType": "Iru Ijabọ",
+    "period": "Akoko",
+    "download": "Gba",
+    "downloading": "N gba",
+    "generateSuccess": "Ijabọ ṣẹda ni aṣeyọri!",
+    "financial": "Ijabọ Owo",
+    "membership": "Ijabọ Omọ Ẹgbẹ",
+    "events": "Ijabọ Awọn Iṣẹlẹ",
+    "analytics": "Ijabọ Itupalẹ",
+    "currentMonth": "Oṣu Lọwọlọwọ",
+    "lastMonth": "Oṣu To Kọja",
+    "quarter": "Idamẹrin Yii",
+    "year": "Ọdun Yii"
+  },
+  "activity": {
+    "title": "Akọọlẹ Iṣẹ",
+    "description": "Wo gbogbo awọn iṣẹ aipẹ",
+    "all": "Gbogbo Awọn Iṣẹ",
+    "payment": "Awọn Iṣẹ Isanwo",
+    "member": "Awọn Iṣẹ Ọmọ Ẹgbẹ",
+    "event": "Awọn Iṣẹ Iṣẹlẹ",
+    "report": "Awọn Iṣẹ Ijabọ",
+    "profile": "Awọn Iṣẹ Profaili",
+    "madePayment": "ṣe isanwo",
+    "joinedMember": "darapọ bi ọmọ ẹgbẹ tuntun",
+    "createdEvent": "ṣẹda iṣẹlẹ",
+    "submittedReport": "fi ijabọ ranṣẹ",
+    "updatedProfile": "ṣe imudojuiwọn profaili"
+  },
   "common": {
     "loading": "N ṣiṣẹ...",
     "save": "Fipamọ",

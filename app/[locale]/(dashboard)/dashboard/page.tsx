@@ -1,11 +1,11 @@
-import { DashboardHome } from '@/components/dashboard/dashboard-home';
-import { Metadata } from 'next';
+import { DashboardHome } from "@/components/dashboard/dashboard-home";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Dashboard | Itesiwaju',
-  description: 'Itesiwaju Community Club Dashboard',
+  title: "Dashboard | Itesiwaju",
+  description: "Itesiwaju Community Club Dashboard",
 };
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
   return <DashboardHome />;
 }

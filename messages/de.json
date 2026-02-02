@@ -293,6 +293,47 @@
     "de": "Deutsch",
     "yo": "Yoruba"
   },
+  "notFound": {
+    "title": "Seite Nicht Gefunden",
+    "description": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "dashboardDescription": "Diese Dashboard-Seite existiert nicht.",
+    "goHome": "Zur Startseite",
+    "goToDashboard": "Zum Dashboard"
+  },
+  "reports": {
+    "title": "Berichte",
+    "description": "Clubberichte erstellen und herunterladen",
+    "generate": "Neuen Bericht Erstellen",
+    "recent": "Aktuelle Berichte",
+    "reportType": "Berichtstyp",
+    "period": "Zeitraum",
+    "download": "Herunterladen",
+    "downloading": "Wird heruntergeladen",
+    "generateSuccess": "Bericht erfolgreich erstellt!",
+    "financial": "Finanzbericht",
+    "membership": "Mitgliedschaftsbericht",
+    "events": "Veranstaltungsbericht",
+    "analytics": "Analysebericht",
+    "currentMonth": "Aktueller Monat",
+    "lastMonth": "Letzter Monat",
+    "quarter": "Dieses Quartal",
+    "year": "Dieses Jahr"
+  },
+  "activity": {
+    "title": "Aktivitätsprotokoll",
+    "description": "Alle aktuellen Aktivitäten anzeigen",
+    "all": "Alle Aktivitäten",
+    "payment": "Zahlungsaktivitäten",
+    "member": "Mitgliedsaktivitäten",
+    "event": "Veranstaltungsaktivitäten",
+    "report": "Berichtsaktivitäten",
+    "profile": "Profilaktivitäten",
+    "madePayment": "hat eine Zahlung geleistet",
+    "joinedMember": "ist als neues Mitglied beigetreten",
+    "createdEvent": "hat Veranstaltung erstellt",
+    "submittedReport": "hat Bericht eingereicht",
+    "updatedProfile": "hat Profil aktualisiert"
+  },
   "common": {
     "loading": "Laden...",
     "save": "Speichern",
