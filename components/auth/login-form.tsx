@@ -69,6 +69,7 @@ export function LoginForm() {
                 type="email"
                 name="email"
                 placeholder="your@email.com"
+                defaultValue={state.email}
                 className={state?.errors?.email ? "border-red-500" : ""}
               />
               {state?.errors?.email && (
@@ -85,6 +86,7 @@ export function LoginForm() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   name="password"
+                  defaultValue={state.password}
                   placeholder="••••••••"
                   className={
                     state?.errors?.password ? "border-red-500 pr-10" : "pr-10"

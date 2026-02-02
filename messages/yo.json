@@ -96,7 +96,7 @@
       "register": "Forukọsilẹ nibi",
       "errorMessage": "Wiwọle kuna. Jọwọ ṣayẹwo awọn alaye rẹ ki o gbiyanju lẹẹkansi.",
       "emailRequired": "Imeeli jẹ dandan tabi ko tọ",
-      "passwordRequired": "Ọrọ aṣina jẹ dandan",
+      "passwordRequired": "Ọrọ aṣina gbọdọ jẹ o kekere ju awọn ohun kikọ 8 lọ",
       "successMessage": "Wiwọle aṣeyọri! Kaabo pada."
     },
     "register": {

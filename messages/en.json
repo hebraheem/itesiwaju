@@ -96,7 +96,7 @@
       "register": "Register here",
       "errorMessage": "Invalid email or password",
       "emailRequired": "Email is required or invalid",
-      "passwordRequired": "Password is required",
+      "passwordRequired": "Password must be at least 8 characters",
       "successMessage": "Login successful! Redirecting..."
     },
     "register": {
