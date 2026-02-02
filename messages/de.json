@@ -93,7 +93,11 @@
       "forgotPassword": "Passwort vergessen?",
       "submit": "Anmelden",
       "noAccount": "Noch kein Konto?",
-      "register": "Hier registrieren"
+      "register": "Hier registrieren",
+      "errorMessage": "Ungültige E-Mail oder Passwort. Bitte versuchen Sie es erneut.",
+      "emailRequired": "E-Mail ist erforderlich",
+      "passwordRequired": "Passwort ist erforderlich",
+      "successMessage": "Erfolgreich angemeldet"
     },
     "register": {
       "title": "Itesiwaju Beitreten",
@@ -107,7 +111,14 @@
       "submit": "Konto Erstellen",
       "hasAccount": "Bereits ein Konto?",
       "login": "Hier anmelden",
-      "terms": "Ich stimme den Nutzungsbedingungen zu"
+      "terms": "Ich stimme den Nutzungsbedingungen zu",
+      "successMessage": "Registrierung erfolgreich! Bitte melden Sie sich an.",
+      "errorMessage": "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "firstNameRequired": "Vorname ist erforderlich",
+      "lastNameRequired": "Nachname ist erforderlich",
+      "phoneRequired": "Telefonnummer ist erforderlich",
+      "emailRequired": "E-Mail ist erforderlich oder ungültig",
+      "termsRequired": "Sie müssen den Nutzungsbedingungen zustimmen"
     },
     "forgotPassword": {
       "title": "Passwort Vergessen",
@@ -149,7 +160,8 @@
       "goodStanding": "Guter Stand",
       "pendingPayments": "Ausstehende Zahlungen",
       "overdue": "Überfällig",
-      "totalOutstanding": "Gesamt Ausstehend"
+      "totalOutstanding": "Gesamt Ausstehend",
+      "viewAll": "Alle Anzeigen"
     }
   },
   "sidebar": {

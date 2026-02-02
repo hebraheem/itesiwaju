@@ -93,7 +93,11 @@
       "forgotPassword": "Mot de passe oublié?",
       "submit": "Se Connecter",
       "noAccount": "Vous n'avez pas de compte?",
-      "register": "S'inscrire ici"
+      "register": "S'inscrire ici",
+      "errorMessage": "Échec de la connexion. Veuillez vérifier vos informations d'identification et réessayer.",
+      "emailRequired": "Veuillez entrer une adresse e-mail valide.",
+      "passwordRequired": "Le mot de passe est requis.",
+      "successMessage": "Connexion réussie!."
     },
     "register": {
       "title": "Rejoindre Itesiwaju",
@@ -107,7 +111,14 @@
       "submit": "Créer un Compte",
       "hasAccount": "Vous avez déjà un compte?",
       "login": "Se connecter ici",
-      "terms": "J'accepte les conditions générales"
+      "terms": "J'accepte les conditions générales",
+      "successMessage": "Inscription réussie!.",
+      "errorMessage": "Échec de l'inscription. Veuillez réessayer.",
+      "firstNameRequired": "Le prénom est requis.",
+      "lastNameRequired": "Le nom de famille est requis.",
+      "emailRequired": "Veuillez entrer une adresse e-mail valide.",
+      "phoneRequired": "Le numéro de téléphone est requis.",
+      "termsRequired": "Vous devez accepter les conditions générales."
     },
     "forgotPassword": {
       "title": "Mot de Passe Oublié",
@@ -149,7 +160,8 @@
       "goodStanding": "Bonne Position",
       "pendingPayments": "Paiements en Attente",
       "overdue": "En Retard",
-      "totalOutstanding": "Total Restant"
+      "totalOutstanding": "Total Restant",
+      "viewAll": "Voir Tout"
     }
   },
   "sidebar": {

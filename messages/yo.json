@@ -93,7 +93,11 @@
       "forgotPassword": "Gbagbe ọrọ aṣina?",
       "submit": "Wọle",
       "noAccount": "Ko ni akaun?",
-      "register": "Forukọsilẹ nibi"
+      "register": "Forukọsilẹ nibi",
+      "errorMessage": "Wiwọle kuna. Jọwọ ṣayẹwo awọn alaye rẹ ki o gbiyanju lẹẹkansi.",
+      "emailRequired": "Imeeli jẹ dandan tabi ko tọ",
+      "passwordRequired": "Ọrọ aṣina jẹ dandan",
+      "successMessage": "Wiwọle aṣeyọri! Kaabo pada."
     },
     "register": {
       "title": "Darapọ Mọ Itesiwaju",
@@ -107,7 +111,14 @@
       "submit": "Ṣẹda Akaun",
       "hasAccount": "Ni akaun tẹlẹ?",
       "login": "Wọle nibi",
-      "terms": "Mo gba awọn ofin ati ipo"
+      "terms": "Mo gba awọn ofin ati ipo",
+      "successMessage": "Iforukọsilẹ aṣeyọri! Jọwọ ṣayẹwo imeeli rẹ lati mo awọn igbesẹ to tẹle.",
+      "errorMessage": "Iforukọsilẹ kuna. Jọwọ gbiyanju lẹẹkansi.",
+      "firstNameRequired": "Orukọ akọkọ jẹ dandan tabi ko tọ",
+      "lastNameRequired": "Orukọ idile jẹ dandan tabi ko tọ",
+      "emailRequired": "Imeeli jẹ dandan tabi ko tọ",
+      "phoneRequired": "Pọ́n foonu jẹ dandan",
+      "termsRequired": "O gbọdọ gba awọn ofin ati ipo lati forukọsilẹ"
     },
     "forgotPassword": {
       "title": "Gbagbe Ọrọ Aṣina",
@@ -149,7 +160,8 @@
       "goodStanding": "Ipo Daradara",
       "pendingPayments": "Awọn Isanwo Ti Nduro",
       "overdue": "Ti Kọja Akoko",
-      "totalOutstanding": "Apapọ Ti O Ku"
+      "totalOutstanding": "Apapọ Ti O Ku",
+      "viewAll": "Wo Gbogbo Awọn Igbasilẹ"
     }
   },
   "sidebar": {

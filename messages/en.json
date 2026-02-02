@@ -93,7 +93,11 @@
       "forgotPassword": "Forgot password?",
       "submit": "Sign In",
       "noAccount": "Don't have an account?",
-      "register": "Register here"
+      "register": "Register here",
+      "errorMessage": "Invalid email or password",
+      "emailRequired": "Email is required or invalid",
+      "passwordRequired": "Password is required",
+      "successMessage": "Login successful! Redirecting..."
     },
     "register": {
       "title": "Join Itesiwaju",
@@ -107,7 +111,14 @@
       "submit": "Create Account",
       "hasAccount": "Already have an account?",
       "login": "Login here",
-      "terms": "I agree to the terms and conditions"
+      "terms": "I agree to the terms and conditions",
+      "successMessage": "Registration successful! Please check your email for the next steps.",
+      "errorMessage": "Registration failed. Please try again.",
+      "firstNameRequired": "First name must be at least 2 characters",
+      "lastNameRequired": "Last name must be at least 2 characters",
+      "emailRequired": "Email is required or invalid",
+      "phoneRequired": "Phone number is required",
+      "termsRequired": "You must agree to the terms and conditions"
     },
     "forgotPassword": {
       "title": "Forgot Password",
@@ -149,7 +160,8 @@
       "goodStanding": "Good Standing",
       "pendingPayments": "Pending Payments",
       "overdue": "Overdue",
-      "totalOutstanding": "Total Outstanding"
+      "totalOutstanding": "Total Outstanding",
+      "viewAll": "View Full Account Status"
     }
   },
   "sidebar": {

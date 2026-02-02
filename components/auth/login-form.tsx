@@ -1,55 +1,40 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Link } from '@/i18n/navigation';
-import { Eye, EyeOff, Loader2, LogIn } from 'lucide-react';
-import { toast } from 'sonner';
-import { useAuth } from '@/providers/auth-provider';
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  rememberMe: z.boolean().optional(),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { useActionState, useState } from "react";
+import { useTranslations } from "next-intl";
+import { motion } from "framer-motion";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Link } from "@/i18n/navigation";
+import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
+import { toast } from "sonner";
+import { loginAction } from "@/app/actions/login.action";
+import { useRouter } from "next/navigation";
 
 export function LoginForm() {
-  const t = useTranslations('auth.login');
-  const tErrors = useTranslations('errors');
-  const { login } = useAuth();
+  const t = useTranslations("auth.login");
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-  });
+  const [state, formAction, isPending] = useActionState(loginAction, {});
 
-  const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    try {
-      await login(data.email, data.password);
-      toast.success('Login successful!');
-    } catch (error) {
-      toast.error('Login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (String(state?.success) === "false") {
+    toast.error(t("errorMessage"));
+  }
+
+  if (state?.success) {
+    toast.success(t("successMessage"));
+    router.push("/dashboard");
+  }
 
   return (
     <motion.div
@@ -61,95 +46,110 @@ export function LoginForm() {
       <Card className="shadow-2xl border-2">
         <CardHeader className="text-center space-y-4">
           <motion.div
-            className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto"
+            className="w-16 h-16 bg-linear-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto"
             whileHover={{ rotate: 360 }}
             transition={{ duration: 0.6 }}
           >
             <LogIn className="w-8 h-8 text-white" />
           </motion.div>
           <div>
-            <CardTitle className="text-3xl font-bold">{t('title')}</CardTitle>
-            <CardDescription className="text-base mt-2">{t('subtitle')}</CardDescription>
+            <CardTitle className="text-3xl font-bold">{t("title")}</CardTitle>
+            <CardDescription className="text-base mt-2">
+              {t("subtitle")}
+            </CardDescription>
           </div>
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form action={formAction} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t('email')}</Label>
+              <Label htmlFor="email">{t("email")}</Label>
               <Input
                 id="email"
                 type="email"
+                name="email"
                 placeholder="your@email.com"
-                {...register('email')}
-                className={errors.email ? 'border-red-500' : ''}
+                className={state?.errors?.email ? "border-red-500" : ""}
               />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
+              {state?.errors?.email && (
+                <p className="text-sm text-red-500">
+                  {t(state?.errors?.email?.[0])}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">{t('password')}</Label>
+              <Label htmlFor="password">{t("password")}</Label>
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
+                  name="password"
                   placeholder="••••••••"
-                  {...register('password')}
-                  className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
+                  className={
+                    state?.errors?.password ? "border-red-500 pr-10" : "pr-10"
+                  }
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
+              {state?.errors?.password && (
+                <p className="text-sm text-red-500">
+                  {t(state?.errors?.password?.[0])}
+                </p>
               )}
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Checkbox id="remember" {...register('rememberMe')} />
+                <Checkbox id="remember" name="remember" />
                 <label
                   htmlFor="remember"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  {t('rememberMe')}
+                  {t("rememberMe")}
                 </label>
               </div>
               <Link
                 href="/forgot-password"
                 className="text-sm text-orange-600 hover:underline font-medium"
               >
-                {t('forgotPassword')}
+                {t("forgotPassword")}
               </Link>
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold"
+              className="w-full bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold"
               size="lg"
-              disabled={isLoading}
+              disabled={isPending}
             >
-              {isLoading ? (
+              {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  {t("submit")}...
                 </>
               ) : (
-                t('submit')
+                t("submit")
               )}
             </Button>
 
             <div className="text-center text-sm text-muted-foreground">
-              {t('noAccount')}{' '}
-              <Link href="/register" className="text-orange-600 hover:underline font-semibold">
-                {t('register')}
+              {t("noAccount")}{" "}
+              <Link
+                href="/register"
+                className="text-orange-600 hover:underline font-semibold"
+              >
+                {t("register")}
               </Link>
             </div>
           </form>
