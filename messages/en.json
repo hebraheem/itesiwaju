@@ -4,14 +4,21 @@
       "title": "Welcome to Itesiwaju Community Club",
       "subtitle": "Building Progress Together",
       "description": "A vibrant community dedicated to mutual growth, cultural preservation, and collective prosperity.",
-      "cta": "Join Us Today"
+      "cta": "Join Us Today",
+      "welcome": "Welcome to Itesiwaju"
     },
     "about": {
       "title": "About Itesiwaju",
       "subtitle": "Our Story and Mission",
       "description": "Itesiwaju means 'Progress' in Yoruba. We are a community club dedicated to fostering unity, cultural heritage, and financial empowerment among our members.",
       "vision": "To be the leading community organization promoting cultural values and economic progress.",
-      "mission": "Empowering members through collaboration, financial support, and cultural activities."
+      "mission": "Empowering members through collaboration, financial support, and cultural activities.",
+      "visionTitle": "Our Vision",
+      "missionTitle": "Our Mission",
+      "members": "Members",
+      "years": "Years",
+      "events": "Events Hosted",
+      "collected": "Collected"
     },
     "rules": {
       "title": "Member Rules",
@@ -21,7 +28,9 @@
       "rule3": "Respect all members and maintain dignity",
       "rule4": "Support community initiatives and events",
       "rule5": "Maintain confidentiality of club matters",
-      "rule6": "Honor financial obligations and repayment schedules"
+      "rule6": "Honor financial obligations and repayment schedules",
+      "allRules": "Goto All Rules",
+      "backToHome": "Back to Home"
     },
     "benefits": {
       "title": "Benefits of Joining",
@@ -31,13 +40,20 @@
       "benefit3": "Cultural events and celebrations",
       "benefit4": "Community support in times of need",
       "benefit5": "Educational workshops and seminars",
-      "benefit6": "Voice in community decisions"
+      "benefit6": "Voice in community decisions",
+      "allBenefits": "Goto All Benefits",
+      "backToHome": "Back to Home"
     },
     "joinUs": {
       "title": "Join Us",
       "subtitle": "Become Part of Our Community",
       "description": "Ready to be part of something bigger? Join Itesiwaju today and experience the power of community.",
-      "cta": "Register Now"
+      "cta": "Register Now",
+      "activeMembers": "Active Members",
+      "communityDriven": "Community-Driven",
+      "secureAndTested": "Secure and Tested",
+      "alreadyMember": "Already a member?",
+      "loginHere": "Login here"
     }
   },
   "navbar": {
@@ -59,7 +75,13 @@
     "followUs": "Follow Us",
     "email": "Email",
     "phone": "Phone",
-    "address": "Address"
+    "address": "Address",
+    "note": "Building progress together through community, culture, and collective prosperity.",
+    "aboutUs": "About Us",
+    "rules": "Rules",
+    "benefits": "Benefits",
+    "login": "Login",
+    "register": "Register"
   },
   "auth": {
     "login": {

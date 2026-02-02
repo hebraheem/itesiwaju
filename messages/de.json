@@ -4,14 +4,21 @@
       "title": "Willkommen beim Itesiwaju Community Club",
       "subtitle": "Gemeinsam Fortschritt Aufbauen",
       "description": "Eine lebendige Gemeinschaft, die sich dem gegenseitigen Wachstum, der kulturellen Bewahrung und dem kollektiven Wohlstand widmet.",
-      "cta": "Treten Sie Uns Heute Bei"
+      "cta": "Treten Sie Uns Heute Bei",
+      "welcome": "Willkommen bei Itesiwaju"
     },
     "about": {
       "title": "Über Itesiwaju",
       "subtitle": "Unsere Geschichte und Mission",
       "description": "Itesiwaju bedeutet 'Fortschritt' auf Yoruba. Wir sind ein Community-Club, der sich der Förderung von Einheit, kulturellem Erbe und finanzieller Stärkung unserer Mitglieder widmet.",
       "vision": "Die führende Gemeinschaftsorganisation zu sein, die kulturelle Werte und wirtschaftlichen Fortschritt fördert.",
-      "mission": "Mitglieder durch Zusammenarbeit, finanzielle Unterstützung und kulturelle Aktivitäten stärken."
+      "mission": "Mitglieder durch Zusammenarbeit, finanzielle Unterstützung und kulturelle Aktivitäten stärken.",
+      "visionTitle": "Unsere Vision",
+      "missionTitle": "Unsere Mission",
+      "members": "Mitglieder",
+      "years": "Jahre",
+      "events": "Veranstaltete Events",
+      "collected": "Gesammelt"
     },
     "rules": {
       "title": "Mitgliederregeln",
@@ -21,7 +28,9 @@
       "rule3": "Alle Mitglieder respektieren und Würde wahren",
       "rule4": "Gemeinschaftsinitiativen und Veranstaltungen unterstützen",
       "rule5": "Vertraulichkeit der Club-Angelegenheiten wahren",
-      "rule6": "Finanzielle Verpflichtungen und Rückzahlungspläne einhalten"
+      "rule6": "Finanzielle Verpflichtungen und Rückzahlungspläne einhalten",
+      "allRules": "Zu Allen Regeln Gehen",
+      "backToHome": "Zurück zur Startseite"
     },
     "benefits": {
       "title": "Vorteile der Mitgliedschaft",
@@ -31,13 +40,20 @@
       "benefit3": "Kulturelle Veranstaltungen und Feiern",
       "benefit4": "Gemeinschaftsunterstützung in Zeiten der Not",
       "benefit5": "Bildungsworkshops und Seminare",
-      "benefit6": "Mitsprache bei Gemeinschaftsentscheidungen"
+      "benefit6": "Mitsprache bei Gemeinschaftsentscheidungen",
+      "allBenefits": "Zu Allen Vorteilen Gehen",
+      "backToHome": "Zurück zur Startseite"
     },
     "joinUs": {
       "title": "Treten Sie Uns Bei",
       "subtitle": "Werden Sie Teil Unserer Gemeinschaft",
       "description": "Bereit, Teil von etwas Größerem zu sein? Treten Sie Itesiwaju heute bei und erleben Sie die Kraft der Gemeinschaft.",
-      "cta": "Jetzt Registrieren"
+      "cta": "Jetzt Registrieren",
+      "activeMembers": "Aktive Mitglieder",
+      "communityDriven": "Gemeinschaftsorientiert",
+      "secureAndTested": "Sicher und Erprobt",
+      "alreadyMember": "Bereits Mitglied?",
+      "loginHere": "Hier Anmelden"
     }
   },
   "navbar": {
@@ -59,7 +75,13 @@
     "followUs": "Folgen Sie Uns",
     "email": "E-Mail",
     "phone": "Telefon",
-    "address": "Adresse"
+    "address": "Adresse",
+    "note": "Gemeinsam Fortschritt durch Gemeinschaft, Kultur und kollektiven Wohlstand aufbauen.",
+    "aboutUs": "Über Uns",
+    "rules": "Regeln",
+    "benefits": "Vorteile",
+    "login": "Anmelden",
+    "register": "Registrieren"
   },
   "auth": {
     "login": {

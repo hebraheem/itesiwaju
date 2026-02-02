@@ -4,14 +4,21 @@
       "title": "Kaabo si Ẹgbẹ Awujo Itesiwaju",
       "subtitle": "A n Ko Ilọsiwaju Pọ",
       "description": "Awujo ti o lagbara ti o ti pinnu si idagbasoke ajọpọ, itọju aṣa, ati ọrọ ajọ.",
-      "cta": "Darapọ Mọ Wa Loni"
+      "cta": "Darapọ Mọ Wa Loni",
+      "welcome": "Kaabo si Itesiwaju"
     },
     "about": {
       "title": "Nipa Itesiwaju",
       "subtitle": "Itan Wa ati Ibi-afẹdẹ Wa",
       "description": "Itesiwaju tumọ si 'Ilọsiwaju' ni ede Yoruba. A jẹ ẹgbẹ awujo ti a ti pinnu lati gbe isokan duro, aṣa-ibatan, ati agbara owo laarin awọn ọmọ ẹgbẹ wa.",
       "vision": "Lati jẹ agbari awujo ti o n ṣe igbega awọn iye aṣa ati ilọsiwaju ọrọ-aje.",
-      "mission": "Fifun awọn ọmọ ẹgbẹ ni agbara nipasẹ ifowosowopo, atilẹyin owo, ati awọn iṣẹ aṣa."
+      "mission": "Fifun awọn ọmọ ẹgbẹ ni agbara nipasẹ ifowosowopo, atilẹyin owo, ati awọn iṣẹ aṣa.",
+      "visionTitle": "Iran Wa",
+      "missionTitle": "Ibi-afẹdẹ",
+      "members": "Awọn Ọmọ Ẹgbẹ",
+      "years": "Ọdun",
+      "events": "Awọn Iṣẹlẹ Ti a Ṣeto",
+      "collected": "Ti Gba"
     },
     "rules": {
       "title": "Awọn Ofin Ọmọ Ẹgbẹ",
@@ -21,7 +28,9 @@
       "rule3": "Bọwọ fun gbogbo awọn ọmọ ẹgbẹ ki o si tọju ọla",
       "rule4": "Ṣe atilẹyin awọn iṣẹ akanṣe awujo ati awọn iṣẹlẹ",
       "rule5": "Tọju aṣiri ti awọn ọran ẹgbẹ",
-      "rule6": "Bọwọ fun awọn ojuṣe owo ati awọn eto isanwo"
+      "rule6": "Bọwọ fun awọn ojuṣe owo ati awọn eto isanwo",
+      "allRules": "Lọ si Gbogbo Awọn Ofin",
+      "backToHome": "Pada si Ile"
     },
     "benefits": {
       "title": "Awọn Anfani ti Idapọ",
@@ -31,13 +40,20 @@
       "benefit3": "Awọn iṣẹlẹ aṣa ati awọn ayẹyẹ",
       "benefit4": "Atilẹyin awujo ni awọn akoko ti aini",
       "benefit5": "Awọn iṣẹ-ẹkọ ati awọn apejọ",
-      "benefit6": "Ohun ni awọn ipinnu awujo"
+      "benefit6": "Ohun ni awọn ipinnu awujo",
+      "allBenefits": "Lọ si Gbogbo Awọn Anfani",
+      "backToHome": "Pada si Ile"
     },
     "joinUs": {
       "title": "Darapọ Mọ Wa",
       "subtitle": "Di Apakan ti Awujo Wa",
       "description": "Ṣetan lati jẹ apakan ti ohun ti o tobi ju? Darapọ mọ Itesiwaju loni ki o ni iriri agbara awujo.",
-      "cta": "Forukọsilẹ Bayi"
+      "cta": "Forukọsilẹ Bayi",
+      "activeMembers": "Awọn Ọmọ Ẹgbẹ Ti Nṣiṣẹ",
+      "communityDriven": "Ti Awujo Ṣiṣẹ",
+      "secureAndTested": "Ailewu ati Ti Danwo",
+      "alreadyMember": "Ṣe o ti jẹ ọmọ ẹgbẹ tẹlẹ?",
+      "loginHere": "Wọle nibi"
     }
   },
   "navbar": {
@@ -59,7 +75,13 @@
     "followUs": "Tẹle Wa",
     "email": "Imeeli",
     "phone": "Foonu",
-    "address": "Adirẹsi"
+    "address": "Adirẹsi",
+    "note": "Kíkó ilosiwaju pọ nipasẹ awujo, aṣa, ati ọrọ ajọ.",
+    "aboutUs": "Nipa Wa",
+    "rules": "Ofin",
+    "benefits": "Anfani",
+    "login": "Wọle",
+    "register": "Forukọsilẹ"
   },
   "auth": {
     "login": {
