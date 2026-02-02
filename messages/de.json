@@ -1,0 +1,298 @@
+{
+  "home": {
+    "hero": {
+      "title": "Willkommen beim Itesiwaju Community Club",
+      "subtitle": "Gemeinsam Fortschritt Aufbauen",
+      "description": "Eine lebendige Gemeinschaft, die sich dem gegenseitigen Wachstum, der kulturellen Bewahrung und dem kollektiven Wohlstand widmet.",
+      "cta": "Treten Sie Uns Heute Bei"
+    },
+    "about": {
+      "title": "Über Itesiwaju",
+      "subtitle": "Unsere Geschichte und Mission",
+      "description": "Itesiwaju bedeutet 'Fortschritt' auf Yoruba. Wir sind ein Community-Club, der sich der Förderung von Einheit, kulturellem Erbe und finanzieller Stärkung unserer Mitglieder widmet.",
+      "vision": "Die führende Gemeinschaftsorganisation zu sein, die kulturelle Werte und wirtschaftlichen Fortschritt fördert.",
+      "mission": "Mitglieder durch Zusammenarbeit, finanzielle Unterstützung und kulturelle Aktivitäten stärken."
+    },
+    "rules": {
+      "title": "Mitgliederregeln",
+      "subtitle": "Richtlinien für die Mitgliedschaft",
+      "rule1": "Regelmäßig an monatlichen Hauptversammlungen teilnehmen",
+      "rule2": "Beiträge und Zahlungen pünktlich leisten",
+      "rule3": "Alle Mitglieder respektieren und Würde wahren",
+      "rule4": "Gemeinschaftsinitiativen und Veranstaltungen unterstützen",
+      "rule5": "Vertraulichkeit der Club-Angelegenheiten wahren",
+      "rule6": "Finanzielle Verpflichtungen und Rückzahlungspläne einhalten"
+    },
+    "benefits": {
+      "title": "Vorteile der Mitgliedschaft",
+      "subtitle": "Was Sie als Mitglied Gewinnen",
+      "benefit1": "Zugang zu finanzieller Unterstützung und Darlehen",
+      "benefit2": "Networking-Möglichkeiten mit Gleichgesinnten",
+      "benefit3": "Kulturelle Veranstaltungen und Feiern",
+      "benefit4": "Gemeinschaftsunterstützung in Zeiten der Not",
+      "benefit5": "Bildungsworkshops und Seminare",
+      "benefit6": "Mitsprache bei Gemeinschaftsentscheidungen"
+    },
+    "joinUs": {
+      "title": "Treten Sie Uns Bei",
+      "subtitle": "Werden Sie Teil Unserer Gemeinschaft",
+      "description": "Bereit, Teil von etwas Größerem zu sein? Treten Sie Itesiwaju heute bei und erleben Sie die Kraft der Gemeinschaft.",
+      "cta": "Jetzt Registrieren"
+    }
+  },
+  "navbar": {
+    "home": "Startseite",
+    "about": "Über Uns",
+    "rules": "Regeln",
+    "benefits": "Vorteile",
+    "joinUs": "Beitreten",
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "dashboard": "Dashboard"
+  },
+  "footer": {
+    "about": "Über Uns",
+    "contact": "Kontakt",
+    "privacy": "Datenschutz",
+    "terms": "Nutzungsbedingungen",
+    "copyright": "© 2026 Itesiwaju Community Club. Alle Rechte vorbehalten.",
+    "followUs": "Folgen Sie Uns",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "address": "Adresse"
+  },
+  "auth": {
+    "login": {
+      "title": "Willkommen Zurück",
+      "subtitle": "Melden Sie sich bei Ihrem Konto an",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "rememberMe": "Angemeldet bleiben",
+      "forgotPassword": "Passwort vergessen?",
+      "submit": "Anmelden",
+      "noAccount": "Noch kein Konto?",
+      "register": "Hier registrieren"
+    },
+    "register": {
+      "title": "Itesiwaju Beitreten",
+      "subtitle": "Erstellen Sie Ihr Konto",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "phone": "Telefonnummer",
+      "password": "Passwort",
+      "confirmPassword": "Passwort Bestätigen",
+      "submit": "Konto Erstellen",
+      "hasAccount": "Bereits ein Konto?",
+      "login": "Hier anmelden",
+      "terms": "Ich stimme den Nutzungsbedingungen zu"
+    },
+    "forgotPassword": {
+      "title": "Passwort Vergessen",
+      "subtitle": "Setzen Sie Ihr Passwort zurück",
+      "email": "E-Mail",
+      "submit": "Reset-Link Senden",
+      "backToLogin": "Zurück zur Anmeldung",
+      "successMessage": "Passwort-Reset-Link wurde an Ihre E-Mail gesendet"
+    }
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück, {name}",
+    "overview": "Dashboard-Übersicht",
+    "stats": {
+      "totalMembers": "Gesamtmitglieder",
+      "eventsThisMonth": "Veranstaltungen Diesen Monat",
+      "totalCollections": "Gesamtsammlungen",
+      "pendingPayments": "Ausstehende Zahlungen"
+    },
+    "quickActions": {
+      "title": "Schnellaktionen",
+      "createEvent": "Veranstaltung Erstellen",
+      "addMember": "Mitglied Hinzufügen",
+      "recordPayment": "Zahlung Erfassen",
+      "viewReports": "Berichte Anzeigen"
+    },
+    "upcomingEvents": {
+      "title": "Kommende Veranstaltungen",
+      "viewAll": "Alle Anzeigen",
+      "online": "Online",
+      "inPerson": "Persönlich"
+    },
+    "recentActivity": {
+      "title": "Letzte Aktivität",
+      "viewAll": "Alle Anzeigen"
+    },
+    "accountStatus": {
+      "title": "Kontostatusübersicht",
+      "goodStanding": "Guter Stand",
+      "pendingPayments": "Ausstehende Zahlungen",
+      "overdue": "Überfällig",
+      "totalOutstanding": "Gesamt Ausstehend"
+    }
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "events": "Veranstaltungen",
+    "members": "Mitglieder",
+    "accountStatus": "Kontostatus",
+    "settings": "Einstellungen",
+    "profile": "Profil"
+  },
+  "events": {
+    "title": "Veranstaltungen",
+    "upcoming": "Kommende Veranstaltungen",
+    "past": "Vergangene Veranstaltungen",
+    "create": "Veranstaltung Erstellen",
+    "edit": "Veranstaltung Bearbeiten",
+    "delete": "Veranstaltung Löschen",
+    "details": "Veranstaltungsdetails",
+    "noEvents": "Keine Veranstaltungen gefunden",
+    "form": {
+      "title": "Veranstaltungstitel",
+      "description": "Beschreibung",
+      "date": "Datum",
+      "time": "Uhrzeit",
+      "location": "Ort",
+      "status": "Status",
+      "type": "Veranstaltungstyp",
+      "submit": "Veranstaltung Speichern",
+      "cancel": "Abbrechen"
+    },
+    "status": {
+      "confirmed": "Bestätigt",
+      "pending": "Ausstehend",
+      "cancelled": "Abgesagt",
+      "completed": "Abgeschlossen"
+    },
+    "type": {
+      "meeting": "Besprechung",
+      "workshop": "Workshop",
+      "social": "Sozial",
+      "fundraiser": "Spendenaktion"
+    }
+  },
+  "members": {
+    "title": "Mitglieder",
+    "totalMembers": "Gesamtmitglieder",
+    "activeMembers": "Aktive Mitglieder",
+    "search": "Mitglieder suchen...",
+    "filter": "Filtern",
+    "addMember": "Mitglied Hinzufügen",
+    "editMember": "Mitglied Bearbeiten",
+    "memberDetails": "Mitgliederdetails",
+    "noMembers": "Keine Mitglieder gefunden",
+    "status": {
+      "active": "Aktiv",
+      "suspended": "Suspendiert",
+      "inactive": "Inaktiv"
+    },
+    "form": {
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "role": "Rolle",
+      "status": "Status",
+      "joinDate": "Beitrittsdatum",
+      "submit": "Mitglied Speichern",
+      "cancel": "Abbrechen"
+    },
+    "role": {
+      "admin": "Administrator",
+      "member": "Mitglied",
+      "executive": "Vorstand"
+    }
+  },
+  "accountStatus": {
+    "title": "Kontostatus",
+    "memberName": "Mitgliedsname",
+    "search": "Mitglieder suchen...",
+    "noRecords": "Keine Einträge gefunden",
+    "details": {
+      "borrowedAmount": "Geliehener Betrag",
+      "dueDate": "Fälligkeitsdatum",
+      "fineAmount": "Bußgeldbetrag",
+      "paymentHistory": "Zahlungshistorie",
+      "currentBalance": "Aktueller Saldo",
+      "accountStatus": "Kontostatus"
+    },
+    "status": {
+      "goodStanding": "Guter Stand",
+      "owing": "Schuldig",
+      "overdue": "Überfällig"
+    },
+    "payment": {
+      "recordPayment": "Zahlung Erfassen",
+      "amount": "Betrag",
+      "date": "Zahlungsdatum",
+      "method": "Zahlungsmethode",
+      "notes": "Notizen",
+      "submit": "Zahlung Erfassen"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "profile": "Profileinstellungen",
+    "account": "Kontoeinstellungen",
+    "notifications": "Benachrichtigungen",
+    "language": "Sprache",
+    "theme": "Design",
+    "save": "Änderungen Speichern",
+    "cancel": "Abbrechen"
+  },
+  "profile": {
+    "title": "Mein Profil",
+    "edit": "Profil Bearbeiten",
+    "personalInfo": "Persönliche Informationen",
+    "contactInfo": "Kontaktinformationen",
+    "accountInfo": "Kontoinformationen"
+  },
+  "theme": {
+    "toggle": "Design umschalten",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  },
+  "locale": {
+    "en": "Englisch",
+    "fr": "Französisch",
+    "de": "Deutsch",
+    "yo": "Yoruba"
+  },
+  "common": {
+    "loading": "Laden...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "view": "Anzeigen",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "export": "Exportieren",
+    "import": "Importieren",
+    "confirm": "Bestätigen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "submit": "Absenden",
+    "close": "Schließen",
+    "yes": "Ja",
+    "no": "Nein",
+    "success": "Erfolg",
+    "error": "Fehler",
+    "warning": "Warnung",
+    "info": "Info"
+  },
+  "errors": {
+    "required": "Dieses Feld ist erforderlich",
+    "invalidEmail": "Ungültige E-Mail-Adresse",
+    "invalidPhone": "Ungültige Telefonnummer",
+    "passwordMismatch": "Passwörter stimmen nicht überein",
+    "minLength": "Mindestlänge beträgt {min} Zeichen",
+    "maxLength": "Maximale Länge beträgt {max} Zeichen",
+    "networkError": "Netzwerkfehler. Bitte versuchen Sie es erneut.",
+    "unauthorized": "Sie sind nicht berechtigt, diese Aktion auszuführen",
+    "notFound": "Ressource nicht gefunden",
+    "serverError": "Serverfehler. Bitte versuchen Sie es später erneut."
+  }
+}

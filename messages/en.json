@@ -1,0 +1,298 @@
+{
+  "home": {
+    "hero": {
+      "title": "Welcome to Itesiwaju Community Club",
+      "subtitle": "Building Progress Together",
+      "description": "A vibrant community dedicated to mutual growth, cultural preservation, and collective prosperity.",
+      "cta": "Join Us Today"
+    },
+    "about": {
+      "title": "About Itesiwaju",
+      "subtitle": "Our Story and Mission",
+      "description": "Itesiwaju means 'Progress' in Yoruba. We are a community club dedicated to fostering unity, cultural heritage, and financial empowerment among our members.",
+      "vision": "To be the leading community organization promoting cultural values and economic progress.",
+      "mission": "Empowering members through collaboration, financial support, and cultural activities."
+    },
+    "rules": {
+      "title": "Member Rules",
+      "subtitle": "Guidelines for Membership",
+      "rule1": "Attend monthly general meetings regularly",
+      "rule2": "Pay dues and contributions on time",
+      "rule3": "Respect all members and maintain dignity",
+      "rule4": "Support community initiatives and events",
+      "rule5": "Maintain confidentiality of club matters",
+      "rule6": "Honor financial obligations and repayment schedules"
+    },
+    "benefits": {
+      "title": "Benefits of Joining",
+      "subtitle": "What You Gain as a Member",
+      "benefit1": "Access to financial assistance and loans",
+      "benefit2": "Networking opportunities with like-minded individuals",
+      "benefit3": "Cultural events and celebrations",
+      "benefit4": "Community support in times of need",
+      "benefit5": "Educational workshops and seminars",
+      "benefit6": "Voice in community decisions"
+    },
+    "joinUs": {
+      "title": "Join Us",
+      "subtitle": "Become Part of Our Community",
+      "description": "Ready to be part of something bigger? Join Itesiwaju today and experience the power of community.",
+      "cta": "Register Now"
+    }
+  },
+  "navbar": {
+    "home": "Home",
+    "about": "About",
+    "rules": "Rules",
+    "benefits": "Benefits",
+    "joinUs": "Join Us",
+    "login": "Login",
+    "logout": "Logout",
+    "dashboard": "Dashboard"
+  },
+  "footer": {
+    "about": "About Us",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© 2026 Itesiwaju Community Club. All rights reserved.",
+    "followUs": "Follow Us",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Login to your account",
+      "email": "Email",
+      "password": "Password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "register": "Register here"
+    },
+    "register": {
+      "title": "Join Itesiwaju",
+      "subtitle": "Create your account",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "phone": "Phone Number",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "submit": "Create Account",
+      "hasAccount": "Already have an account?",
+      "login": "Login here",
+      "terms": "I agree to the terms and conditions"
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "subtitle": "Reset your password",
+      "email": "Email",
+      "submit": "Send Reset Link",
+      "backToLogin": "Back to login",
+      "successMessage": "Password reset link sent to your email"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back, {name}",
+    "overview": "Dashboard Overview",
+    "stats": {
+      "totalMembers": "Total Members",
+      "eventsThisMonth": "Events This Month",
+      "totalCollections": "Total Collections",
+      "pendingPayments": "Pending Payments"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "createEvent": "Create Event",
+      "addMember": "Add Member",
+      "recordPayment": "Record Payment",
+      "viewReports": "View Reports"
+    },
+    "upcomingEvents": {
+      "title": "Upcoming Events",
+      "viewAll": "View All",
+      "online": "Online",
+      "inPerson": "In Person"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "viewAll": "View All"
+    },
+    "accountStatus": {
+      "title": "Account Status Overview",
+      "goodStanding": "Good Standing",
+      "pendingPayments": "Pending Payments",
+      "overdue": "Overdue",
+      "totalOutstanding": "Total Outstanding"
+    }
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "events": "Events",
+    "members": "Members",
+    "accountStatus": "Account Status",
+    "settings": "Settings",
+    "profile": "Profile"
+  },
+  "events": {
+    "title": "Events",
+    "upcoming": "Upcoming Events",
+    "past": "Past Events",
+    "create": "Create Event",
+    "edit": "Edit Event",
+    "delete": "Delete Event",
+    "details": "Event Details",
+    "noEvents": "No events found",
+    "form": {
+      "title": "Event Title",
+      "description": "Description",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location",
+      "status": "Status",
+      "type": "Event Type",
+      "submit": "Save Event",
+      "cancel": "Cancel"
+    },
+    "status": {
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
+    "type": {
+      "meeting": "Meeting",
+      "workshop": "Workshop",
+      "social": "Social",
+      "fundraiser": "Fundraiser"
+    }
+  },
+  "members": {
+    "title": "Members",
+    "totalMembers": "Total Members",
+    "activeMembers": "Active Members",
+    "search": "Search members...",
+    "filter": "Filter",
+    "addMember": "Add Member",
+    "editMember": "Edit Member",
+    "memberDetails": "Member Details",
+    "noMembers": "No members found",
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "inactive": "Inactive"
+    },
+    "form": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "phone": "Phone",
+      "role": "Role",
+      "status": "Status",
+      "joinDate": "Join Date",
+      "submit": "Save Member",
+      "cancel": "Cancel"
+    },
+    "role": {
+      "admin": "Admin",
+      "member": "Member",
+      "executive": "Executive"
+    }
+  },
+  "accountStatus": {
+    "title": "Account Status",
+    "memberName": "Member Name",
+    "search": "Search members...",
+    "noRecords": "No records found",
+    "details": {
+      "borrowedAmount": "Borrowed Amount",
+      "dueDate": "Due Date",
+      "fineAmount": "Fine Amount",
+      "paymentHistory": "Payment History",
+      "currentBalance": "Current Balance",
+      "accountStatus": "Account Status"
+    },
+    "status": {
+      "goodStanding": "Good Standing",
+      "owing": "Owing",
+      "overdue": "Overdue"
+    },
+    "payment": {
+      "recordPayment": "Record Payment",
+      "amount": "Amount",
+      "date": "Payment Date",
+      "method": "Payment Method",
+      "notes": "Notes",
+      "submit": "Record Payment"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": "Profile Settings",
+    "account": "Account Settings",
+    "notifications": "Notifications",
+    "language": "Language",
+    "theme": "Theme",
+    "save": "Save Changes",
+    "cancel": "Cancel"
+  },
+  "profile": {
+    "title": "My Profile",
+    "edit": "Edit Profile",
+    "personalInfo": "Personal Information",
+    "contactInfo": "Contact Information",
+    "accountInfo": "Account Information"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "locale": {
+    "en": "English",
+    "fr": "French",
+    "de": "German",
+    "yo": "Yoruba"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "invalidPhone": "Invalid phone number",
+    "passwordMismatch": "Passwords do not match",
+    "minLength": "Minimum length is {min} characters",
+    "maxLength": "Maximum length is {max} characters",
+    "networkError": "Network error. Please try again.",
+    "unauthorized": "You are not authorized to perform this action",
+    "notFound": "Resource not found",
+    "serverError": "Server error. Please try again later."
+  }
+}
