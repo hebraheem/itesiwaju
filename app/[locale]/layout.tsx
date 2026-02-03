@@ -10,6 +10,7 @@ import { ReactNode } from "react";
 import { PAGE_PADDING_X, ROOT_LAYOUT_HEADER_HEIGHT } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { ConvexClientProvider } from "@/providers/ConvexProvider";
+import { AuthProvider } from "@/providers/auth-provider";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -69,15 +70,17 @@ export default async function RootLayout({ children, params }: Props) {
       >
         <NextIntlClientProvider>
           <ConvexClientProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-              <Toaster position="top-center" richColors />
-            </ThemeProvider>
+            <AuthProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                {children}
+                <Toaster position="top-center" richColors />
+              </ThemeProvider>
+            </AuthProvider>
           </ConvexClientProvider>
         </NextIntlClientProvider>
       </body>

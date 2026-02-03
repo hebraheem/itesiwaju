@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Loader2, Check, UserPlus, ArrowRight, ArrowLeft } from "lucide-react";
 import { registerAction, RegisterState } from "@/app/actions/register.action";
 import { Button } from "@/components/ui/button";
@@ -30,14 +30,20 @@ export function RegisterForm() {
   const t = useTranslations("auth.register");
   const router = useRouter();
 
-  if (state.success) {
-    router.push("/");
-    toast.success(t("successMessage"));
-  }
+  useEffect(
+    () => {
+      if (state.success) {
+        router.push("/");
+        toast.success(t("successMessage"));
+      }
 
-  if (String(state.success) === "false") {
-    toast.error(t("errorMessage"));
-  }
+      if (String(state.success) === "false") {
+        toast.error(t("errorMessage"));
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state.success],
+  );
 
   return (
     <MotionDiv

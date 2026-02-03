@@ -1,6 +1,8 @@
 "use server";
 
 import { registerSchema } from "@/app/schemas/registration.schema";
+import { convexServer } from "@/lib/convexServer";
+import { api } from "@/convex/_generated/api";
 
 export type RegisterState = {
   errors?: Record<string, string>;
@@ -32,6 +34,22 @@ export async function registerAction(
         ...Object.fromEntries(formData.entries()),
       };
     }
+    const passwordHash = await convexServer.action(
+      api.auth.actions.hashPassword,
+      {
+        password: `pass@${lastName.toLowerCase()}123!`,
+      },
+    );
+    console.log(
+      "`pass@${lastName.toLowerCase()}123!`",
+      `pass@${lastName.toLowerCase()}123!`,
+    );
+
+    const { terms: _, ...registrationData } = parsed.data;
+    await convexServer.mutation(api.users.createUser, {
+      ...registrationData,
+      password: passwordHash,
+    });
     return { success: true, message: "Registration successful!" };
   } catch (e: any) {
     return {

@@ -1,6 +1,7 @@
 "use server";
 
 import { loginSchema } from "@/app/schemas/login.schema";
+import { signIn } from "@/lib/auth";
 
 export type RegisterState = {
   errors?: Record<string, string>;
@@ -26,6 +27,11 @@ export async function loginAction(
         ...Object.fromEntries(formData.entries()),
       };
     }
+    await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    });
     return { success: true, message: "Login successful!" };
   } catch (e: any) {
     return {

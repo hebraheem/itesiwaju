@@ -14,7 +14,8 @@ import {
   FileText,
   Activity as ActivityIcon,
 } from "lucide-react";
-import { useAuth } from "@/providers/auth-provider";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -25,18 +26,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
   const t = useTranslations("sidebar");
   const pathname = usePathname();
-  const { user, logout } = {
-    user: {
-      firstName: "Adebayo",
-      lastName: "Okon",
-      email: "adebayo@gmail.com",
-      role: "admin",
-      status: "active",
-    },
-    logout: () => {
-      console.log("Logged out");
-    },
-  };
+  const { user, isAdmin } = useAuth();
 
   const navItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: t("dashboard") },
@@ -135,20 +125,19 @@ export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
         <div className="flex items-center gap-3 mb-3">
           <Avatar>
             <AvatarFallback className="bg-orange-500 text-white">
-              {user?.firstName[0]}
-              {user?.lastName[0]}
+              {user?.name?.[0] || "U"}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm truncate">
-              {user?.firstName} {user?.lastName}
+              {user?.name}
             </p>
             <p className="text-xs text-muted-foreground capitalize">
               {user?.role}
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" className="w-full" onClick={logout}>
+        <Button variant="outline" size="sm" className="w-full" onClick={() => signOut()}>
           <LogOut className="w-4 h-4 mr-2" />
           Logout
         </Button>

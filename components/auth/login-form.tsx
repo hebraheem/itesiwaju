@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import {
@@ -27,14 +27,23 @@ export function LoginForm() {
 
   const [state, formAction, isPending] = useActionState(loginAction, {});
 
-  if (String(state?.success) === "false") {
-    toast.error(t("errorMessage"));
-  }
+  console.log("state", state);
 
-  if (state?.success) {
-    toast.success(t("successMessage"));
-    router.push("/dashboard");
-  }
+  useEffect(
+    () => {
+      if (String(state?.success) === "false") {
+        console.error("state.error", state.message);
+        toast.error(t("errorMessage"));
+      }
+
+      if (state?.success) {
+        toast.success(t("successMessage"));
+        router.push("/dashboard");
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state.success],
+  );
 
   return (
     <motion.div
