@@ -25,14 +25,25 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
   const t = useTranslations("sidebar");
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout } = {
+    user: {
+      firstName: "Adebayo",
+      lastName: "Okon",
+      email: "adebayo@gmail.com",
+      role: "admin",
+      status: "active",
+    },
+    logout: () => {
+      console.log("Logged out");
+    },
+  };
 
   const navItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: t("dashboard") },
     { href: "/events", icon: Calendar, label: t("events") },
     { href: "/members", icon: Users, label: t("members") },
     { href: "/account-status", icon: Wallet, label: t("accountStatus") },
-    { href: "/reports", icon: FileText, label: "Reports" },
+    // { href: "/reports", icon: FileText, label: "Reports" },
     { href: "/activity", icon: ActivityIcon, label: "Activity" },
   ];
 

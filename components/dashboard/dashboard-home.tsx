@@ -69,12 +69,12 @@ export function DashboardHome() {
       href: "/account-status",
       color: "bg-green-500",
     },
-    {
-      icon: FileText,
-      label: t("quickActions.viewReports"),
-      href: "/reports",
-      color: "bg-purple-500",
-    },
+    // {
+    //   icon: FileText,
+    //   label: t("quickActions.viewReports"),
+    //   href: "/reports",
+    //   color: "bg-purple-500",
+    // },
   ];
 
   const upcomingEvents = [
