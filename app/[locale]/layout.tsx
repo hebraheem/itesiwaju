@@ -69,8 +69,8 @@ export default async function RootLayout({ children, params }: Props) {
         className={`${montserrat.variable} ${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-zinc-50 font-sans dark:bg-black`}
       >
         <NextIntlClientProvider>
-          <ConvexClientProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <ConvexClientProvider>
               <ThemeProvider
                 attribute="class"
                 defaultTheme="system"
@@ -80,8 +80,8 @@ export default async function RootLayout({ children, params }: Props) {
                 {children}
                 <Toaster position="top-center" richColors />
               </ThemeProvider>
-            </AuthProvider>
-          </ConvexClientProvider>
+            </ConvexClientProvider>
+          </AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>

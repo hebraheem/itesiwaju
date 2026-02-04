@@ -8,52 +8,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Plus, Search, Users, UserCheck, UserX } from "lucide-react";
+import { Plus, Search, Users, UserCheck, UserX, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { usePaginatedQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
-
-const mockMembers = [
-  {
-    id: "1",
-    firstName: "Adebayo",
-    lastName: "Okon",
-    email: "adebayo@email.com",
-    phone: "+234 123 456 7890",
-    role: "admin",
-    status: "active",
-  },
-  {
-    id: "2",
-    firstName: "Chioma",
-    lastName: "Okoro",
-    email: "chioma@email.com",
-    phone: "+234 123 456 7891",
-    role: "member",
-    status: "active",
-  },
-  {
-    id: "3",
-    firstName: "Tunde",
-    lastName: "Adeyemi",
-    email: "tunde@email.com",
-    phone: "+234 123 456 7892",
-    role: "executive",
-    status: "active",
-  },
-];
+import { useQuery } from "convex/react";
 
 export function MembersList() {
   const { data: session } = useSession();
   const [query, setQuery] = useState({ search: "", limit: 10 });
-  const { results } = usePaginatedQuery(
+  const { results, loadMore, isLoading, status } = usePaginatedQuery(
     api.users.getUsers,
-    session?.user?.email ? { userEmail: session.user.email } : "skip",
+    { userEmail: session?.user.email ?? "", ...query },
     {
       initialNumItems: 10,
     },
   );
-  console.log("getUsers", results);
+
+  const getMemberStats = useQuery(api.users.getMemberStats);
 
   return (
     <div className="space-y-6">
@@ -79,16 +51,21 @@ export function MembersList() {
           {
             icon: Users,
             label: "Total Members",
-            value: "248",
+            value: getMemberStats?.totalMembers ?? "0",
             color: "bg-blue-500",
           },
           {
             icon: UserCheck,
             label: "Active",
-            value: "230",
+            value: getMemberStats?.activeMembers ?? "0",
             color: "bg-green-500",
           },
-          { icon: UserX, label: "Suspended", value: "18", color: "bg-red-500" },
+          {
+            icon: UserX,
+            label: "Suspended",
+            value: getMemberStats?.suspendedMembers ?? "0",
+            color: "bg-red-500",
+          },
         ].map((stat, i) => (
           <Card key={i}>
             <CardContent className="p-6 flex items-center gap-4">
@@ -115,11 +92,15 @@ export function MembersList() {
           className="pl-10"
         />
       </div>
-
+      {isLoading && status !== "LoadingMore" && (
+        <div className="flex justify-center items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin justify-center" />
+        </div>
+      )}
       <div className="grid gap-4">
-        {mockMembers.map((member, index) => (
+        {results.map((member, index) => (
           <motion.div
-            key={member.id}
+            key={member._id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
@@ -156,12 +137,24 @@ export function MembersList() {
                   {member.status}
                 </Badge>
                 <Button asChild variant="outline" size="sm">
-                  <Link href={`/members/${member.id}`}>View</Link>
+                  <Link href={`/members/${member._id}`}>View</Link>
                 </Button>
               </CardContent>
             </Card>
           </motion.div>
         ))}
+        {status === "CanLoadMore" && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => loadMore(query.limit)}
+          >
+            {isLoading && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin justify-center" />
+            )}
+            Load More
+          </Button>
+        )}
       </div>
     </div>
   );

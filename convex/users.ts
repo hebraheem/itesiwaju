@@ -18,9 +18,9 @@ export const getUserByEmail = query({
 
 // Get user by ID
 export const getUserById = query({
-  args: { id: v.id("users") },
+  args: { id: v.id("users"), email: v.string() },
   handler: async (ctx, args) => {
-    await getCurrentUser(ctx);
+    await getCurrentUser(args.email, ctx);
     return await ctx.db.get(args.id);
   },
 });
@@ -39,11 +39,11 @@ export const getUsers = query({
     ),
     search: v.optional(v.string()),
     paginationOpts: paginationOptsValidator,
-    userEmail: v.optional(v.string()), // Pass from client to validate user
+    userEmail: v.string(), // Pass from client to validate user
   },
   handler: async (ctx, args) => {
-    // Validate user is authenticated by checking if userEmail is provided
-    await getCurrentUser(ctx);
+    // Validate user is authenticated by checking if the userEmail is provided
+    await getCurrentUser(args.userEmail, ctx);
     if (!args.userEmail) {
       throw new Error("Unauthorized - No user email provided");
     }
@@ -204,9 +204,10 @@ export const updateUser = mutation({
         v.literal("inactive"),
       ),
     ),
+    authEmail: v.string(),
   },
   handler: async (ctx, args) => {
-    await getCurrentUser(ctx);
+    await getCurrentUser(args.authEmail, ctx);
     const { id, ...updates } = args;
 
     if (args.firstName || args.lastName || args.otherName || args.email) {
@@ -217,7 +218,7 @@ export const updateUser = mutation({
     }
 
     if (args.role || args.status) {
-      const hasRole = hasPermission(ctx, "admin");
+      const hasRole = hasPermission(ctx, "admin", args.authEmail);
       if (!hasRole) {
         throw new Error("Unauthorized to update role or status");
       }
@@ -252,10 +253,11 @@ export const updateUserStatus = mutation({
       v.literal("suspended"),
       v.literal("inactive"),
     ),
+    authEmail: v.string(),
   },
   handler: async (ctx, args) => {
-    const authUser = await getCurrentUser(ctx);
-    const hasRole = await hasPermission(ctx, "admin");
+    const authUser = await getCurrentUser(args.authEmail, ctx);
+    const hasRole = await hasPermission(ctx, "admin", args.authEmail);
     if (!hasRole) {
       throw new Error("Unauthorized to update user status");
     }
@@ -281,10 +283,10 @@ export const updateUserStatus = mutation({
 
 // Delete user
 export const deleteUser = mutation({
-  args: { id: v.id("users") },
+  args: { id: v.id("users"), authEmail: v.string() },
   handler: async (ctx, args) => {
-    const authUser = await getCurrentUser(ctx);
-    const hasRole = await hasPermission(ctx, "admin");
+    const authUser = await getCurrentUser(args.authEmail, ctx);
+    const hasRole = await hasPermission(ctx, "admin", args.authEmail);
     if (!hasRole) {
       throw new Error("Unauthorized to delete user");
     }
@@ -314,9 +316,10 @@ export const updatePassword = mutation({
     userId: v.id("users"),
     currentPassword: v.string(),
     newPassword: v.string(),
+    authEmail: v.string(),
   },
   handler: async (ctx, args) => {
-    await getCurrentUser(ctx);
+    await getCurrentUser(args.authEmail, ctx);
     const user = await ctx.db.get(args.userId);
     if (!user) {
       throw new Error("User not found");

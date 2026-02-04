@@ -1,21 +1,17 @@
 import { GenericQueryCtx, GenericMutationCtx } from "convex/server";
 import { DataModel } from "@/convex/_generated/dataModel";
-import { getAuthedConvex } from "@/lib/convexserverAuth";
 
 export async function getCurrentUser(
+  email: string,
   ctx: GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>,
 ) {
-  const identity = await ctx.auth.getUserIdentity();
-  console.log("identity", identity);
-
-  if (!identity) throw new Error("Unauthorized");
-
+  if (!email) throw new Error("Unauthorized");
   const user = await ctx.db
     .query("users")
-    .withIndex("by_email", (q) => q.eq("email", identity.email!))
+    .withIndex("by_email", (q) => q.eq("email", email!))
     .unique();
 
-  if (!user) throw new Error("User not found");
+  if (!user) throw new Error("User not logged in or does not exist");
 
   return user;
 }
@@ -23,9 +19,10 @@ export async function getCurrentUser(
 export async function hasPermission(
   ctx: GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>,
   role: string | string[],
+  email: string,
 ): Promise<boolean> {
   try {
-    const user = await getCurrentUser(ctx);
+    const user = await getCurrentUser(email, ctx);
     if (!user) return false;
 
     if (user.role === "admin") return true;
