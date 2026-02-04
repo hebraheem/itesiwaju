@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function DashboardShell({
   children,
@@ -14,6 +15,7 @@ export function DashboardShell({
   topbar: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -56,9 +58,7 @@ export function DashboardShell({
 
           <div className="w-10" />
         </div>
-
         {topbar}
-
         <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
       </div>
     </div>

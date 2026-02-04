@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { Loader2, Check, UserPlus, ArrowRight, ArrowLeft } from "lucide-react";
+import { Loader2, Check, UserPlus, ArrowLeft } from "lucide-react";
 import { registerAction, RegisterState } from "@/app/actions/register.action";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

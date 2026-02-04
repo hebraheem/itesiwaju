@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,16 +10,16 @@ import {
   AlertCircle,
   UserPlus,
   Wallet,
-  FileText,
   TrendingUp,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import MotionDiv from "@/components/animations/MotionDiv";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function DashboardHome() {
   const t = useTranslations("dashboard");
-  //const { user } = useAuth();
+  const { user } = useAuth();
 
   const stats = [
     {
@@ -154,8 +156,8 @@ export function DashboardHome() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-3xl font-bold">
-          {t("welcome", { name: "Member" })}
+        <h1 className="text-3xl font-bold capitalize">
+          {t("welcome", { name: user?.name?.split(" ")[0] || "" })}
         </h1>
         <p className="text-muted-foreground">{t("overview")}</p>
       </MotionDiv>

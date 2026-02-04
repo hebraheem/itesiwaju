@@ -2,6 +2,7 @@
 
 import { loginSchema } from "@/app/schemas/login.schema";
 import { signIn } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
 
 export type RegisterState = {
   errors?: Record<string, string>;
@@ -32,6 +33,13 @@ export async function loginAction(
       email,
       password,
     });
+    revalidatePath("/dashboard");
+    revalidatePath("/events");
+    revalidatePath("/members");
+    revalidatePath("/account-status");
+    revalidatePath("/activity");
+    revalidatePath("/profile");
+    revalidatePath("/settings");
     return { success: true, message: "Login successful!" };
   } catch (e: any) {
     return {

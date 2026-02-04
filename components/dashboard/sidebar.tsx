@@ -125,19 +125,22 @@ export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
         <div className="flex items-center gap-3 mb-3">
           <Avatar>
             <AvatarFallback className="bg-orange-500 text-white">
-              {user?.name?.[0] || "U"}
+              {user?.name?.[0].toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm truncate">
-              {user?.name}
-            </p>
+            <p className="font-semibold text-sm truncate">{user?.name}</p>
             <p className="text-xs text-muted-foreground capitalize">
               {user?.role}
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" className="w-full" onClick={() => signOut()}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => signOut()}
+        >
           <LogOut className="w-4 h-4 mr-2" />
           Logout
         </Button>

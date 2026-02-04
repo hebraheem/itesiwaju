@@ -1,30 +1,43 @@
-import { GenericQueryCtx } from "convex/server";
+import { GenericQueryCtx, GenericMutationCtx } from "convex/server";
 import { DataModel } from "@/convex/_generated/dataModel";
+import { getAuthedConvex } from "@/lib/convexserverAuth";
 
-export async function getCurrentUser(ctx: GenericQueryCtx<DataModel>) {
+export async function getCurrentUser(
+  ctx: GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>,
+) {
   const identity = await ctx.auth.getUserIdentity();
+  console.log("identity", identity);
+
   if (!identity) throw new Error("Unauthorized");
 
-  return await ctx.db
+  const user = await ctx.db
     .query("users")
     .withIndex("by_email", (q) => q.eq("email", identity.email!))
     .unique();
+
+  if (!user) throw new Error("User not found");
+
+  return user;
 }
 
 export async function hasPermission(
-  ctx: GenericQueryCtx<DataModel>,
+  ctx: GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>,
   role: string | string[],
 ): Promise<boolean> {
-  const user = await getCurrentUser(ctx);
-  if (!user) return false;
+  try {
+    const user = await getCurrentUser(ctx);
+    if (!user) return false;
 
-  if (user.role === "admin") return true;
+    if (user.role === "admin") return true;
 
-  if (Array.isArray(role)) {
-    return role.includes(user.role);
+    if (Array.isArray(role)) {
+      return role.includes(user.role);
+    }
+
+    return user.role === role;
+  } catch {
+    return false;
   }
-
-  return user.role === role;
 }
 
 export function buildSearchText(fields: string[]): string {

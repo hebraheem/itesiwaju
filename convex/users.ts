@@ -2,11 +2,13 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import bcrypt from "bcryptjs";
 import { buildSearchText, getCurrentUser, hasPermission } from "@/convex/utils";
+import { paginationOptsValidator } from "convex/server";
 
 // Get user by email
 export const getUserByEmail = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
+    //   await getCurrentUser(ctx);
     return await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", args.email))
@@ -18,6 +20,7 @@ export const getUserByEmail = query({
 export const getUserById = query({
   args: { id: v.id("users") },
   handler: async (ctx, args) => {
+    await getCurrentUser(ctx);
     return await ctx.db.get(args.id);
   },
 });
@@ -25,7 +28,6 @@ export const getUserById = query({
 // Get all users (with pagination and filters)
 export const getUsers = query({
   args: {
-    cursor: v.union(v.null(), v.string()),
     limit: v.optional(v.number()),
     role: v.optional(v.union(v.literal("admin"), v.literal("member"))),
     status: v.optional(
@@ -36,9 +38,25 @@ export const getUsers = query({
       ),
     ),
     search: v.optional(v.string()),
+    paginationOpts: paginationOptsValidator,
+    userEmail: v.optional(v.string()), // Pass from client to validate user
   },
   handler: async (ctx, args) => {
+    // Validate user is authenticated by checking if userEmail is provided
     await getCurrentUser(ctx);
+    if (!args.userEmail) {
+      throw new Error("Unauthorized - No user email provided");
+    }
+
+    // Verify user exists
+    const currentUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.userEmail!))
+      .unique();
+
+    if (!currentUser) {
+      throw new Error("Unauthorized - User not found");
+    }
 
     // --- BASE QUERY ---
     let q;
@@ -74,10 +92,7 @@ export const getUsers = query({
     }
 
     // --- PAGINATE ---
-    return await q.paginate({
-      numItems: args.limit ?? 10,
-      cursor: args.cursor,
-    });
+    return await q.paginate(args.paginationOpts);
   },
 });
 
@@ -191,7 +206,7 @@ export const updateUser = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const authUser = await getCurrentUser(ctx);
+    await getCurrentUser(ctx);
     const { id, ...updates } = args;
 
     if (args.firstName || args.lastName || args.otherName || args.email) {
@@ -214,16 +229,12 @@ export const updateUser = mutation({
     }
 
     await ctx.db.patch(id, updates);
-    const description =
-      authUser?._id === id
-        ? `User ${user.firstName} ${user.lastName} updated their profile`
-        : `${authUser?.firstName} ${authUser?.lastName} updated user ${user.firstName} ${user.lastName}'s profile`;
 
     // Create an activity log
     await ctx.db.insert("activities", {
       userId: id,
       type: "profile",
-      description: description,
+      description: `User ${user.firstName} ${user.lastName} updated their profile`,
       metadata: updates,
       timestamp: Date.now(),
     });
@@ -387,9 +398,6 @@ export const verifyCredentials = query({
       return null;
     }
 
-    // Don't return the password
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return user;
   },
 });

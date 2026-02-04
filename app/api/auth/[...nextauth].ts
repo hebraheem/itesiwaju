@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import { api } from "@/convex/_generated/api";
 import { convexServer } from "@/lib/convexServer";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export default NextAuth({
   providers: [
     Credentials({
       name: "Credentials",

@@ -9,8 +9,8 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { ReactNode } from "react";
 import { PAGE_PADDING_X, ROOT_LAYOUT_HEADER_HEIGHT } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
-import { ConvexClientProvider } from "@/providers/ConvexProvider";
 import { AuthProvider } from "@/providers/auth-provider";
+import { ConvexClientProvider } from "@/providers/ConvexProvider";
 
 const montserrat = Montserrat({
   subsets: ["latin"],

@@ -27,8 +27,6 @@ export function LoginForm() {
 
   const [state, formAction, isPending] = useActionState(loginAction, {});
 
-  console.log("state", state);
-
   useEffect(
     () => {
       if (String(state?.success) === "false") {
