@@ -11,17 +11,15 @@ import {
   Settings,
   User,
   LogOut,
-  FileText,
   Activity as ActivityIcon,
 } from "lucide-react";
-import { useAuth } from "@/lib/hooks/use-auth";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
 import Image from "next/image";
 import React from "react";
 import logo from "@/public/images/logo.png";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
   const t = useTranslations("sidebar");
@@ -43,11 +41,7 @@ export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
   ];
 
   return (
-    <motion.aside
-      initial={{ x: -300 }}
-      animate={{ x: 0 }}
-      className="w-64 bg-card border-r flex flex-col h-full"
-    >
+    <div className="w-64 bg-card border-r flex flex-col h-full">
       {/* Logo */}
       <div className="p-6 border-b">
         <Link
@@ -145,6 +139,6 @@ export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
           Logout
         </Button>
       </div>
-    </motion.aside>
+    </div>
   );
 }
