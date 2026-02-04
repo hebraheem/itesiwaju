@@ -8,7 +8,7 @@ import { paginationOptsValidator } from "convex/server";
 export const getUserByEmail = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
-    //   await getCurrentUser(ctx);
+    await getCurrentUser(args.email, ctx);
     return await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", args.email))
@@ -20,6 +20,7 @@ export const getUserByEmail = query({
 export const getUserById = query({
   args: { id: v.id("users"), email: v.string() },
   handler: async (ctx, args) => {
+    if (!args.id) return {};
     await getCurrentUser(args.email, ctx);
     return await ctx.db.get(args.id);
   },
@@ -102,6 +103,7 @@ export const getMemberStats = query({
     const users = await ctx.db.query("users").collect();
     const totalMembers = users.length;
     const activeMembers = users.filter((u) => u.status === "active").length;
+    const inactiveMembers = users.filter((u) => u.status === "inactive").length;
     const suspendedMembers = users.filter(
       (u) => u.status === "suspended",
     ).length;
@@ -111,6 +113,7 @@ export const getMemberStats = query({
       totalMembers,
       activeMembers,
       suspendedMembers,
+      inactiveMembers,
       admins,
     };
   },
@@ -125,7 +128,14 @@ export const createUser = mutation({
     lastName: v.string(),
     otherName: v.optional(v.string()),
     phone: v.optional(v.string()),
-    role: v.optional(v.union(v.literal("admin"), v.literal("member"))),
+    role: v.optional(
+      v.union(
+        v.literal("admin"),
+        v.literal("member"),
+        v.literal("treasurer"),
+        v.literal("pro"),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     // Check if a user already exists
@@ -207,8 +217,8 @@ export const updateUser = mutation({
     authEmail: v.string(),
   },
   handler: async (ctx, args) => {
-    await getCurrentUser(args.authEmail, ctx);
-    const { id, ...updates } = args;
+    const { id, authEmail, ...updates } = args;
+    await getCurrentUser(authEmail, ctx);
 
     if (args.firstName || args.lastName || args.otherName || args.email) {
       updates.searchField = buildSearchText([
@@ -245,13 +255,23 @@ export const updateUser = mutation({
 });
 
 // Update user status (suspend/activate)
-export const updateUserStatus = mutation({
+export const updateUserStatusAndRole = mutation({
   args: {
     id: v.id("users"),
-    status: v.union(
-      v.literal("active"),
-      v.literal("suspended"),
-      v.literal("inactive"),
+    status: v.optional(
+      v.union(
+        v.literal("active"),
+        v.literal("suspended"),
+        v.literal("inactive"),
+      ),
+    ),
+    role: v.optional(
+      v.union(
+        v.literal("admin"),
+        v.literal("member"),
+        v.literal("treasurer"),
+        v.literal("pro"),
+      ),
     ),
     authEmail: v.string(),
   },
@@ -268,11 +288,19 @@ export const updateUserStatus = mutation({
 
     await ctx.db.patch(args.id, { status: args.status });
 
+    let description = args.status
+      ? `${authUser?.firstName} updates ${user.firstName} status to ${args.status}`
+      : `${authUser?.firstName} updates ${user.firstName} role to ${args.role}`;
+    if (args.role && args.status) {
+      description = `${authUser?.firstName} updates ${user.firstName} role to ${args.role} and status to ${args.status}`;
+    } else if (args.role) {
+      description = `${authUser?.firstName} updates ${user.firstName} role to ${args.role}`;
+    }
     // Create an activity log
     await ctx.db.insert("activities", {
       userId: args.id,
       type: "profile",
-      description: `${authUser?.firstName} updates ${user.firstName} status to ${args.status}`,
+      description: description,
       metadata: { oldStatus: user.status, newStatus: args.status },
       timestamp: Date.now(),
     });
@@ -325,16 +353,7 @@ export const updatePassword = mutation({
       throw new Error("User not found");
     }
 
-    // Verify the current password
-    const isValid = await bcrypt.compare(args.currentPassword, user.password);
-    if (!isValid) {
-      throw new Error("Current password is incorrect");
-    }
-
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(args.newPassword, 10);
-
-    await ctx.db.patch(args.userId, { password: hashedPassword });
+    await ctx.db.patch(args.userId, { password: args.newPassword });
 
     // Create an activity log
     await ctx.db.insert("activities", {

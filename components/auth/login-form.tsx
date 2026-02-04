@@ -31,7 +31,7 @@ export function LoginForm() {
     () => {
       if (String(state?.success) === "false") {
         console.error("state.error", state.message);
-        toast.error(t("errorMessage"));
+        toast.error(t(state.message ?? "errorMessage"));
       }
 
       if (state?.success) {

@@ -1,90 +1,229 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from '@/i18n/navigation';
-import { useForm } from 'react-hook-form';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
-import { toast } from 'sonner';
-import { motion } from 'framer-motion';
+import { useActionState, useEffect } from "react";
+import { useRouter } from "@/i18n/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import {
+  adminUpdateAction,
+  registerAction,
+} from "@/app/actions/register.action";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
+import { UserModel } from "@/types/userModel";
 
-export function MemberForm({ memberId }: { memberId?: string }) {
+export function MemberForm({ user }: { user: UserModel | null }) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const { register, handleSubmit, setValue } = useForm();
+  const t = useTranslations("auth.register");
+  const session = useSession();
 
-  const onSubmit = async (data: any) => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    toast.success(memberId ? 'Member updated' : 'Member added');
-    router.push('/members');
-    setIsLoading(false);
-  };
+  const [state, action, isPending] = useActionState(
+    user ? adminUpdateAction : registerAction,
+    {
+      firstName: user?.firstName ?? "",
+      lastName: user?.lastName ?? "",
+      email: user?.email ?? "",
+      phone: user?.phone ?? "",
+      role: user?.role ?? "member",
+      status: user?.status ?? "active",
+    },
+  );
+
+  useEffect(
+    () => {
+      if (String(state?.success) === "false") {
+        console.error("state.error", state.message);
+        toast.error(t("errorMessage"));
+      }
+
+      if (state?.success) {
+        toast.success(user ? "Member updated" : "Member added");
+        router.push("/members");
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state.success],
+  );
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-3xl space-y-6"
+    >
       <div>
         <Button variant="ghost" onClick={() => router.back()} className="mb-4">
-          <ArrowLeft className="w-4 h-4 mr-2" />Back
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
         </Button>
-        <h1 className="text-3xl font-bold">{memberId ? 'Edit Member' : 'Add Member'}</h1>
+        <h1 className="text-3xl font-bold">
+          {user ? `${user.firstName} ${user.lastName}` : "Add Member"}
+        </h1>
       </div>
 
       <Card>
-        <CardHeader><CardTitle>{memberId ? 'Update member' : 'Add new member'}</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>{user ? "Update member" : "Add new member"}</CardTitle>
+        </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label>First Name</Label>
-                <Input {...register('firstName')} />
+          <form action={action} className="space-y-4">
+            <div
+              className={`${!!user?._id ? "hidden" : "grid"} md:grid-cols-2 gap-4`}
+            >
+              <div>
+                <Label
+                  htmlFor="firstName"
+                  className="text-sm leading-relaxed peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  {t("firstName")}
+                </Label>
+                <Input
+                  name="firstName"
+                  id="firstName"
+                  placeholder="Eni"
+                  defaultValue={state.firstName}
+                />
+                {state.errors?.firstName && (
+                  <p className="text-red-500 text-sm">
+                    {t(state.errors.firstName?.[0])}
+                  </p>
+                )}
               </div>
-              <div className="space-y-2">
-                <Label>Last Name</Label>
-                <Input {...register('lastName')} />
+
+              <div>
+                <Label
+                  htmlFor="lastName"
+                  className="text-sm leading-relaxed peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  {t("lastName")}
+                </Label>
+                <Input
+                  name="lastName"
+                  id="lastName"
+                  placeholder="Akoko"
+                  defaultValue={state.lastName}
+                />
+                {state.errors?.lastName && (
+                  <p className="text-red-500 text-sm">
+                    {t(state.errors.lastName?.[0])}
+                  </p>
+                )}
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input type="email" {...register('email')} />
+
+            <div className={`${!!user?._id && "hidden"}`}>
+              <Label
+                htmlFor="email"
+                className="text-sm leading-relaxed peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {t("email")}
+              </Label>
+              <Input
+                name="email"
+                type="email"
+                defaultValue={state.email}
+                id="email"
+                placeholder="eni.akoko@gmail.com"
+              />
+              {state.errors?.email && (
+                <p className="text-red-500 text-sm">
+                  {t(state.errors.email?.[0])}
+                </p>
+              )}
             </div>
-            <div className="space-y-2">
-              <Label>Phone</Label>
-              <Input {...register('phone')} />
-            </div>
-            <div className="grid md:grid-cols-2 gap-6">
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className={`${user?._id && "hidden"}`}>
+                <Label
+                  htmlFor="phone"
+                  className="text-sm leading-relaxed peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  {t("phone")}
+                </Label>
+                <Input
+                  name="phone"
+                  id="phone"
+                  placeholder="016366373833"
+                  defaultValue={state.phone}
+                />
+                {state.errors?.phone && (
+                  <p className="text-red-500 text-sm">
+                    {t(state.errors.phone?.[0])}
+                  </p>
+                )}
+              </div>
               <div className="space-y-2">
                 <Label>Role</Label>
-                <Select onValueChange={(v) => setValue('role', v)}>
-                  <SelectTrigger><SelectValue placeholder="Select role" /></SelectTrigger>
+                <Select name="role" defaultValue={state?.role ?? "member"}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="executive">Executive</SelectItem>
+                    <SelectItem value="pro">Pro</SelectItem>
                     <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="treasurer">Treasure</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            {user && (
               <div className="space-y-2">
                 <Label>Status</Label>
-                <Select onValueChange={(v) => setValue('status', v)}>
-                  <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                <Select name="status" defaultValue={state?.status ?? "member"}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
                     <SelectItem value="suspended">Suspended</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            )}
+            <input
+              name="authEmail"
+              defaultValue={session.data?.user?.email ?? ""}
+              hidden
+            />
+            <input name="id" defaultValue={user?._id ?? ""} hidden />
+            <div className="flex items-center gap-2">
+              <Checkbox
+                name="terms"
+                value="true"
+                hidden
+                id="terms"
+                defaultChecked={true}
+              />
             </div>
-            <div className="flex gap-3 pt-4">
-              <Button type="submit" className="bg-blue-500 hover:bg-blue-600" disabled={isLoading}>
-                {isLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : <><Save className="w-4 h-4 mr-2" />Save</>}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-            </div>
+
+            <Button disabled={isPending} className="w-full">
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 animate-spin" />{" "}
+                  {t(user?._id ? "update" : "submit")}...
+                </>
+              ) : (
+                <>
+                  <Check className="mr-2" />{" "}
+                  {t(user?._id ? "update" : "submit")}
+                </>
+              )}
+            </Button>
           </form>
         </CardContent>
       </Card>

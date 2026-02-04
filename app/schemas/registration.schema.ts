@@ -6,4 +6,19 @@ export const registerSchema = z.object({
   email: z.email("emailRequired"),
   phone: z.string().min(10, "phoneRequired"),
   terms: z.boolean().refine((val) => val, "termsRequired"),
+  role: z
+    .enum({
+      admin: "admin",
+      member: "member",
+      treasurer: "treasurer",
+      pro: "pro",
+    })
+    .optional(),
+  status: z
+    .enum({
+      active: "active",
+      suspended: "suspended",
+      inactive: "inactive",
+    })
+    .optional(),
 });

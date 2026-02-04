@@ -7,12 +7,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Plus, Search, Users, UserCheck, UserX, Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Plus,
+  Search,
+  Users,
+  UserCheck,
+  UserX,
+  Loader2,
+  ShieldQuestionMark,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { usePaginatedQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
+import RoleAction from "@/components/common/RoleAction";
 
 export function MembersList() {
   const { data: session } = useSession();
@@ -38,15 +47,17 @@ export function MembersList() {
           <h1 className="text-3xl font-bold">Members</h1>
           <p className="text-muted-foreground">Manage club members</p>
         </div>
-        <Button asChild className="bg-blue-500 hover:bg-blue-600">
-          <Link href="/members/create">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Member
-          </Link>
-        </Button>
+        <RoleAction roles={["admin"]}>
+          <Button asChild className="bg-blue-500 hover:bg-blue-600 text-white">
+            <Link href="/members/create">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Member
+            </Link>
+          </Button>
+        </RoleAction>
       </motion.div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           {
             icon: Users,
@@ -61,13 +72,19 @@ export function MembersList() {
             color: "bg-green-500",
           },
           {
+            icon: ShieldQuestionMark,
+            label: "Inactive",
+            value: getMemberStats?.inactiveMembers ?? "0",
+            color: "bg-orange-500",
+          },
+          {
             icon: UserX,
             label: "Suspended",
             value: getMemberStats?.suspendedMembers ?? "0",
             color: "bg-red-500",
           },
-        ].map((stat, i) => (
-          <Card key={i}>
+        ].map((stat) => (
+          <Card key={stat.label}>
             <CardContent className="p-6 flex items-center gap-4">
               <div className={`p-3 ${stat.color} rounded-xl`}>
                 <stat.icon className="w-6 h-6 text-white" />
@@ -108,6 +125,11 @@ export function MembersList() {
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6 flex items-center gap-4">
                 <Avatar className="w-12 h-12">
+                  <AvatarImage
+                    src="https://github.com/shadcn.png"
+                    alt="@shadcn"
+                    className="grayscale"
+                  />
                   <AvatarFallback className="bg-orange-500 text-white font-semibold">
                     {member.firstName[0]}
                     {member.lastName[0]}
@@ -115,15 +137,14 @@ export function MembersList() {
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold">
-                    {member.firstName} {member.lastName}
+                    {member.firstName} {member.lastName}{" "}
+                    {session?.user?.id === member._id ? "(You)" : ""}
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     {member.email}
                   </p>
-                </div>
-                <div className="hidden md:block">
                   <p className="text-sm text-muted-foreground">
-                    {member.phone}
+                    Phone: {member.phone}
                   </p>
                 </div>
                 <Badge variant="outline" className="capitalize">
@@ -136,9 +157,11 @@ export function MembersList() {
                 >
                   {member.status}
                 </Badge>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/members/${member._id}`}>View</Link>
-                </Button>
+                <RoleAction roles={["admin"]}>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/members/${member._id}`}>View</Link>
+                  </Button>
+                </RoleAction>
               </CardContent>
             </Card>
           </motion.div>

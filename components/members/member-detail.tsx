@@ -1,52 +1,83 @@
-'use client';
+"use client";
 
-import { useRouter } from '@/i18n/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Edit, Mail, Phone, Calendar } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useRouter } from "@/i18n/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ArrowLeft, Edit, Mail, Phone, Calendar, Locate } from "lucide-react";
+import { motion } from "framer-motion";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useSession } from "next-auth/react";
+import Loader from "@/components/common/Loader";
+import Link from "next/link";
+import { buildAddress, parseDate } from "@/lib/utils";
+import { UserModel } from "@/types/userModel";
 
 export function MemberDetail({ memberId }: { memberId: string }) {
   const router = useRouter();
-  const member = {
-    id: memberId,
-    firstName: 'Chioma',
-    lastName: 'Okoro',
-    email: 'chioma@email.com',
-    phone: '+234 123 456 7890',
-    role: 'member',
-    status: 'active',
-    joinDate: 'January 15, 2024',
-  };
+  const session = useSession();
 
+  const member = useQuery(api.users.getUserById, {
+    // @ts-expect-error id type Id<User> not assignable to string
+    id: memberId,
+    email: session?.data?.user?.email ?? "",
+  }) as UserModel;
+
+  if (!member) {
+    return <Loader />;
+  }
   return (
     <div className="space-y-6 max-w-4xl">
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         <Button variant="ghost" onClick={() => router.back()} className="mb-4">
-          <ArrowLeft className="w-4 h-4 mr-2" />Back
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
         </Button>
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-4">
             <Avatar className="w-20 h-20">
               <AvatarFallback className="bg-orange-500 text-white text-2xl font-bold">
-                {member.firstName[0]}{member.lastName[0]}
+                {member.firstName[0]}
+                {member.lastName[0]}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-3xl font-bold">{member.firstName} {member.lastName}</h1>
+              <h1 className="text-3xl font-bold">
+                {member.firstName} {member.lastName}
+              </h1>
               <div className="flex gap-2 mt-2">
-                <Badge variant="outline" className="capitalize">{member.role}</Badge>
-                <Badge variant={member.status === 'active' ? 'default' : 'destructive'}>{member.status}</Badge>
+                <Badge variant="outline" className="capitalize">
+                  {member.role}
+                </Badge>
+                <Badge
+                  variant={
+                    member.status === "active" ? "default" : "destructive"
+                  }
+                >
+                  {member.status}
+                </Badge>
               </div>
+              <div></div>
             </div>
           </div>
-          <Button><Edit className="w-4 h-4 mr-2" />Edit</Button>
+          <Link href={`/members/update/${memberId}`}>
+            <Button>
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+          </Link>
         </div>
       </motion.div>
-
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
         <Card>
           <CardHeader>
             <CardTitle>Contact Information</CardTitle>
@@ -61,8 +92,12 @@ export function MemberDetail({ memberId }: { memberId: string }) {
               <span>{member.phone}</span>
             </div>
             <div className="flex items-center gap-3">
+              <Locate className="w-5 h-5 text-muted-foreground" />
+              <span>{buildAddress(member.address)}</span>
+            </div>
+            <div className="flex items-center gap-3">
               <Calendar className="w-5 h-5 text-muted-foreground" />
-              <span>Joined {member.joinDate}</span>
+              <span>Joined: {parseDate(member.joinedAt)}</span>
             </div>
           </CardContent>
         </Card>

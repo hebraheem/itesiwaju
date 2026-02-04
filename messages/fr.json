@@ -97,7 +97,8 @@
       "errorMessage": "Échec de la connexion. Veuillez vérifier vos informations d'identification et réessayer.",
       "emailRequired": "Veuillez entrer une adresse e-mail valide.",
       "passwordRequired": "Le mot de passe doit comporter au moins 8 caractères.",
-      "successMessage": "Connexion réussie!."
+      "successMessage": "Connexion réussie!.",
+      "accountSuspendedErrorMessage": "Votre compte a été suspendu. Veuillez contacter l'administrateur."
     },
     "register": {
       "title": "Rejoindre Itesiwaju",
@@ -118,7 +119,8 @@
       "lastNameRequired": "Le nom de famille est requis.",
       "emailRequired": "Veuillez entrer une adresse e-mail valide.",
       "phoneRequired": "Le numéro de téléphone est requis.",
-      "termsRequired": "Vous devez accepter les conditions générales."
+      "termsRequired": "Vous devez accepter les conditions générales.",
+      "update": "Mettre à Jour le Profil"
     },
     "forgotPassword": {
       "title": "Mot de Passe Oublié",

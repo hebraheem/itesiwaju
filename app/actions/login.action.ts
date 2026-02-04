@@ -3,6 +3,9 @@
 import { loginSchema } from "@/app/schemas/login.schema";
 import { signIn } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { convexServer } from "@/lib/convexServer";
+import { api } from "@/convex/_generated/api";
+import { USER_STATUSES } from "@/lib/utils";
 
 export type RegisterState = {
   errors?: Record<string, string>;
@@ -26,6 +29,13 @@ export async function loginAction(
       return {
         errors: parsed.error.flatten().fieldErrors as Record<string, string>,
         ...Object.fromEntries(formData.entries()),
+      };
+    }
+    const user = await convexServer.query(api.users.getUserByEmail, { email });
+    if (user && user.status === USER_STATUSES.suspended) {
+      return {
+        message: "accountSuspendedErrorMessage",
+        success: false,
       };
     }
     await signIn("credentials", {

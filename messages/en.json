@@ -97,7 +97,8 @@
       "errorMessage": "Invalid email or password",
       "emailRequired": "Email is required or invalid",
       "passwordRequired": "Password must be at least 8 characters",
-      "successMessage": "Login successful! Redirecting..."
+      "successMessage": "Login successful! Redirecting...",
+      "accountSuspendedErrorMessage": "Your account has been suspended. Please contact support."
     },
     "register": {
       "title": "Join Itesiwaju",
@@ -118,7 +119,8 @@
       "lastNameRequired": "Last name must be at least 2 characters",
       "emailRequired": "Email is required or invalid",
       "phoneRequired": "Phone number is required",
-      "termsRequired": "You must agree to the terms and conditions"
+      "termsRequired": "You must agree to the terms and conditions",
+      "update": "Update Account"
     },
     "forgotPassword": {
       "title": "Forgot Password",

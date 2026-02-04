@@ -9,20 +9,34 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Mail, Phone, Calendar, Edit, Save } from "lucide-react";
-import { useState } from "react";
+import { Edit, Loader2, Save } from "lucide-react";
+import { useActionState, useEffect, useState } from "react";
+import Loader from "@/components/common/Loader";
+import { parseDate } from "@/lib/utils";
+import { updateUserAction } from "@/app/actions/update-user.action";
+import PasswordUpdateComponent from "@/components/profile/PasswordUpdateComponent";
 
 export function Profile() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [state, action, isPending] = useActionState(updateUserAction, {});
 
-  const handleSave = () => {
-    toast.success("Profile updated successfully");
-    setIsEditing(false);
-  };
+  useEffect(
+    () => {
+      if (state.success) {
+        toast.success(state.message || "Profile updated successfully");
+        setIsEditing(false);
+      }
+      if (String(state.success) === "false") {
+        toast.error(state.message || "Failed to update profile");
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state.success],
+  );
 
   if (!user) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   return (
@@ -57,46 +71,128 @@ export function Profile() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-2xl font-bold">
-                {user?.name}
-              </h2>
+              <h2 className="text-2xl font-bold">{user?.name}</h2>
               <div className="flex gap-2 mt-2">
                 <Badge variant="outline" className="capitalize">
                   {user?.role}
                 </Badge>
                 <Badge>{user?.status}</Badge>
               </div>
+              <div className="mt-2">
+                Joined: <Badge>{parseDate(user?.joinedAt)}</Badge>
+              </div>
             </div>
           </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input defaultValue={user?.name || ""} disabled={!isEditing} />
+          <form action={action}>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label>First Name</Label>
+                <Input
+                  name="firstName"
+                  type="text"
+                  defaultValue={user?.firstName || ""}
+                  disabled={!isEditing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Last Name</Label>
+                <Input
+                  name="lastName"
+                  type="text"
+                  defaultValue={user?.lastName || ""}
+                  disabled={!isEditing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Other Name</Label>
+                <Input
+                  name="otherName"
+                  type="text"
+                  defaultValue={user?.otherName || ""}
+                  disabled={!isEditing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">Email</Label>
+                <Input
+                  type="email"
+                  name="email"
+                  defaultValue={user?.email || ""}
+                  disabled={!isEditing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">Phone</Label>
+                <Input
+                  type="text"
+                  name="phone"
+                  defaultValue={user?.phone || ""}
+                  disabled={!isEditing}
+                />
+              </div>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Mail className="w-4 h-4" />
-              Email
-            </Label>
-            <Input
-              type="email"
-              defaultValue={user?.email || ""}
-              disabled={!isEditing}
-            />
-          </div>
-
-          {isEditing && (
-            <Button
-              className="bg-orange-500 hover:bg-orange-600"
-              onClick={handleSave}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
-            </Button>
-          )}
+            <div className="mb-6">
+              <h3 className="py-6 font-bold">Address data</h3>
+              <hr className="border-gray-5 mb-6" />
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    Street and Number
+                  </Label>
+                  <Input
+                    type="text"
+                    name="street"
+                    defaultValue={user?.address?.street || ""}
+                    disabled={!isEditing}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">City</Label>
+                  <Input
+                    type="text"
+                    name="city"
+                    defaultValue={user?.address?.city || ""}
+                    disabled={!isEditing}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">State</Label>
+                  <Input
+                    type="text"
+                    name="state"
+                    defaultValue={user?.address?.state || ""}
+                    disabled={!isEditing}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">Country</Label>
+                  <Input
+                    type="text"
+                    name="country"
+                    defaultValue={user?.address?.country || ""}
+                    disabled={!isEditing}
+                  />
+                </div>
+              </div>
+              <input hidden name="id" defaultValue={user?._id ?? ""} />
+              <input hidden name="authEmail" defaultValue={user?.email ?? ""} />
+            </div>
+            {isEditing && (
+              <Button
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+                type="submit"
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                Save Changes
+              </Button>
+            )}
+          </form>
+          <PasswordUpdateComponent email={user.email} />
         </CardContent>
       </Card>
     </div>

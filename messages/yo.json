@@ -97,7 +97,8 @@
       "errorMessage": "Wiwọle kuna. Jọwọ ṣayẹwo awọn alaye rẹ ki o gbiyanju lẹẹkansi.",
       "emailRequired": "Imeeli jẹ dandan tabi ko tọ",
       "passwordRequired": "Ọrọ aṣina gbọdọ jẹ o kekere ju awọn ohun kikọ 8 lọ",
-      "successMessage": "Wiwọle aṣeyọri! Kaabo pada."
+      "successMessage": "Wiwọle aṣeyọri! Kaabo pada.",
+      "accountSuspendedErrorMessage": "Akaun rẹ ti daduro. Jọwọ kan si atilẹyin alabara fun iranlọwọ."
     },
     "register": {
       "title": "Darapọ Mọ Itesiwaju",
@@ -118,7 +119,8 @@
       "lastNameRequired": "Orukọ idile jẹ dandan tabi ko tọ",
       "emailRequired": "Imeeli jẹ dandan tabi ko tọ",
       "phoneRequired": "Pọ́n foonu jẹ dandan",
-      "termsRequired": "O gbọdọ gba awọn ofin ati ipo lati forukọsilẹ"
+      "termsRequired": "O gbọdọ gba awọn ofin ati ipo lati forukọsilẹ",
+      "update": "Imudojuiwọn Profaili"
     },
     "forgotPassword": {
       "title": "Gbagbe Ọrọ Aṣina",
