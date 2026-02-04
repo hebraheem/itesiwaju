@@ -24,7 +24,7 @@ import { useAuth } from "@/lib/hooks/use-auth";
 export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
   const t = useTranslations("sidebar");
   const pathname = usePathname();
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
 
   const navItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: t("dashboard") },
