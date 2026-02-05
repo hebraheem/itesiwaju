@@ -1,6 +1,16 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser, hasPermission } from "@/convex/utils";
+import { Id } from "@/convex/_generated/dataModel";
+import { paginationOptsValidator } from "convex/server";
+
+type MediaWithUrl = {
+  storageId: Id<"_storage">;
+  url: string | null;
+  type: "image" | "video";
+  mimeType: string;
+  size: number;
+}[];
 
 // Get all events
 export const getEvents = query({
@@ -19,11 +29,11 @@ export const getEvents = query({
         v.literal("social"),
         v.literal("fundraiser"),
         v.literal("workshop"),
-        v.literal("other"),
+        v.literal("others"),
       ),
     ),
     search: v.optional(v.string()),
-    paginationOpts: v.optional(v.any()), // from usePaginatedQuery
+    paginationOpts: paginationOptsValidator,
   },
 
   handler: async (ctx, args) => {
@@ -89,7 +99,7 @@ export const getEventStats = query({
 
     const totalEvents = events.length;
     const upcomingEvents = events.filter(
-      (e) => e.startDate >= now && e.status !== "cancelled",
+      (e) => new Date(e.startDate).getTime() >= now && e.status !== "cancelled",
     ).length;
     const completedEvents = events.filter(
       (e) => e.status === "completed",
@@ -109,8 +119,8 @@ export const getEventStats = query({
 
     const eventsThisMonth = events.filter(
       (e) =>
-        e.startDate >= startOfMonth.getTime() &&
-        e.startDate <= endOfMonth.getTime(),
+        new Date(e.startDate).getTime() >= startOfMonth.getTime() &&
+        new Date(e.startDate).getTime() <= endOfMonth.getTime(),
     ).length;
 
     return {
@@ -135,17 +145,17 @@ export const createEvent = mutation({
       v.literal("completed"),
       v.literal("cancelled"),
     ),
-    startDate: v.number(),
-    startTime: v.number(),
-    endDate: v.optional(v.number()),
-    endTime: v.optional(v.number()),
+    startDate: v.string(),
+    startTime: v.string(),
+    endDate: v.optional(v.string()),
+    endTime: v.optional(v.string()),
     minutes: v.optional(v.string()),
     type: v.union(
       v.literal("meeting"),
       v.literal("social"),
       v.literal("fundraiser"),
       v.literal("workshop"),
-      v.literal("other"),
+      v.literal("others"),
     ),
     authEmail: v.string(),
     media: v.optional(
@@ -155,12 +165,15 @@ export const createEvent = mutation({
           type: v.union(v.literal("image"), v.literal("video")),
           mimeType: v.string(),
           size: v.number(),
+          url: v.union(v.string(), v.null()),
+          name: v.optional(v.string()),
         }),
       ),
     ),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUser(args.authEmail, ctx);
+    const { authEmail, media, ...eventData } = args;
+    const user = await getCurrentUser(authEmail, ctx);
 
     const isPermitted = await hasPermission(
       ctx,
@@ -169,23 +182,34 @@ export const createEvent = mutation({
     );
     if (!isPermitted) throw new Error("Unauthorized");
 
-    const media =
-      args.media &&
+    const mediaWithUrl: MediaWithUrl | undefined =
+      media &&
       (await Promise.all(
-        args.media.map(async (m) => ({
+        media.map(async (m) => ({
           ...m,
-          url: (await ctx.storage.getUrl(m.storageId))!,
+          url: await ctx.storage.getUrl(m.storageId),
         })),
       ));
 
-    return await ctx.db.insert("events", {
-      ...args,
-      media,
+    const event = await ctx.db.insert("events", {
+      ...eventData,
+      media: mediaWithUrl,
       createdBy: user._id,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       searchField:
         `${args.title} ${args.description} ${args.location}`.toLowerCase(),
+    });
+
+    // Create an activity log
+    await ctx.db.insert("activities", {
+      userId: user._id,
+      type: "event",
+      user: `${user.firstName} ${user.lastName}`,
+      action: "eventCreated",
+      description: `created event "${args.title}"`,
+      metadata: { eventId: event },
+      timestamp: Date.now(),
     });
   },
 });
@@ -196,10 +220,10 @@ export const updateEvent = mutation({
     id: v.id("events"),
     title: v.optional(v.string()),
     description: v.optional(v.string()),
-    startDate: v.optional(v.number()),
-    endDate: v.optional(v.number()),
-    startTime: v.optional(v.number()),
-    endTime: v.optional(v.number()),
+    startDate: v.optional(v.string()),
+    endDate: v.optional(v.string()),
+    startTime: v.optional(v.string()),
+    endTime: v.optional(v.string()),
     location: v.optional(v.string()),
     minutes: v.optional(v.string()),
     type: v.optional(
@@ -208,7 +232,7 @@ export const updateEvent = mutation({
         v.literal("social"),
         v.literal("fundraiser"),
         v.literal("workshop"),
-        v.literal("other"),
+        v.literal("others"),
       ),
     ),
     status: v.optional(
@@ -219,10 +243,23 @@ export const updateEvent = mutation({
         v.literal("cancelled"),
       ),
     ),
+    media: v.optional(
+      v.array(
+        v.object({
+          storageId: v.id("_storage"),
+          type: v.union(v.literal("image"), v.literal("video")),
+          mimeType: v.string(),
+          size: v.number(),
+          url: v.union(v.string(), v.null()),
+          name: v.optional(v.string()),
+        }),
+      ),
+    ),
     authEmail: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUser(args.authEmail, ctx);
+    const { id, authEmail, media, ...updateData } = args;
+    const user = await getCurrentUser(authEmail, ctx);
     const isPermitted = await hasPermission(
       ctx,
       ["admin", "pro"],
@@ -237,10 +274,19 @@ export const updateEvent = mutation({
       throw new Error("Event not found");
     }
 
-    const { id, ...updates } = args;
-
+    const mediaWithUrl: MediaWithUrl | undefined =
+      media &&
+      (await Promise.all(
+        media.map(async (m) => ({
+          ...m,
+          url: await ctx.storage.getUrl(m.storageId),
+        })),
+      ));
     await ctx.db.patch(id, {
-      ...updates,
+      ...updateData,
+      media: mediaWithUrl?.length
+        ? [...mediaWithUrl, ...(event.media as MediaWithUrl)]
+        : event.media,
       updatedAt: Date.now(),
       searchField:
         `${args.title ?? event.title} ${args.description ?? event.description} ${args.location ?? event.location}`.toLowerCase(),
@@ -253,10 +299,13 @@ export const updateEvent = mutation({
       user: `${user.firstName} ${user.lastName}`,
       action: "eventUpdated",
       description: `Updated event "${event.title}"`,
-      metadata: { eventId: id, updates, title: updates.title || event.title },
+      metadata: {
+        eventId: id,
+        updateData,
+        title: updateData.title || event.title,
+      },
       timestamp: Date.now(),
     });
-
     return id;
   },
 });
@@ -382,43 +431,5 @@ export const completeEvent = mutation({
     });
 
     return args.id;
-  },
-});
-
-// Add media to event
-export const addEventMedia = mutation({
-  args: {
-    eventId: v.id("events"),
-    storageId: v.id("_storage"),
-    type: v.union(v.literal("image"), v.literal("video")),
-    mimeType: v.string(),
-    size: v.number(),
-    authEmail: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(args.authEmail, ctx);
-
-    const event = await ctx.db.get(args.eventId);
-    if (!event) throw new Error("Event not found");
-
-    if (event.createdBy !== user._id) throw new Error("Not allowed");
-
-    const url = await ctx.storage.getUrl(args.storageId);
-
-    const media = event.media ?? [];
-
-    await ctx.db.patch(args.eventId, {
-      media: [
-        ...media,
-        {
-          storageId: args.storageId,
-          url: url!,
-          type: args.type,
-          mimeType: args.mimeType,
-          size: args.size,
-        },
-      ],
-      updatedAt: Date.now(),
-    });
   },
 });

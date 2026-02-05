@@ -8,8 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, MapPin, Plus, Search } from "lucide-react";
+import { Clock, Loader2, MapPin, Plus, Search } from "lucide-react";
 import { motion } from "framer-motion";
+import { usePaginatedQuery } from "convex-helpers/react";
+import { api } from "@/convex/_generated/api";
+import {
+  EVENT_STATUSES,
+  EVENT_TYPES,
+  getMonth,
+  parseDate,
+  removeEmptyFields,
+} from "@/lib/utils";
 
 const mockEvents = [
   {
@@ -59,7 +68,16 @@ const pastEvents = [
 
 export function EventsList() {
   const t = useTranslations("events");
-  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState({
+    search: "" as string | undefined,
+    status: "upcoming" as keyof typeof EVENT_STATUSES | undefined,
+    type: "" as keyof typeof EVENT_TYPES | undefined,
+  });
+  const { results, loadMore, status, isLoading } = usePaginatedQuery(
+    api.events.getEvents,
+    { ...removeEmptyFields(query) },
+    { initialNumItems: 10 },
+  );
 
   return (
     <div className="space-y-6">
@@ -90,8 +108,10 @@ export function EventsList() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search events..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={query.search}
+            onChange={(e) =>
+              setQuery((prev) => ({ ...prev, search: e.target.value }))
+            }
             className="pl-10"
           />
         </div>
@@ -99,109 +119,96 @@ export function EventsList() {
 
       <Tabs defaultValue="upcoming" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="upcoming">{t("upcoming")}</TabsTrigger>
-          <TabsTrigger value="past">{t("past")}</TabsTrigger>
+          {Object.keys(EVENT_STATUSES).map((evt) => (
+            <TabsTrigger
+              key={evt}
+              value={evt}
+              onClick={() =>
+                setQuery((prev) => ({
+                  ...prev,
+                  status: evt as keyof typeof EVENT_STATUSES,
+                }))
+              }
+            >
+              {t(evt)}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="upcoming">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockEvents.map((event, index) => (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 text-center">
-                        <div className="w-16 h-16 bg-orange-500 text-white rounded-xl flex flex-col items-center justify-center">
-                          <div className="text-2xl font-bold">{event.date}</div>
-                          <div className="text-xs uppercase">{event.month}</div>
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h3 className="font-semibold line-clamp-2">
-                            {event.title}
-                          </h3>
-                          <Badge
-                            variant={
-                              event.status === "confirmed"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {event.status}
-                          </Badge>
-                        </div>
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4" />
-                            <span>{event.time}</span>
+        {Object.keys(EVENT_STATUSES).map((evt) => {
+          return (
+            <TabsContent value={evt} key={evt}>
+              {isLoading && status !== "LoadingMore" && (
+                <Loader2 className="w-12 h-12 animate-spin text-orange-600 mx-auto" />
+              )}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {results.map((event, index) => (
+                  <motion.div
+                    key={event._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className="hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex gap-4">
+                          <div className="shrink-0 text-center">
+                            <div className="w-16 h-16 bg-orange-500 text-white rounded-xl flex flex-col items-center justify-center">
+                              <div className="text-2xl font-bold">
+                                {event.startDate.split("-")[2]}
+                              </div>
+                              <div className="text-xs uppercase">
+                                {getMonth(event.startDate)}
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            <span className="truncate">{event.location}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <h3 className="font-semibold line-clamp-2">
+                                {event.title}
+                              </h3>
+                              <Badge
+                                variant={
+                                  event.status === "upcoming"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
+                                {event.status}
+                              </Badge>
+                            </div>
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4" />
+                                <span>{event.startTime}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4" />
+                                <span className="truncate">
+                                  {event.location}
+                                </span>
+                              </div>
+                            </div>
+                            <Button
+                              asChild
+                              variant="outline"
+                              size="sm"
+                              className="w-full mt-4"
+                            >
+                              <Link href={`/events/${event._id}`}>
+                                View Details
+                              </Link>
+                            </Button>
                           </div>
                         </div>
-                        <Button
-                          asChild
-                          variant="outline"
-                          size="sm"
-                          className="w-full mt-4"
-                        >
-                          <Link href={`/events/${event.id}`}>View Details</Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="past">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pastEvents.map((event) => (
-              <Card key={event.id} className="opacity-75">
-                <CardContent className="p-6">
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0 text-center">
-                      <div className="w-16 h-16 bg-gray-400 text-white rounded-xl flex flex-col items-center justify-center">
-                        <div className="text-2xl font-bold">{event.date}</div>
-                        <div className="text-xs uppercase">{event.month}</div>
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold mb-2">{event.title}</h3>
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          <span>{event.time}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          <span>{event.location}</span>
-                        </div>
-                      </div>
-                      <Button
-                        asChild
-                        variant="ghost"
-                        size="sm"
-                        className="w-full mt-4"
-                      >
-                        <Link href={`/events/${event.id}`}>View Details</Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </TabsContent>
+          );
+        })}
       </Tabs>
     </div>
   );

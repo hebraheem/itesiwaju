@@ -192,7 +192,12 @@
       "status": "Statut",
       "type": "Type d'Événement",
       "submit": "Enregistrer l'Événement",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "endDate": "Date de Fin",
+      "endTime": "Heure de Fin",
+      "minutes": "Procès-verbal",
+      "files": "Photos de l'Événement",
+      "filesHint": "Téléchargez des images et des vidéos de l'événement. Formats acceptés: JPG, PNG, GIF, MP4, MOV"
     },
     "status": {
       "confirmed": "Confirmé",

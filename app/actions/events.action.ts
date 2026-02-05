@@ -2,6 +2,7 @@ import { EVENT_STATUSES, EVENT_TYPES } from "@/lib/utils";
 import { createEventSchema } from "@/app/schemas/events-create.schema";
 import { convexServer } from "@/lib/convexServer";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 type CreateEventResponse = {
   message?: string;
@@ -21,7 +22,7 @@ type CreateEventResponse = {
 };
 
 export async function createEventAction(
-  _prev: CreateEventResponse,
+  prev: CreateEventResponse,
   formData: FormData,
 ): Promise<CreateEventResponse> {
   const title = formData.get("title") as string;
@@ -35,6 +36,8 @@ export async function createEventAction(
   const type = formData.get("type") as string;
   const minutes = formData.get("minutes") as string;
   const authEmail = formData.get("authEmail") as string;
+  const files = formData.getAll("files") as File[];
+  const id = formData.get("id") as string | null;
 
   try {
     const data = {
@@ -59,6 +62,7 @@ export async function createEventAction(
     }
 
     const uploadedMedia = [];
+    const service = id ? api.events.updateEvent : api.events.createEvent;
     const uploadUrl = await convexServer.mutation(api.files.generateUploadUrl);
     for (const file of files) {
       const res = await fetch(uploadUrl, {
@@ -66,16 +70,34 @@ export async function createEventAction(
         headers: { "Content-Type": file.type },
         body: file,
       });
-
       const { storageId } = await res.json();
-
       uploadedMedia.push({
         storageId,
-        type: file.type.startsWith("video") ? "video" : "image",
+        type: "image" as "image" | "video",
         mimeType: file.type,
         size: file.size,
+        url: "",
+        name: file.name,
       });
     }
+    const dataToSave = {
+      title: parsed.data.title,
+      description: parsed.data.description,
+      location: parsed.data.location,
+      status: parsed.data.status,
+      startDate: parsed.data.startDate,
+      endDate: parsed.data.endDate,
+      startTime: parsed.data.startTime,
+      endTime: parsed.data.endTime,
+      type: parsed.data.type,
+      minutes: parsed.data.minutes,
+      media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
+      authEmail,
+    };
+    if (id) {
+      (dataToSave as any).id = id;
+    }
+    await convexServer.mutation(service, dataToSave);
 
     return {
       success: true,
@@ -91,3 +113,63 @@ export async function createEventAction(
     };
   }
 }
+
+export const deleteEventAction = async (
+  eventId: string,
+  authEmail: string,
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    await convexServer.mutation(api.events.deleteEvent, {
+      id: eventId as Id<"events">,
+      authEmail,
+    });
+    return { success: true, message: "Event deleted successfully!" };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        (error as Error)?.message ??
+        "An unexpected error occurred while deleting the event. Please try again.",
+    };
+  }
+};
+
+export const cancelEventAction = async (
+  eventId: string,
+  authEmail: string,
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    await convexServer.mutation(api.events.cancelEvent, {
+      id: eventId as Id<"events">,
+      authEmail,
+    });
+    return { success: true, message: "Event cancelled successfully!" };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        (error as Error)?.message ??
+        "An unexpected error occurred while cancelling the event. Please try again.",
+    };
+  }
+};
+
+export const markEventCompletedAction = async (
+  eventId: string,
+  authEmail: string,
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    await convexServer.mutation(api.events.completeEvent, {
+      id: eventId as Id<"events">,
+      authEmail,
+    });
+    return { success: true, message: "Event marked as completed!" };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        (error as Error)?.message ??
+        "An unexpected error occurred while updating the event. Please try again.",
+    };
+  }
+};

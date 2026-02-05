@@ -35,7 +35,7 @@ export const EVENT_TYPES = Object.freeze({
   social: "social",
   fundraiser: "fundraiser",
   workshop: "workshop",
-  other: "other",
+  others: "others",
 });
 
 export const parseDate = (dateString: number): string => {
@@ -107,3 +107,12 @@ export const quickActions = [
   //   color: "bg-purple-500",
   // },
 ];
+
+export const getMonth = (dateString: string): string => {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = {
+    month: "long",
+  };
+
+  return date.toLocaleDateString(undefined, options);
+};

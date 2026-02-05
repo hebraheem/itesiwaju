@@ -3,25 +3,27 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Users,
-  Calendar,
-  DollarSign,
-  AlertCircle,
-  TrendingUp,
-} from "lucide-react";
+import { Users, Calendar, DollarSign, AlertCircle } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import MotionDiv from "@/components/animations/MotionDiv";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { parseDate, quickActions } from "@/lib/utils";
+import { EVENT_STATUSES, getMonth, parseDate, quickActions } from "@/lib/utils";
+import { usePaginatedQuery } from "convex-helpers/react";
 
 export function DashboardHome() {
   const t = useTranslations("dashboard");
   const at = useTranslations("activity");
   const { user } = useAuth();
+  const { results: upcomingEvents } = usePaginatedQuery(
+    api.events.getEvents,
+    { status: EVENT_STATUSES.upcoming as keyof typeof EVENT_STATUSES },
+    { initialNumItems: 5 },
+  );
+  const eventStat = useQuery(api.events.getEventStats);
+  const userStat = useQuery(api.users.getMemberStats);
 
   const activities = useQuery(api.activities.getRecentActivities, {
     limit: 5,
@@ -32,60 +34,26 @@ export function DashboardHome() {
     {
       icon: Users,
       label: "stats.totalMembers",
-      value: "248",
-      trend: "+3%",
+      value: userStat?.totalMembers,
       color: "from-blue-500 to-blue-600",
     },
     {
       icon: Calendar,
       label: "stats.eventsThisMonth",
-      value: "12",
-      trend: "+2",
+      value: eventStat?.eventsThisMonth,
       color: "from-orange-500 to-orange-600",
     },
     {
       icon: DollarSign,
       label: "stats.totalCollections",
       value: "₦2.4M",
-      trend: "+12%",
       color: "from-green-500 to-green-600",
     },
     {
       icon: AlertCircle,
       label: "stats.pendingPayments",
       value: "18",
-      trend: "-5",
       color: "from-red-500 to-red-600",
-    },
-  ];
-
-  const upcomingEvents = [
-    {
-      id: 1,
-      date: "15",
-      month: "NOV",
-      title: "Monthly General Meeting",
-      time: "2:00 PM - 5:00 PM",
-      location: "Community Hall Lagos",
-      status: "confirmed",
-    },
-    {
-      id: 2,
-      date: "22",
-      month: "NOV",
-      title: "Financial Workshop",
-      time: "10:00 AM - 1:00 PM",
-      location: "Online (Zoom)",
-      status: "pending",
-    },
-    {
-      id: 3,
-      date: "30",
-      month: "NOV",
-      title: "Community Outreach Program",
-      time: "8:00 AM - 4:00 PM",
-      location: "Ikeja District",
-      status: "confirmed",
     },
   ];
 
@@ -132,16 +100,6 @@ export function DashboardHome() {
                       {t(stat.label)}
                     </p>
                     <p className="text-3xl font-bold">{stat.value}</p>
-                    <p
-                      className={`text-sm mt-2 flex items-center gap-1 ${
-                        stat.trend.startsWith("+")
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      <TrendingUp className="w-4 h-4" />
-                      {stat.trend}
-                    </p>
                   </div>
                   <div
                     className={`p-3 bg-linear-to-br ${stat.color} rounded-xl`}
@@ -203,28 +161,26 @@ export function DashboardHome() {
             <CardContent className="space-y-4">
               {upcomingEvents.map((event) => (
                 <div
-                  key={event.id}
+                  key={event._id}
                   className="flex gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors"
                 >
                   <div className="shrink-0 text-center">
                     <div className="w-16 h-16 bg-orange-500 text-white rounded-xl flex flex-col items-center justify-center">
-                      <div className="text-2xl font-bold">{event.date}</div>
-                      <div className="text-xs uppercase">{event.month}</div>
+                      <div className="text-2xl font-bold">
+                        {event.startDate.split("-")[2]}
+                      </div>
+                      <div className="text-xs uppercase">
+                        {getMonth(event.startDate)}
+                      </div>
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-semibold">{event.title}</h4>
-                      <Badge
-                        variant={
-                          event.status === "confirmed" ? "default" : "secondary"
-                        }
-                      >
-                        {event.status}
-                      </Badge>
+                      <Badge variant={"default"}>{event.status}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {event.time}
+                      {event.startTime}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {event.location}

@@ -25,7 +25,7 @@ import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { UserModel } from "@/types/userModel";
 
-export function MemberForm({ user }: { user: UserModel | null }) {
+export function MemberForm({ user }: { user?: UserModel | null }) {
   const router = useRouter();
   const t = useTranslations("auth.register");
   const session = useSession();

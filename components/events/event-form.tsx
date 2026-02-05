@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,17 +15,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  Save,
+  Upload,
+  X,
+  Image as ImageIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { EVENT_STATUSES, EVENT_TYPES } from "@/lib/utils";
 import { createEventAction } from "@/app/actions/events.action";
 import { useAuth } from "@/lib/hooks/use-auth";
+import Image from "next/image";
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
+import { Id } from "@/convex/_generated/dataModel";
 
-export function EventForm({ eventId }: { eventId?: string }) {
+export function EventForm({ eventId }: { eventId?: Id<"events"> }) {
   const t = useTranslations("events.form");
+  const event = useQuery(
+    api.events.getEventById,
+    eventId ? { id: eventId } : "skip",
+  );
   const { user } = useAuth();
   const router = useRouter();
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [state, action, isPending] = useActionState(createEventAction, {});
 
   useEffect(
@@ -67,12 +83,23 @@ export function EventForm({ eventId }: { eventId?: string }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={action} className="space-y-6">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              selectedFiles.forEach((file) => {
+                fd.append("files", file);
+              });
+              action(fd);
+            }}
+            className="space-y-6"
+          >
             <div className="space-y-2">
               <Label htmlFor="title">{t("title")}</Label>
               <Input
                 id="title"
                 name="title"
+                defaultValue={event?.title ?? state?.title}
                 placeholder="Monthly General Meeting"
                 className={state?.errors?.title ? "border-red-500" : ""}
               />
@@ -88,6 +115,7 @@ export function EventForm({ eventId }: { eventId?: string }) {
               <Textarea
                 id="description"
                 name="description"
+                defaultValue={event?.description ?? state?.description}
                 placeholder="Join us for our monthly meeting where we discuss community matters..."
                 rows={4}
                 className={state?.errors?.description ? "border-red-500" : ""}
@@ -101,15 +129,18 @@ export function EventForm({ eventId }: { eventId?: string }) {
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="date">{t("date")}</Label>
+                <Label htmlFor="startDate">{t("startDate")}</Label>
                 <Input
-                  id="date"
+                  id="startDate"
                   type="date"
+                  defaultValue={event?.startDate ?? state?.startDate}
                   name="startDate"
-                  className={state?.errors?.date ? "border-red-500" : ""}
+                  className={state?.errors?.startDate ? "border-red-500" : ""}
                 />
-                {state?.errors?.date && (
-                  <p className="text-sm text-red-500">{state.errors.date[0]}</p>
+                {state?.errors?.startDate && (
+                  <p className="text-sm text-red-500">
+                    {state.errors.startDate[0]}
+                  </p>
                 )}
               </div>
 
@@ -118,6 +149,7 @@ export function EventForm({ eventId }: { eventId?: string }) {
                 <Input
                   id="endDate"
                   type="date"
+                  defaultValue={event?.endDate ?? state?.endDate}
                   name="endDate"
                   className={state?.errors?.endDate ? "border-red-500" : ""}
                 />
@@ -131,10 +163,11 @@ export function EventForm({ eventId }: { eventId?: string }) {
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="time">{t("time")}</Label>
+                <Label htmlFor="startTime">{t("startTime")}</Label>
                 <Input
-                  id="date"
+                  id="startTime"
                   type="time"
+                  defaultValue={event?.startTime ?? state?.startTime}
                   name="startTime"
                   className={state?.errors?.startTime ? "border-red-500" : ""}
                 />
@@ -151,6 +184,7 @@ export function EventForm({ eventId }: { eventId?: string }) {
                   id="endTime"
                   type="time"
                   name="endTime"
+                  defaultValue={event?.endTime ?? state?.endTime}
                   className={state?.errors?.endTime ? "border-red-500" : ""}
                 />
                 {state?.errors?.endTime && (
@@ -165,6 +199,7 @@ export function EventForm({ eventId }: { eventId?: string }) {
               <Input
                 id="location"
                 name="location"
+                defaultValue={event?.location ?? state?.location}
                 placeholder="Community Hall, 123 Main St."
                 className={state?.errors?.location ? "border-red-500" : ""}
               />
@@ -178,7 +213,7 @@ export function EventForm({ eventId }: { eventId?: string }) {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="type">{t("type")}</Label>
-                <Select name="type">
+                <Select name="type" defaultValue={event?.type ?? state?.type}>
                   <SelectTrigger
                     className={state?.errors?.type ? "border-red-500" : ""}
                   >
@@ -199,7 +234,10 @@ export function EventForm({ eventId }: { eventId?: string }) {
 
               <div className="space-y-2">
                 <Label htmlFor="status">{t("status")}</Label>
-                <Select name="status">
+                <Select
+                  name="status"
+                  defaultValue={event?.status ?? state?.status}
+                >
                   <SelectTrigger
                     className={state?.errors?.status ? "border-red-500" : ""}
                   >
@@ -228,6 +266,7 @@ export function EventForm({ eventId }: { eventId?: string }) {
                 name="minutes"
                 placeholder="What happend at the event.."
                 rows={4}
+                defaultValue={event?.minutes ?? state?.minutes}
                 className={state?.errors?.minutes ? "border-red-500" : ""}
               />
               {state?.errors?.minutes && (
@@ -235,6 +274,93 @@ export function EventForm({ eventId }: { eventId?: string }) {
                   {state.errors.minutes[0]}
                 </p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="files">{t("files")}</Label>
+              <div className="space-y-3">
+                <div className="relative">
+                  <Input
+                    id="files"
+                    name="selectedFiles"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []) as File[];
+                      setSelectedFiles((prev) => [...prev, ...files]);
+                    }}
+                    className="cursor-pointer file:cursor-pointer"
+                  />
+                  <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                    <Upload className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+
+                {selectedFiles.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {selectedFiles.map((file, index) => {
+                      const isImage = file.type.startsWith("image/");
+                      const fileUrl = URL.createObjectURL(file);
+
+                      return (
+                        <motion.div
+                          key={`${file.name}-${index}`}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="relative group aspect-square rounded-lg overflow-hidden border border-border bg-muted"
+                        >
+                          {isImage && (
+                            <Image
+                              src={fileUrl}
+                              alt={file.name}
+                              width={400}
+                              height={400}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                          {!isImage && (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                          )}
+
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="destructive"
+                              className="h-8 w-8 rounded-full"
+                              onClick={() => {
+                                URL.revokeObjectURL(fileUrl);
+                                setSelectedFiles((prev) =>
+                                  prev.filter((_, i) => i !== index),
+                                );
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+
+                          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent p-2">
+                            <p className="text-xs text-white truncate">
+                              {file.name}
+                            </p>
+                            <p className="text-xs text-white/70">
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  {t("filesHint")}
+                </p>
+              </div>
             </div>
             <input defaultValue={user?.email ?? ""} hidden name="authEmail" />
             <div className="flex gap-3 pt-4">
@@ -263,6 +389,7 @@ export function EventForm({ eventId }: { eventId?: string }) {
                 {t("cancel")}
               </Button>
             </div>
+            <input hidden name="id" defaultValue={eventId} />
           </form>
         </CardContent>
       </Card>

@@ -192,7 +192,12 @@
       "status": "Status",
       "type": "Event Type",
       "submit": "Save Event",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "endDate": "End Date",
+      "endTime": "End Time",
+      "minutes": "Minutes",
+      "files": "Event Photos",
+      "filesHint": "Upload images and videos from the event. Accepted formats: JPG, PNG, GIF, MP4, MOV"
     },
     "status": {
       "confirmed": "Confirmed",

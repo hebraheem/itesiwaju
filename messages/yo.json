@@ -192,7 +192,12 @@
       "status": "Ipo",
       "type": "Iru Iṣẹlẹ",
       "submit": "Fipamọ Iṣẹlẹ",
-      "cancel": "Fagilee"
+      "cancel": "Fagilee",
+      "endDate": "Ọjọ Ipari",
+      "endTime": "Akoko Ipari",
+      "minutes": "Iwe Akọsilẹ",
+      "files": "Awọn Aworan",
+      "filesHint": "Gbe awọn aworan ati fidio soke lati iṣẹlẹ naa. Awọn iru ti a gba: JPG, PNG, GIF, MP4, MOV"
     },
     "status": {
       "confirmed": "Ti Jẹrisi",

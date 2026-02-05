@@ -192,7 +192,12 @@
       "status": "Status",
       "type": "Veranstaltungstyp",
       "submit": "Veranstaltung Speichern",
-      "cancel": "Abbrechen"
+      "cancel": "Abbrechen",
+      "endDate": "Enddatum",
+      "endTime": "Endzeit",
+      "minutes": "Protokoll",
+      "files": "Veranstaltungsfotos",
+      "filesHint": "Laden Sie Bilder und Videos von der Veranstaltung hoch. Akzeptierte Formate: JPG, PNG, GIF, MP4, MOV"
     },
     "status": {
       "confirmed": "Bestätigt",

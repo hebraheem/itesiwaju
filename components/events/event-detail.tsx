@@ -1,64 +1,150 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/navigation';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin, ArrowLeft, Edit, Trash2, Users } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { toast } from 'sonner';
+import { useRouter } from "@/i18n/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Users,
+  Loader2,
+  CheckIcon,
+  TimerReset,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { EVENT_STATUSES, parseDate, USER_ROLES } from "@/lib/utils";
+import { MediaCarousel } from "@/components/common/MediaCarousel";
+import RoleAction from "@/components/common/RoleAction";
+import {
+  cancelEventAction,
+  deleteEventAction,
+  markEventCompletedAction,
+} from "@/app/actions/events.action";
+import { useAuth } from "@/lib/hooks/use-auth";
 
-export function EventDetail({ eventId }: { eventId: string }) {
-  const t = useTranslations('events');
+export function EventDetail({ eventId }: { eventId: Id<"events"> }) {
   const router = useRouter();
+  const { user } = useAuth();
+  const event = useQuery(api.events.getEventById, { id: eventId });
 
-  const event = {
-    id: eventId,
-    title: 'Monthly General Meeting',
-    description: 'Join us for our monthly general meeting where we will discuss club matters, financial reports, and upcoming events. All members are encouraged to attend.',
-    date: 'November 15, 2026',
-    time: '2:00 PM - 5:00 PM',
-    location: 'Community Hall Lagos',
-    status: 'confirmed',
-    type: 'meeting',
-    attendees: 45,
+  const editableAndCancellable = [
+    EVENT_STATUSES.upcoming,
+    EVENT_STATUSES.ongoing,
+  ].includes(event?.status as "upcoming" | "ongoing");
+  const canComplete = event?.status === EVENT_STATUSES.ongoing;
+  const deletable = [
+    EVENT_STATUSES.upcoming,
+    EVENT_STATUSES.ongoing,
+    EVENT_STATUSES.cancelled,
+  ].includes(event?.status as "upcoming" | "ongoing" | "cancelled");
+
+  const handleDelete = async () => {
+    if (confirm("Are you sure you want to delete this event?")) {
+      const result = await deleteEventAction(eventId, user?.email ?? "");
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+      toast.success("Event deleted successfully");
+      router.push("/events");
+    }
   };
-
-  const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this event?')) {
-      toast.success('Event deleted successfully');
-      router.push('/events');
+  const handleComplete = async () => {
+    if (confirm("Are you sure you want to mark this event as completed?")) {
+      const result = await markEventCompletedAction(eventId, user?.email ?? "");
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+      toast.success("Event marked as completed");
+      router.push("/events");
+    }
+  };
+  const handleCancel = async () => {
+    if (confirm("Are you sure you want to cancel this event?")) {
+      const result = await cancelEventAction(eventId, user?.email ?? "");
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+      toast.success("Event cancelled successfully");
+      router.push("/events");
     }
   };
 
+  if (!event) {
+    return (
+      <Loader2 className="w-12 h-12 animate-spin text-orange-600 mx-auto" />
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-4xl">
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         <Button variant="ghost" onClick={() => router.back()} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
         <div className="flex justify-between items-start">
           <div>
-            <Badge className="mb-2">{event.status}</Badge>
+            <Badge className="mb-2">{event?.status}</Badge>
             <h1 className="text-3xl font-bold mb-2">{event.title}</h1>
             <p className="text-muted-foreground">Event Details</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => router.push(`/events/${eventId}/edit`)}>
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete
-            </Button>
-          </div>
+          <RoleAction roles={[USER_ROLES.admin, USER_ROLES.pro]}>
+            <div className="flex gap-2">
+              {editableAndCancellable && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push(`/events/${eventId}/edit`)}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+              )}
+              {deletable && (
+                <Button variant="destructive" onClick={handleDelete} size="sm">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+              )}
+              {canComplete && (
+                <Button asChild size="sm" onClick={handleComplete}>
+                  <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md">
+                    <CheckIcon className="w-4 h-4 mr-2" />
+                    Complete
+                  </button>
+                </Button>
+              )}
+              {editableAndCancellable && (
+                <Button variant="destructive" onClick={handleCancel} size="sm">
+                  <TimerReset className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </RoleAction>
         </div>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
         <Card>
           <CardContent className="p-8 space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
@@ -68,7 +154,12 @@ export function EventDetail({ eventId }: { eventId: string }) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Date</p>
-                  <p className="font-semibold">{event.date}</p>
+                  <p className="font-semibold">
+                    {parseDate(new Date(event.startDate).getTime())}{" "}
+                    {event?.endDate
+                      ? `- ${parseDate(new Date(event?.endDate).getTime())}`
+                      : ""}
+                  </p>
                 </div>
               </div>
 
@@ -78,7 +169,9 @@ export function EventDetail({ eventId }: { eventId: string }) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Time</p>
-                  <p className="font-semibold">{event.time}</p>
+                  <p className="font-semibold">
+                    {event.startTime} {event.endTime ? event.endTime : ""}
+                  </p>
                 </div>
               </div>
 
@@ -98,15 +191,35 @@ export function EventDetail({ eventId }: { eventId: string }) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Attendees</p>
-                  <p className="font-semibold">{event.attendees} members</p>
+                  <p className="font-semibold">All members</p>
                 </div>
               </div>
             </div>
 
             <div className="border-t pt-6">
               <h3 className="font-semibold text-lg mb-3">Description</h3>
-              <p className="text-muted-foreground leading-relaxed">{event.description}</p>
+              <p className="text-muted-foreground leading-relaxed">
+                {event.description}
+              </p>
             </div>
+            {event?.minutes && (
+              <div className="border-t pt-6">
+                <h3 className="font-semibold text-lg mb-3">Description</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {event.minutes}
+                </p>
+              </div>
+            )}
+            {event?.media?.length && (
+              <div className="border-t pt-6">
+                <h3 className="font-semibold text-lg mb-3">Media</h3>
+                <MediaCarousel
+                  media={
+                    event.media.map(({ url }) => ({ url })) as { url: string }[]
+                  }
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
