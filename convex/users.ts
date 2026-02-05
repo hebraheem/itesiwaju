@@ -170,7 +170,7 @@ export const createUser = mutation({
     // Create an activity log
     await ctx.db.insert("activities", {
       userId,
-      type: "profile",
+      type: "member",
       user: `${args.firstName} ${args.lastName}`,
       action: "signUp",
       description: `registered on the platform`,
@@ -303,7 +303,7 @@ export const updateUserStatusAndRole = mutation({
     // Create an activity log
     await ctx.db.insert("activities", {
       userId: args.id,
-      type: "profile",
+      type: "member",
       user: `${authUser.firstName} ${authUser.lastName}`,
       action: "statusRoleUpdate",
       description: description,
@@ -340,7 +340,7 @@ export const deleteUser = mutation({
     // Create an activity log
     await ctx.db.insert("activities", {
       userId: args.id,
-      type: "profile",
+      type: "member",
       user: `${authUser.firstName} ${authUser.lastName}`,
       action: "userDeletion",
       description: `removed ${user.firstName} from the system`,
