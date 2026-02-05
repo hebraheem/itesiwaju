@@ -30,6 +30,14 @@ export const EVENT_STATUSES = Object.freeze({
   cancelled: "cancelled",
 });
 
+export const EVENT_TYPES = Object.freeze({
+  meeting: "meeting",
+  social: "social",
+  fundraiser: "fundraiser",
+  workshop: "workshop",
+  other: "other",
+});
+
 export const parseDate = (dateString: number): string => {
   const date = new Date(dateString);
   const options: Intl.DateTimeFormatOptions = {

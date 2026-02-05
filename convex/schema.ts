@@ -45,7 +45,6 @@ export default defineSchema({
   events: defineTable({
     title: v.string(),
     description: v.string(),
-    date: v.number(),
     location: v.string(),
     status: v.union(
       v.literal("upcoming"),
@@ -53,13 +52,42 @@ export default defineSchema({
       v.literal("completed"),
       v.literal("cancelled"),
     ),
+    minutes: v.optional(v.string()),
+    startDate: v.number(),
+    endDate: v.optional(v.number()),
+    startTime: v.number(),
+    endTime: v.optional(v.number()),
+    type: v.union(
+      v.literal("meeting"),
+      v.literal("social"),
+      v.literal("fundraiser"),
+      v.literal("workshop"),
+      v.literal("other"),
+    ),
+    media: v.optional(
+      v.array(
+        v.object({
+          storageId: v.id("_storage"),
+          url: v.string(),
+          type: v.union(v.literal("image"), v.literal("video")),
+          mimeType: v.string(),
+          size: v.number(),
+        }),
+      ),
+    ),
     createdBy: v.id("users"),
+    searchField: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
-    .index("by_date", ["date"])
+    .index("by_startDate", ["startDate"])
     .index("by_status", ["status"])
-    .index("by_creator", ["createdBy"]),
+    .index("by_type", ["type"])
+    .index("by_creator", ["createdBy"])
+    .index("by_status_type", ["status", "type"])
+    .searchIndex("search_title_description_location", {
+      searchField: "searchField",
+    }),
 
   // Activities - Activity log for audit trail
   activities: defineTable({

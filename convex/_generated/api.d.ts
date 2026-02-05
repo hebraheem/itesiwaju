@@ -12,6 +12,7 @@ import type * as accounts from "../accounts.js";
 import type * as activities from "../activities.js";
 import type * as auth_actions from "../auth/actions.js";
 import type * as events from "../events.js";
+import type * as files from "../files.js";
 import type * as reports from "../reports.js";
 import type * as users from "../users.js";
 import type * as utils from "../utils.js";
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   activities: typeof activities;
   "auth/actions": typeof auth_actions;
   events: typeof events;
+  files: typeof files;
   reports: typeof reports;
   users: typeof users;
   utils: typeof utils;
