@@ -334,7 +334,16 @@
     "joinedMember": "darapọ bi ọmọ ẹgbẹ tuntun",
     "createdEvent": "ṣẹda iṣẹlẹ",
     "submittedReport": "fi ijabọ ranṣẹ",
-    "updatedProfile": "ṣe imudojuiwọn profaili"
+    "updatedProfile": "ṣe imudojuiwọn profaili",
+    "noActivity": "Ko si awọn iṣẹ ti a rii",
+    "signUp": "Darapọ mọ Itesiwaju",
+    "profileUpdate": "Imudojuiwọn Profaili",
+    "paymentMade": "Isanwo Ti Ṣe",
+    "eventCreated": "Iṣẹlẹ Ti Ṣẹda",
+    "statusRoleUpdate": "Imudojuiwọn Ipo/Ipa fun {memberName} si {newStatusOrRole}",
+    "userDeletion": "Pa akọọlẹ {memberName} kuro",
+    "passwordUpdate": "Imudojuiwọn ọrọ aṣina",
+    "passwordReset": "Tun ọrọ aṣina ṣe"
   },
   "common": {
     "loading": "N ṣiṣẹ...",

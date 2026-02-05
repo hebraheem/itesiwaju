@@ -8,75 +8,55 @@ import {
   Calendar,
   DollarSign,
   AlertCircle,
-  UserPlus,
-  Wallet,
   TrendingUp,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import MotionDiv from "@/components/animations/MotionDiv";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { parseDate, quickActions } from "@/lib/utils";
 
 export function DashboardHome() {
   const t = useTranslations("dashboard");
+  const at = useTranslations("activity");
   const { user } = useAuth();
+
+  const activities = useQuery(api.activities.getRecentActivities, {
+    limit: 5,
+    userId: user?._id,
+  });
 
   const stats = [
     {
       icon: Users,
-      label: t("stats.totalMembers"),
+      label: "stats.totalMembers",
       value: "248",
       trend: "+3%",
       color: "from-blue-500 to-blue-600",
     },
     {
       icon: Calendar,
-      label: t("stats.eventsThisMonth"),
+      label: "stats.eventsThisMonth",
       value: "12",
       trend: "+2",
       color: "from-orange-500 to-orange-600",
     },
     {
       icon: DollarSign,
-      label: t("stats.totalCollections"),
+      label: "stats.totalCollections",
       value: "₦2.4M",
       trend: "+12%",
       color: "from-green-500 to-green-600",
     },
     {
       icon: AlertCircle,
-      label: t("stats.pendingPayments"),
+      label: "stats.pendingPayments",
       value: "18",
       trend: "-5",
       color: "from-red-500 to-red-600",
     },
-  ];
-
-  const quickActions = [
-    {
-      icon: Calendar,
-      label: t("quickActions.createEvent"),
-      href: "/events/create",
-      color: "bg-orange-500",
-    },
-    {
-      icon: UserPlus,
-      label: t("quickActions.addMember"),
-      href: "/members/create",
-      color: "bg-blue-500",
-    },
-    {
-      icon: Wallet,
-      label: t("quickActions.recordPayment"),
-      href: "/account-status",
-      color: "bg-green-500",
-    },
-    // {
-    //   icon: FileText,
-    //   label: t("quickActions.viewReports"),
-    //   href: "/reports",
-    //   color: "bg-purple-500",
-    // },
   ];
 
   const upcomingEvents = [
@@ -106,33 +86,6 @@ export function DashboardHome() {
       time: "8:00 AM - 4:00 PM",
       location: "Ikeja District",
       status: "confirmed",
-    },
-  ];
-
-  const recentActivity = [
-    {
-      user: "Chioma Okoro",
-      action: "made a payment of ₦50,000",
-      time: "3 hours ago",
-      avatar: "CO",
-    },
-    {
-      user: "Amina Bello",
-      action: "joined as new member",
-      time: "3 hours ago",
-      avatar: "AB",
-    },
-    {
-      user: "Monthly Meeting",
-      action: "created by Adebayo",
-      time: "5 hours ago",
-      avatar: "MM",
-    },
-    {
-      user: "Tunde Adeyemi",
-      action: "submitted monthly report",
-      time: "1 day ago",
-      avatar: "TA",
     },
   ];
 
@@ -176,7 +129,7 @@ export function DashboardHome() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-2">
-                      {stat.label}
+                      {t(stat.label)}
                     </p>
                     <p className="text-3xl font-bold">{stat.value}</p>
                     <p
@@ -225,7 +178,7 @@ export function DashboardHome() {
                     <div className={`p-2 ${action.color} rounded-lg mr-3`}>
                       <action.icon className="w-4 h-4 text-white" />
                     </div>
-                    {action.label}
+                    {t(action.label)}
                   </Link>
                 </Button>
               ))}
@@ -299,22 +252,30 @@ export function DashboardHome() {
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
-              {recentActivity.map((activity, index) => (
+              {(activities ?? []).map((activity, index) => (
                 <div key={index} className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-sm font-semibold text-orange-600">
-                      {activity.avatar}
+                      {activity?.user?.[0]?.toUpperCase() ??
+                        user?.firstName?.[0]?.toUpperCase()}
+                      {activity?.user
+                        ?.split(" ")
+                        ?.slice(-1)[0]
+                        ?.charAt(0)
+                        ?.toUpperCase()}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">
                       <span className="font-semibold">{activity.user}</span>{" "}
                       <span className="text-muted-foreground">
-                        {activity.action}
+                        {activity?.action
+                          ? at(activity?.action)
+                          : activity?.description}
                       </span>
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {activity.time}
+                      {parseDate(activity?._creationTime)}
                     </p>
                   </div>
                 </div>

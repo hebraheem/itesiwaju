@@ -334,7 +334,16 @@
     "joinedMember": "a rejoint en tant que nouveau membre",
     "createdEvent": "a créé un événement",
     "submittedReport": "a soumis un rapport",
-    "updatedProfile": "a mis à jour le profil"
+    "updatedProfile": "a mis à jour le profil",
+    "noActivity": "Aucune activité récente trouvée",
+    "signUp": "Inscription sur la plateforme",
+    "profileUpdate": "Mise à jour des informations du profil",
+    "paymentMade": "Paiement de {amount} effectué",
+    "eventCreated": "Création d'un nouvel événement : {eventName}",
+    "statusRoleUpdate": "Mise à jour du statut/rôle de {memberName} vers {newStatusOrRole}",
+    "userDeletion": "Suppression de l'utilisateur {memberName} du système",
+    "passwordUpdate": "Mise à jour du mot de passe",
+    "passwordReset": "Réinitialisation du mot de passe"
   },
   "common": {
     "loading": "Chargement...",

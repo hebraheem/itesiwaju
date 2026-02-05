@@ -65,46 +65,26 @@ export default defineSchema({
   activities: defineTable({
     userId: v.id("users"),
     type: v.union(
-      // Payment related
       v.literal("payment"),
-      v.literal("payment_received"),
-      // Member/Account related
       v.literal("member"),
-      v.literal("account_created"),
-      v.literal("account_updated"),
-      v.literal("account_deleted"),
-      v.literal("account_status_updated"),
-      v.literal("account_overdue"),
-      // User related
       v.literal("profile"),
-      v.literal("user_created"),
-      v.literal("user_updated"),
-      v.literal("user_deleted"),
-      // Event related
       v.literal("event"),
-      v.literal("event_created"),
-      v.literal("event_updated"),
-      v.literal("event_deleted"),
-      v.literal("event_cancelled"),
-      v.literal("event_completed"),
-      // Financial related
-      v.literal("borrow"),
-      v.literal("borrow_recorded"),
-      v.literal("fine"),
-      v.literal("fine_recorded"),
-      // Report related
-      v.literal("report_created"),
-      v.literal("report_updated"),
-      v.literal("report_deleted"),
-      v.literal("report_generated"),
     ),
+    action: v.optional(v.string()),
+    user: v.optional(v.string()),
+    receiver: v.optional(v.string()),
     description: v.string(),
     metadata: v.any(),
     timestamp: v.number(),
   })
-    .index("by_user", ["userId"])
     .index("by_timestamp", ["timestamp"])
-    .index("by_type", ["type"]),
+    .index("by_type", ["type"])
+    .index("by_user", ["userId"])
+    .index("by_user_type", ["userId", "type"])
+    .searchIndex("search_description", {
+      searchField: "description",
+      filterFields: ["userId", "type"],
+    }),
 
   // Financial Accounts - Member financial tracking
   accounts: defineTable({

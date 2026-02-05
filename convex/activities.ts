@@ -1,41 +1,61 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { paginationOptsValidator } from "convex/server";
 
 // Get all activities (with pagination)
 export const getActivities = query({
   args: {
-    limit: v.optional(v.number()),
-    type: v.optional(v.string()),
+    userId: v.optional(v.id("users")),
+    type: v.optional(
+      v.union(
+        v.literal("payment"),
+        v.literal("member"),
+        v.literal("profile"),
+        v.literal("event"),
+      ),
+    ),
+    search: v.optional(v.string()),
+    paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    let activities = await ctx.db.query("activities").order("desc").collect();
+    const buildQuery = () => {
+      let q;
+      if (args.userId && args.type) {
+        q = ctx.db
+          .query("activities")
+          .withIndex("by_user_type", (q) =>
+            q.eq("userId", args.userId!).eq("type", args.type!),
+          )
+          .order("desc");
+      } else if (args.userId) {
+        q = ctx.db
+          .query("activities")
+          .withIndex("by_user", (q) => q.eq("userId", args.userId!))
+          .order("desc");
+      } else if (args.type) {
+        q = ctx.db
+          .query("activities")
+          .withIndex("by_type", (q) => q.eq("type", args.type!))
+          .order("desc");
+      } else {
+        q = ctx.db.query("activities").order("desc");
+      }
 
-    // Filter by type if provided
-    if (args.type) {
-      activities = activities.filter((a) => a.type === args.type);
-    }
-
-    // Apply limit
-    if (args.limit) {
-      activities = activities.slice(0, args.limit);
-    }
-
-    // Get user details for each activity
-    return await Promise.all(
-      activities.map(async (activity) => {
-        const user = await ctx.db.get(activity.userId);
-        return {
-          ...activity,
-          user: user
-            ? {
-                name: `${user.firstName} ${user.lastName}`,
-                email: user.email,
-                role: user.role,
-              }
-            : null,
-        };
-      }),
-    );
+      // Full-text search
+      if (args.search) {
+        q = ctx.db
+          .query("activities")
+          .withSearchIndex("search_description", (q) => {
+            let s = q.search("description", args.search!);
+            if (args.userId) s = s.eq("userId", args.userId);
+            if (args.type) s = s.eq("type", args.type);
+            return s;
+          });
+      }
+      return q;
+    };
+    const base = buildQuery();
+    return await base.paginate(args.paginationOpts);
   },
 });
 
@@ -43,81 +63,14 @@ export const getActivities = query({
 export const getRecentActivities = query({
   args: {
     limit: v.optional(v.number()),
+    userId: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
-    const activities = await ctx.db
+    return await ctx.db
       .query("activities")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId!))
       .order("desc")
       .take(args.limit || 10);
-
-    // Get user details for each activity
-    return await Promise.all(
-      activities.map(async (activity) => {
-        const user = await ctx.db.get(activity.userId);
-        return {
-          ...activity,
-          user: user
-            ? {
-                name: `${user.firstName} ${user.lastName}`,
-                email: user.email,
-                role: user.role,
-              }
-            : null,
-        };
-      }),
-    );
-  },
-});
-
-// Get activities by user
-export const getActivitiesByUser = query({
-  args: {
-    userId: v.id("users"),
-    limit: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    const activities = await ctx.db
-      .query("activities")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .order("desc")
-      .collect();
-
-    if (args.limit) {
-      return activities.slice(0, args.limit);
-    }
-
-    return activities;
-  },
-});
-
-// Get activities by type
-export const getActivitiesByType = query({
-  args: {
-    type: v.string(),
-    limit: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    const activities = await ctx.db
-      .query("activities")
-      .filter((q) => q.eq(q.field("type"), args.type))
-      .order("desc")
-      .collect();
-
-    if (args.limit) {
-      return activities.slice(0, args.limit);
-    }
-
-    return await Promise.all(
-      activities.map(async (activity) => {
-        const user = await ctx.db.get(activity.userId);
-        return {
-          ...activity,
-          user: user
-            ? { name: `${user.firstName} ${user.lastName}`, email: user.email }
-            : null,
-        };
-      }),
-    );
   },
 });
 
@@ -147,6 +100,7 @@ export const getActivityById = query({
 
 // Get activity statistics
 export const getActivityStats = query({
+  args: { userId: v.id("users") },
   handler: async (ctx) => {
     const activities = await ctx.db.query("activities").collect();
 
@@ -177,52 +131,6 @@ export const getActivityStats = query({
       todayActivities,
       weekActivities,
     };
-  },
-});
-
-// Create activity (this is called by other mutations)
-export const createActivity = mutation({
-  args: {
-    userId: v.id("users"),
-    type: v.union(
-      v.literal("payment"),
-      v.literal("payment_received"),
-      v.literal("member"),
-      v.literal("account_created"),
-      v.literal("account_updated"),
-      v.literal("account_deleted"),
-      v.literal("account_status_updated"),
-      v.literal("account_overdue"),
-      v.literal("profile"),
-      v.literal("user_created"),
-      v.literal("user_updated"),
-      v.literal("user_deleted"),
-      v.literal("event"),
-      v.literal("event_created"),
-      v.literal("event_updated"),
-      v.literal("event_deleted"),
-      v.literal("event_cancelled"),
-      v.literal("event_completed"),
-      v.literal("borrow"),
-      v.literal("borrow_recorded"),
-      v.literal("fine"),
-      v.literal("fine_recorded"),
-      v.literal("report_created"),
-      v.literal("report_updated"),
-      v.literal("report_deleted"),
-      v.literal("report_generated"),
-    ),
-    description: v.string(),
-    metadata: v.optional(v.any()),
-  },
-  handler: async (ctx, args) => {
-    return await ctx.db.insert("activities", {
-      userId: args.userId,
-      type: args.type,
-      description: args.description,
-      metadata: args.metadata || {},
-      timestamp: Date.now(),
-    });
   },
 });
 

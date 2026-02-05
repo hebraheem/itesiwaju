@@ -13,106 +13,54 @@ import {
   FileText,
   Users,
   Clock,
+  Loader2,
+  Search,
 } from "lucide-react";
+import { usePaginatedQuery } from "convex-helpers/react";
+import { api } from "@/convex/_generated/api";
+import {
+  ACTIVITY_TYPES,
+  parseDate,
+  removeEmptyFields,
+  USER_ROLES,
+} from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useSession } from "next-auth/react";
+import RoleAction from "@/components/common/RoleAction";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export function Activity() {
   const t = useTranslations("activity");
+  const { data: session } = useSession();
 
-  const activities = [
-    {
-      id: 1,
-      user: "Chioma Okoro",
-      avatar: "CO",
-      action: t("madePayment"),
-      detail: "₦50,000",
-      time: "3 hours ago",
-      type: "payment",
-      icon: DollarSign,
-      color: "text-green-600 bg-green-100 dark:bg-green-900/30",
-    },
-    {
-      id: 2,
-      user: "Amina Bello",
-      avatar: "AB",
-      action: t("joinedMember"),
-      detail: "Member ID: #248",
-      time: "3 hours ago",
-      type: "member",
-      icon: UserPlus,
-      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
-    },
-    {
-      id: 3,
-      user: "Adebayo Okon",
-      avatar: "AO",
-      action: t("createdEvent"),
-      detail: "Monthly Meeting",
-      time: "5 hours ago",
-      type: "event",
-      icon: Calendar,
-      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/30",
-    },
-    {
-      id: 4,
-      user: "Tunde Adeyemi",
-      avatar: "TA",
-      action: t("submittedReport"),
-      detail: "Monthly Report",
-      time: "1 day ago",
-      type: "report",
-      icon: FileText,
-      color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30",
-    },
-    {
-      id: 5,
-      user: "Funke Olawale",
-      avatar: "FO",
-      action: t("updatedProfile"),
-      detail: "Contact information",
-      time: "1 day ago",
-      type: "profile",
-      icon: Users,
-      color: "text-teal-600 bg-teal-100 dark:bg-teal-900/30",
-    },
-    {
-      id: 6,
-      user: "Ibrahim Musa",
-      avatar: "IM",
-      action: t("madePayment"),
-      detail: "₦30,000",
-      time: "2 days ago",
-      type: "payment",
-      icon: DollarSign,
-      color: "text-green-600 bg-green-100 dark:bg-green-900/30",
-    },
-    {
-      id: 7,
-      user: "Ngozi Eze",
-      avatar: "NE",
-      action: t("joinedMember"),
-      detail: "Member ID: #247",
-      time: "2 days ago",
-      type: "member",
-      icon: UserPlus,
-      color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
-    },
-    {
-      id: 8,
-      user: "Yusuf Ahmed",
-      avatar: "YA",
-      action: t("createdEvent"),
-      detail: "Financial Workshop",
-      time: "3 days ago",
-      type: "event",
-      icon: Calendar,
-      color: "text-orange-600 bg-orange-100 dark:bg-orange-900/30",
-    },
-  ];
+  const [query, setQuery] = useState({
+    type: "" as keyof typeof ACTIVITY_TYPES,
+    search: "",
+    onlyMine: true,
+  });
 
-  const filterByType = (type: string) => {
-    if (type === "all") return activities;
-    return activities.filter((a) => a.type === type);
+  const convexArgs = {
+    ...removeEmptyFields(query),
+    userId: (query.onlyMine ? session?.user?.id : undefined) as any,
   };
+
+  const copyConvexArgs = { ...convexArgs };
+  delete copyConvexArgs.onlyMine;
+  const {
+    results: activities,
+    loadMore,
+    isLoading,
+    status,
+  } = usePaginatedQuery(
+    api.activities.getActivities,
+    { ...copyConvexArgs },
+    { initialNumItems: 10 },
+  );
+
+  const tabs = ["all", "payment", "member", "event", "profile"];
 
   const getTabLabel = (type: string) => {
     switch (type) {
@@ -124,7 +72,6 @@ export function Activity() {
         return t("member");
       case "event":
         return t("event");
-      // case 'report': return t('report');
       case "profile":
         return t("profile");
       default:
@@ -138,19 +85,62 @@ export function Activity() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-2xl md:text-3xl font-bold">{t("title")}</h1>
-        <p className="text-muted-foreground">{t("description")}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("description")}</p>
+          </div>
+          <RoleAction roles={[USER_ROLES.admin]}>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="switch-disabled-unchecked"
+                defaultChecked
+                onCheckedChange={(checked) =>
+                  setQuery((prev) => ({
+                    ...prev,
+                    onlyMine: checked,
+                  }))
+                }
+              />
+              <Label htmlFor="switch-disabled-unchecked">
+                Only My Activities
+              </Label>
+            </div>
+          </RoleAction>
+        </div>
       </motion.div>
 
       <Tabs defaultValue="all" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 h-auto">
-          {["all", "payment", "member", "event", "profile"].map((type) => (
-            <TabsTrigger key={type} value={type} className="text-xs md:text-sm">
+          {tabs.map((type) => (
+            <TabsTrigger
+              key={type}
+              value={type}
+              className="text-xs md:text-sm"
+              onClick={() =>
+                setQuery((prev) => ({
+                  ...prev,
+                  type: (type === "all"
+                    ? ""
+                    : type) as keyof typeof ACTIVITY_TYPES,
+                }))
+              }
+            >
               {getTabLabel(type)}
             </TabsTrigger>
           ))}
         </TabsList>
-
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search activities..."
+            value={query.search}
+            onChange={(e) =>
+              setQuery((prev) => ({ ...prev, search: e.target.value }))
+            }
+            className="pl-10"
+          />
+        </div>
         {["all", "payment", "member", "event", "profile"].map((type) => (
           <TabsContent key={type} value={type}>
             <Card>
@@ -160,51 +150,92 @@ export function Activity() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
+                {isLoading && status !== "LoadingMore" && (
+                  <div className="flex justify-center items-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-orange-600 mx-auto" />
+                  </div>
+                )}
                 <div className="space-y-4">
-                  {filterByType(type).map((activity, index) => (
-                    <motion.div
-                      key={activity.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-start gap-3 md:gap-4 p-3 md:p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <Avatar className="w-10 h-10 md:w-12 md:h-12 shrink-0">
-                        <AvatarFallback className="bg-orange-500 text-white font-semibold text-xs md:text-sm">
-                          {activity.avatar}
-                        </AvatarFallback>
-                      </Avatar>
+                  {activities.map((activity, index) => {
+                    const colorMap: Record<string, string> = {
+                      payment:
+                        "text-green-600 bg-green-100 dark:bg-green-900/30",
+                      member: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
+                      event:
+                        "text-orange-600 bg-orange-100 dark:bg-orange-900/30",
+                      profile: "text-teal-600 bg-teal-100 dark:bg-teal-900/30",
+                    };
+                    const iconMap: Record<string, any> = {
+                      payment: DollarSign,
+                      member: UserPlus,
+                      event: Calendar,
+                      profile: Users,
+                    };
+                    const color = colorMap[activity.type] || "bg-muted";
+                    const Icon = iconMap[activity.type] || FileText;
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
-                          <div className="min-w-0">
-                            <p className="text-sm md:text-base">
-                              <span className="font-semibold">
-                                {activity.user}
-                              </span>{" "}
-                              <span className="text-muted-foreground">
-                                {activity.action}
-                              </span>
-                            </p>
-                            <p className="text-xs md:text-sm font-medium text-muted-foreground mt-1 truncate">
-                              {activity.detail}
-                            </p>
+                    return (
+                      <motion.div
+                        key={activity._id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="flex items-start gap-3 md:gap-4 p-3 md:p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <Avatar className="w-10 h-10 md:w-12 md:h-12 shrink-0">
+                          <AvatarFallback className="bg-orange-500 text-white font-semibold text-xs md:text-sm">
+                            {activity?.user?.[0]?.toUpperCase() ?? "A"}
+                            {activity?.user
+                              ?.split(" ")
+                              ?.slice(-1)[0]
+                              ?.charAt(0)
+                              ?.toUpperCase() ?? "B"}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
+                            <div className="min-w-0">
+                              <p className="text-sm md:text-base">
+                                <span className="font-semibold">
+                                  {activity.user}
+                                </span>{" "}
+                                <span className="text-muted-foreground">
+                                  {activity?.action
+                                    ? t(activity.action)
+                                    : activity.description}
+                                </span>
+                              </p>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={`${color} border-0 shrink-0`}
+                            >
+                              <Icon className="w-3 h-3 mr-1" />
+                              {activity.type}
+                            </Badge>
                           </div>
-                          <Badge
-                            variant="outline"
-                            className={`${activity.color} border-0 flex-shrink-0`}
-                          >
-                            <activity.icon className="w-3 h-3 mr-1" />
-                            {activity.type}
-                          </Badge>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                            <Clock className="w-3 h-3" />
+                            {parseDate(activity._creationTime)}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                          <Clock className="w-3 h-3" />
-                          {activity.time}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
+                  {status === "CanLoadMore" && (
+                    <Button
+                      variant="outline"
+                      className="w-full mx-auto"
+                      size="sm"
+                      onClick={() => loadMore(10)}
+                    >
+                      {isLoading && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin justify-center" />
+                      )}
+                      Load More
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

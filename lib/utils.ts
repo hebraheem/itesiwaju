@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { Calendar, UserPlus, Wallet } from "lucide-react";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -54,3 +55,47 @@ export const buildAddress = (
     .filter((part) => part && part.trim() !== "")
     .join(", ");
 };
+
+export const ACTIVITY_TYPES = Object.freeze({
+  payment: "payment",
+  member: "member",
+  profile: "profile",
+  event: "event",
+});
+
+export const removeEmptyFields = <T extends Record<string, any>>(
+  obj: T,
+): Partial<T> => {
+  return Object.fromEntries(
+    Object.entries(obj).filter(
+      ([, value]) => value !== null && value !== undefined && value !== "",
+    ),
+  ) as Partial<T>;
+};
+
+export const quickActions = [
+  {
+    icon: Calendar,
+    label: "quickActions.createEvent",
+    href: "/events/create",
+    color: "bg-orange-500",
+  },
+  {
+    icon: UserPlus,
+    label: "quickActions.addMember",
+    href: "/members/create",
+    color: "bg-blue-500",
+  },
+  {
+    icon: Wallet,
+    label: "quickActions.recordPayment",
+    href: "/account-status",
+    color: "bg-green-500",
+  },
+  // {
+  //   icon: FileText,
+  //   label: t("quickActions.viewReports"),
+  //   href: "/reports",
+  //   color: "bg-purple-500",
+  // },
+];

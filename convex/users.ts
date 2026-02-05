@@ -171,7 +171,9 @@ export const createUser = mutation({
     await ctx.db.insert("activities", {
       userId,
       type: "profile",
-      description: `New user ${args.firstName} ${args.lastName} registered`,
+      user: `${args.firstName} ${args.lastName}`,
+      action: "signUp",
+      description: `registered on the platform`,
       metadata: { email: args.email, role: args.role || "member" },
       timestamp: Date.now(),
     });
@@ -245,7 +247,9 @@ export const updateUser = mutation({
     await ctx.db.insert("activities", {
       userId: id,
       type: "profile",
-      description: `User ${user.firstName} ${user.lastName} updated their profile`,
+      user: `${user.firstName} ${user.lastName}`,
+      action: "profileUpdate",
+      description: `updated their profile`,
       metadata: updates,
       timestamp: Date.now(),
     });
@@ -289,19 +293,27 @@ export const updateUserStatusAndRole = mutation({
     await ctx.db.patch(args.id, { status: args.status });
 
     let description = args.status
-      ? `${authUser?.firstName} updates ${user.firstName} status to ${args.status}`
-      : `${authUser?.firstName} updates ${user.firstName} role to ${args.role}`;
+      ? `updates ${user.firstName} status to ${args.status}`
+      : `updates ${user.firstName} role to ${args.role}`;
     if (args.role && args.status) {
-      description = `${authUser?.firstName} updates ${user.firstName} role to ${args.role} and status to ${args.status}`;
+      description = `updates ${user.firstName} role to ${args.role} and status to ${args.status}`;
     } else if (args.role) {
-      description = `${authUser?.firstName} updates ${user.firstName} role to ${args.role}`;
+      description = `updates ${user.firstName} role to ${args.role}`;
     }
     // Create an activity log
     await ctx.db.insert("activities", {
       userId: args.id,
       type: "profile",
+      user: `${authUser.firstName} ${authUser.lastName}`,
+      action: "statusRoleUpdate",
       description: description,
-      metadata: { oldStatus: user.status, newStatus: args.status },
+      metadata: {
+        oldStatus: user.status,
+        newStatus: args.status,
+        userAffected: user.firstName,
+        newRole: args.role,
+        oldRole: user.role,
+      },
       timestamp: Date.now(),
     });
 
@@ -329,8 +341,10 @@ export const deleteUser = mutation({
     await ctx.db.insert("activities", {
       userId: args.id,
       type: "profile",
-      description: `${authUser?.firstName} removed ${user.firstName} from the system`,
-      metadata: { email: user.email },
+      user: `${authUser.firstName} ${authUser.lastName}`,
+      action: "userDeletion",
+      description: `removed ${user.firstName} from the system`,
+      metadata: { email: user.email, deleteUser: user.firstName },
       timestamp: Date.now(),
     });
 
@@ -359,7 +373,9 @@ export const updatePassword = mutation({
     await ctx.db.insert("activities", {
       userId: args.userId,
       type: "profile",
-      description: `Password updated for ${user.firstName} ${user.lastName}`,
+      user: `${user.firstName} ${user.lastName}`,
+      action: "passwordUpdate",
+      description: `updated their password`,
       metadata: {},
       timestamp: Date.now(),
     });
@@ -394,8 +410,10 @@ export const resetPassword = mutation({
     // Create an activity log
     await ctx.db.insert("activities", {
       userId: user._id,
+      user: `${user.firstName} ${user.lastName}`,
+      action: "passwordReset",
       type: "profile",
-      description: `Password reset for ${user.firstName} ${user.lastName}`,
+      description: `reset their password using the forgot password flow`,
       metadata: {},
       timestamp: Date.now(),
     });

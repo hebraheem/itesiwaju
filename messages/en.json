@@ -334,7 +334,16 @@
     "joinedMember": "joined as new member",
     "createdEvent": "created event",
     "submittedReport": "submitted report",
-    "updatedProfile": "updated profile"
+    "updatedProfile": "updated profile",
+    "noActivity": "No recent activities found",
+    "signUp": "registered on the platform",
+    "profileUpdate": "updated their profile information",
+    "paymentMade": "made a payment of {amount}",
+    "eventCreated": "created a new event: {eventName}",
+    "statusRoleUpdate": "updated status/role of {memberName} to {newStatusOrRole}",
+    "userDeletion": "deleted user {memberName} from the system",
+    "passwordUpdate": "updated their password",
+    "passwordReset": "reset their password"
   },
   "common": {
     "loading": "Loading...",

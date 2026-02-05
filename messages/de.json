@@ -334,7 +334,16 @@
     "joinedMember": "ist als neues Mitglied beigetreten",
     "createdEvent": "hat Veranstaltung erstellt",
     "submittedReport": "hat Bericht eingereicht",
-    "updatedProfile": "hat Profil aktualisiert"
+    "updatedProfile": "hat Profil aktualisiert",
+    "noActivity": "Keine aktuellen Aktivitäten gefunden",
+    "signUp": "Auf der Plattform registriert",
+    "profileUpdate": "Profilinformationen aktualisiert",
+    "paymentMade": "Zahlung in Höhe von {amount} getätigt",
+    "eventCreated": "Neues Event erstellt: {eventName}",
+    "statusRoleUpdate": "Status/Rolle von {memberName} auf {newStatusOrRole} aktualisiert",
+    "userDeletion": "Benutzer {memberName} aus dem System gelöscht",
+    "passwordUpdate": "Passwort aktualisiert",
+    "passwordReset": "Passwort zurückgesetzt"
   },
   "common": {
     "loading": "Laden...",
