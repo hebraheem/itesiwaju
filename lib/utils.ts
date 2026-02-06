@@ -1,6 +1,11 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Calendar, UserPlus, Wallet } from "lucide-react";
+import {
+  Activity as ActivityIcon,
+  Calendar,
+  UserPlus,
+  Wallet,
+} from "lucide-react";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -81,33 +86,6 @@ export const removeEmptyFields = <T extends Record<string, any>>(
   ) as Partial<T>;
 };
 
-export const quickActions = [
-  {
-    icon: Calendar,
-    label: "quickActions.createEvent",
-    href: "/events/create",
-    color: "bg-orange-500",
-  },
-  {
-    icon: UserPlus,
-    label: "quickActions.addMember",
-    href: "/members/create",
-    color: "bg-blue-500",
-  },
-  {
-    icon: Wallet,
-    label: "quickActions.recordPayment",
-    href: "/account-status",
-    color: "bg-green-500",
-  },
-  // {
-  //   icon: FileText,
-  //   label: t("quickActions.viewReports"),
-  //   href: "/reports",
-  //   color: "bg-purple-500",
-  // },
-];
-
 export const getMonth = (dateString: string): string => {
   const date = new Date(dateString);
   const options: Intl.DateTimeFormatOptions = {
@@ -122,3 +100,50 @@ export const ACCOUNT_STATUSES = Object.freeze({
   owing: "owing",
   overdue: "overdue",
 });
+
+type Role = keyof typeof USER_ROLES;
+
+type QuickAction = {
+  icon: any;
+  label: string;
+  href: string;
+  color: string;
+};
+
+const ACTIONS: Record<string, QuickAction> = {
+  createEvent: {
+    icon: Calendar,
+    label: "quickActions.createEvent",
+    href: "/events/create",
+    color: "bg-orange-500",
+  },
+  addMember: {
+    icon: UserPlus,
+    label: "quickActions.addMember",
+    href: "/members/create",
+    color: "bg-blue-500",
+  },
+  recordPayment: {
+    icon: Wallet,
+    label: "quickActions.recordPayment",
+    href: "/account-status",
+    color: "bg-green-500",
+  },
+  activity: {
+    icon: ActivityIcon,
+    label: "quickActions.viewActivity",
+    href: "/activity",
+    color: "bg-purple-500",
+  },
+};
+
+const ROLE_ACTIONS: Record<Role, (keyof typeof ACTIONS)[]> = {
+  admin: ["createEvent", "addMember", "recordPayment", "activity"],
+  treasurer: ["recordPayment", "activity"],
+  pro: ["createEvent", "activity"],
+  member: ["activity"],
+};
+
+export const quickActions = (role: Role): QuickAction[] => {
+  return (ROLE_ACTIONS[role] ?? []).map((key) => ACTIONS[key]);
+};

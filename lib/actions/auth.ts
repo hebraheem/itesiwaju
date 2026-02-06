@@ -1,6 +1,9 @@
 "use server";
 
-import { signIn as nextAuthSignIn, signOut as nextAuthSignOut } from "@/lib/auth";
+import {
+  signIn as nextAuthSignIn,
+  signOut as nextAuthSignOut,
+} from "@/lib/auth";
 import { AuthError } from "next-auth";
 
 export async function signIn(email: string, password: string) {

@@ -246,19 +246,34 @@
   },
   "accountStatus": {
     "title": "État du Compte",
+    "description": "Suivi financier et paiements",
     "memberName": "Nom du Membre",
     "search": "Rechercher des membres...",
+    "searchPayments": "Rechercher des paiements...",
     "noRecords": "Aucun enregistrement trouvé",
+    "viewDetails": "Voir",
+    "back": "Retour",
+    "showOnlyMine": "Afficher Seulement Mon Compte",
+    "tabs": {
+      "all": "Tous"
+    },
+    "stats": {
+      "totalOutstanding": "Total Impayé",
+      "goodStanding": "Bonne Position",
+      "pendingPayments": "Paiements en Attente",
+      "overdue": "En Retard"
+    },
     "details": {
       "borrowedAmount": "Montant Emprunté",
       "dueDate": "Date d'Échéance",
       "fineAmount": "Montant de l'Amende",
       "paymentHistory": "Historique des Paiements",
-      "currentBalance": "Solde Actuel",
+      "currentBalance": "Solde Restant",
       "accountStatus": "État du Compte"
     },
     "status": {
       "goodStanding": "Bonne Position",
+      "good_standing": "Bonne Position",
       "owing": "Dû",
       "overdue": "En Retard"
     },
@@ -268,7 +283,31 @@
       "date": "Date de Paiement",
       "method": "Méthode de Paiement",
       "notes": "Notes",
-      "submit": "Enregistrer le Paiement"
+      "submit": "Enregistrer le Paiement",
+      "paid": "Payé"
+    },
+    "actions": {
+      "recordAction": "Enregistrer une Action",
+      "recordPayment": "Enregistrer un Paiement",
+      "recordBorrow": "Enregistrer un Emprunt",
+      "recordFine": "Enregistrer une Amende"
+    },
+    "paymentTypes": {
+      "payment": "Paiement",
+      "borrow": "Emprunt",
+      "fine": "Amende"
+    },
+    "actionDescription": "Enregistrement d'action pour {name}",
+    "actionSuccess": "Action enregistrée avec succès",
+    "form": {
+      "amount": "Montant",
+      "dueDate": "Date d'Échéance",
+      "reason": "Raison",
+      "reasonPlaceholder": "Entrez la raison de l'amende",
+      "description": "Description (Optionnel)",
+      "descriptionPlaceholder": "Ajouter des notes supplémentaires",
+      "submit": "Soumettre",
+      "cancel": "Annuler"
     }
   },
   "settings": {
@@ -348,7 +387,9 @@
     "statusRoleUpdate": "Mise à jour du statut/rôle de {memberName} vers {newStatusOrRole}",
     "userDeletion": "Suppression de l'utilisateur {memberName} du système",
     "passwordUpdate": "Mise à jour du mot de passe",
-    "passwordReset": "Réinitialisation du mot de passe"
+    "passwordReset": "Réinitialisation du mot de passe",
+    "onlyMine": "Seulement Mes Activités",
+    "search": "Rechercher des activités..."
   },
   "common": {
     "loading": "Chargement...",

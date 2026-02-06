@@ -246,19 +246,34 @@
   },
   "accountStatus": {
     "title": "Account Status",
+    "description": "Financial tracking and payments",
     "memberName": "Member Name",
     "search": "Search members...",
+    "searchPayments": "Search payments...",
     "noRecords": "No records found",
+    "viewDetails": "View",
+    "back": "Back",
+    "showOnlyMine": "Show Only My Account",
+    "tabs": {
+      "all": "All"
+    },
+    "stats": {
+      "totalOutstanding": "Total Outstanding",
+      "goodStanding": "Good Standing",
+      "pendingPayments": "Pending Payments",
+      "overdue": "Overdue"
+    },
     "details": {
       "borrowedAmount": "Borrowed Amount",
       "dueDate": "Due Date",
       "fineAmount": "Fine Amount",
       "paymentHistory": "Payment History",
-      "currentBalance": "Current Balance",
+      "currentBalance": "Remaining Balance",
       "accountStatus": "Account Status"
     },
     "status": {
       "goodStanding": "Good Standing",
+      "good_standing": "Good Standing",
       "owing": "Owing",
       "overdue": "Overdue"
     },
@@ -268,7 +283,31 @@
       "date": "Payment Date",
       "method": "Payment Method",
       "notes": "Notes",
-      "submit": "Record Payment"
+      "submit": "Record Payment",
+      "paid": "Paid"
+    },
+    "actions": {
+      "recordAction": "Record Action",
+      "recordPayment": "Record Payment",
+      "recordBorrow": "Record Borrow",
+      "recordFine": "Record Fine"
+    },
+    "paymentTypes": {
+      "payment": "Payment",
+      "borrow": "Borrow",
+      "fine": "Fine"
+    },
+    "actionDescription": "Recording action for {name}",
+    "actionSuccess": "Action recorded successfully",
+    "form": {
+      "amount": "Amount",
+      "dueDate": "Due Date",
+      "reason": "Reason",
+      "reasonPlaceholder": "Enter reason for fine",
+      "description": "Description (Optional)",
+      "descriptionPlaceholder": "Add any additional notes",
+      "submit": "Submit",
+      "cancel": "Cancel"
     }
   },
   "settings": {
@@ -348,7 +387,9 @@
     "statusRoleUpdate": "updated status/role of {memberName} to {newStatusOrRole}",
     "userDeletion": "deleted user {memberName} from the system",
     "passwordUpdate": "updated their password",
-    "passwordReset": "reset their password"
+    "passwordReset": "reset their password",
+    "onlyMine": "Only My Activities",
+    "search": "Search activities..."
   },
   "common": {
     "loading": "Loading...",

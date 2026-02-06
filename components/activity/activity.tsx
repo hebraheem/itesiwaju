@@ -103,7 +103,7 @@ export function Activity() {
                 }
               />
               <Label htmlFor="switch-disabled-unchecked">
-                Only My Activities
+                {t("onlyMine")}
               </Label>
             </div>
           </RoleAction>
@@ -133,7 +133,7 @@ export function Activity() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search activities..."
+            placeholder={t("search")}
             value={query.search}
             onChange={(e) =>
               setQuery((prev) => ({ ...prev, search: e.target.value }))

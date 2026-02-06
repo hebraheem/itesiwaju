@@ -118,9 +118,15 @@ export default defineSchema({
   // Financial Accounts - Member financial tracking
   accounts: defineTable({
     userId: v.id("users"),
-    borrowedAmount: v.number(),
-    fineAmount: v.number(),
-    currentBalance: v.number(),
+    currentBorrowedAmount: v.number(),
+    borrowedAmountToBalance: v.number(),
+    totalBorrowedAmount: v.number(),
+    currentFineAmount: v.number(),
+    fineToBalance: v.number(),
+    totalFineAmount: v.number(),
+    currentDuesAmount: v.number(),
+    duesToBalance: v.number(),
+    totalDuesAmount: v.number(),
     dueDate: v.optional(v.number()),
     status: v.union(
       v.literal("good_standing"),
@@ -131,8 +137,11 @@ export default defineSchema({
       v.object({
         type: v.union(
           v.literal("borrow"),
-          v.literal("payment"),
           v.literal("fine"),
+          v.literal("dues"),
+          v.literal("fine_payment"),
+          v.literal("borrow_payment"),
+          v.literal("due_payment"),
         ),
         amount: v.number(),
         date: v.number(),
@@ -140,9 +149,13 @@ export default defineSchema({
         dueDate: v.optional(v.number()),
       }),
     ),
+    searchField: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .searchIndex("search_history", {
+      searchField: "searchField",
+    }),
 
   // Reports - Generated reports
   reports: defineTable({

@@ -246,19 +246,34 @@
   },
   "accountStatus": {
     "title": "Ipo Akaun",
+    "description": "Atẹle owo ati awọn isanwo",
     "memberName": "Orukọ Ọmọ Ẹgbẹ",
     "search": "Wa awọn ọmọ ẹgbẹ...",
+    "searchPayments": "Wa awọn isanwo...",
     "noRecords": "Ko si awọn igbasilẹ ti a rii",
+    "viewDetails": "Wo",
+    "back": "Pada",
+    "showOnlyMine": "Fi Akaun Mi Nikan Han",
+    "tabs": {
+      "all": "Gbogbo"
+    },
+    "stats": {
+      "totalOutstanding": "Lapapọ Ti O Ku",
+      "goodStanding": "Ipo Daradara",
+      "pendingPayments": "Awọn Isanwo Ti N Duro",
+      "overdue": "Ti Kọja Akoko"
+    },
     "details": {
       "borrowedAmount": "Iye Ti A Yawo",
       "dueDate": "Ọjọ Ti O Yẹ",
       "fineAmount": "Iye Itanran",
       "paymentHistory": "Itan Isanwo",
-      "currentBalance": "Iwontunwonsi Lọwọlọwọ",
+      "currentBalance": "Iwontunwonsi Ti O Ku",
       "accountStatus": "Ipo Akaun"
     },
     "status": {
       "goodStanding": "Ipo Daradara",
+      "good_standing": "Ipo Daradara",
       "owing": "N jẹ",
       "overdue": "Ti Kọja Akoko"
     },
@@ -268,7 +283,31 @@
       "date": "Ọjọ Isanwo",
       "method": "Ọna Isanwo",
       "notes": "Awọn Akọsilẹ",
-      "submit": "Ṣe Igbasilẹ Isanwo"
+      "submit": "Ṣe Igbasilẹ Isanwo",
+      "paid": "Ti San"
+    },
+    "actions": {
+      "recordAction": "Ṣe Igbasilẹ Iṣe",
+      "recordPayment": "Ṣe Igbasilẹ Isanwo",
+      "recordBorrow": "Ṣe Igbasilẹ Awin",
+      "recordFine": "Ṣe Igbasilẹ Itanran"
+    },
+    "paymentTypes": {
+      "payment": "Isanwo",
+      "borrow": "Awin",
+      "fine": "Itanran"
+    },
+    "actionDescription": "Gbigbasilẹ iṣe fun {name}",
+    "actionSuccess": "Iṣe ti gbasilẹ ni aṣeyọri",
+    "form": {
+      "amount": "Iye",
+      "dueDate": "Ọjọ Ti O Yẹ",
+      "reason": "Idi",
+      "reasonPlaceholder": "Tẹ idi itanran sii",
+      "description": "Apejuwe (Ti ko pọn dandan)",
+      "descriptionPlaceholder": "Fi awọn akọsilẹ afikun kun",
+      "submit": "Firanṣẹ",
+      "cancel": "Fagilee"
     }
   },
   "settings": {
@@ -348,7 +387,9 @@
     "statusRoleUpdate": "Imudojuiwọn Ipo/Ipa fun {memberName} si {newStatusOrRole}",
     "userDeletion": "Pa akọọlẹ {memberName} kuro",
     "passwordUpdate": "Imudojuiwọn ọrọ aṣina",
-    "passwordReset": "Tun ọrọ aṣina ṣe"
+    "passwordReset": "Tun ọrọ aṣina ṣe",
+    "onlyMine": "Awọn Iṣe Mi Nikan",
+    "search": "Wa awọn iṣe..."
   },
   "common": {
     "loading": "N ṣiṣẹ...",

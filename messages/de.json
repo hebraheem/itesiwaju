@@ -246,19 +246,34 @@
   },
   "accountStatus": {
     "title": "Kontostatus",
+    "description": "Finanzverfolgung und Zahlungen",
     "memberName": "Mitgliedsname",
     "search": "Mitglieder suchen...",
+    "searchPayments": "Zahlungen suchen...",
     "noRecords": "Keine Einträge gefunden",
+    "viewDetails": "Ansehen",
+    "back": "Zurück",
+    "showOnlyMine": "Nur Mein Konto Anzeigen",
+    "tabs": {
+      "all": "Alle"
+    },
+    "stats": {
+      "totalOutstanding": "Gesamt Ausstehend",
+      "goodStanding": "Guter Stand",
+      "pendingPayments": "Ausstehende Zahlungen",
+      "overdue": "Überfällig"
+    },
     "details": {
       "borrowedAmount": "Geliehener Betrag",
       "dueDate": "Fälligkeitsdatum",
       "fineAmount": "Bußgeldbetrag",
       "paymentHistory": "Zahlungshistorie",
-      "currentBalance": "Aktueller Saldo",
+      "currentBalance": "Verbleibender Saldo",
       "accountStatus": "Kontostatus"
     },
     "status": {
       "goodStanding": "Guter Stand",
+      "good_standing": "Guter Stand",
       "owing": "Schuldig",
       "overdue": "Überfällig"
     },
@@ -268,7 +283,31 @@
       "date": "Zahlungsdatum",
       "method": "Zahlungsmethode",
       "notes": "Notizen",
-      "submit": "Zahlung Erfassen"
+      "submit": "Zahlung Erfassen",
+      "paid": "Bezahlt"
+    },
+    "actions": {
+      "recordAction": "Aktion Erfassen",
+      "recordPayment": "Zahlung Erfassen",
+      "recordBorrow": "Ausleihe Erfassen",
+      "recordFine": "Bußgeld Erfassen"
+    },
+    "paymentTypes": {
+      "payment": "Zahlung",
+      "borrow": "Ausleihe",
+      "fine": "Bußgeld"
+    },
+    "actionDescription": "Aktion erfassen für {name}",
+    "actionSuccess": "Aktion erfolgreich erfasst",
+    "form": {
+      "amount": "Betrag",
+      "dueDate": "Fälligkeitsdatum",
+      "reason": "Grund",
+      "reasonPlaceholder": "Grund für Bußgeld eingeben",
+      "description": "Beschreibung (Optional)",
+      "descriptionPlaceholder": "Zusätzliche Notizen hinzufügen",
+      "submit": "Absenden",
+      "cancel": "Abbrechen"
     }
   },
   "settings": {
@@ -348,7 +387,9 @@
     "statusRoleUpdate": "Status/Rolle von {memberName} auf {newStatusOrRole} aktualisiert",
     "userDeletion": "Benutzer {memberName} aus dem System gelöscht",
     "passwordUpdate": "Passwort aktualisiert",
-    "passwordReset": "Passwort zurückgesetzt"
+    "passwordReset": "Passwort zurückgesetzt",
+    "onlyMine": "Nur Meine Aktivitäten",
+    "search": "Aktivitäten suchen..."
   },
   "common": {
     "loading": "Laden...",

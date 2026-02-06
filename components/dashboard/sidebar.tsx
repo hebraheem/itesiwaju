@@ -25,12 +25,19 @@ export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
   const t = useTranslations("sidebar");
   const pathname = usePathname();
   const { user } = useAuth();
+  const hasAccountAccess = user && ["admin", "treasurer"].includes(user.role);
 
   const navItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: t("dashboard") },
     { href: "/events", icon: Calendar, label: t("events") },
     { href: "/members", icon: Users, label: t("members") },
-    { href: "/account-status", icon: Wallet, label: t("accountStatus") },
+    {
+      href: hasAccountAccess
+        ? "/account-status"
+        : `/account-status/${user?._id}`,
+      icon: Wallet,
+      label: t("accountStatus"),
+    },
     // { href: "/reports", icon: FileText, label: "Reports" },
     { href: "/activity", icon: ActivityIcon, label: "Activity" },
   ];
@@ -133,7 +140,10 @@ export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
           variant="outline"
           size="sm"
           className="w-full"
-          onClick={() => signOut()}
+          onClick={async () => {
+            localStorage.clear();
+            await signOut();
+          }}
         >
           <LogOut className="w-4 h-4 mr-2" />
           Logout

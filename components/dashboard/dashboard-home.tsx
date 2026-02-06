@@ -7,27 +7,55 @@ import { Users, Calendar, DollarSign, AlertCircle } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import MotionDiv from "@/components/animations/MotionDiv";
-import { useAuth } from "@/lib/hooks/use-auth";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { EVENT_STATUSES, getMonth, parseDate, quickActions } from "@/lib/utils";
+import {
+  EVENT_STATUSES,
+  getMonth,
+  parseDate,
+  quickActions,
+  USER_ROLES,
+} from "@/lib/utils";
 import { usePaginatedQuery } from "convex-helpers/react";
+import { useSession } from "next-auth/react";
+import { Id } from "@/convex/_generated/dataModel";
 
 export function DashboardHome() {
+  const session = useSession();
   const t = useTranslations("dashboard");
   const at = useTranslations("activity");
-  const { user } = useAuth();
+
+  const user = session.data?.user;
+
   const { results: upcomingEvents } = usePaginatedQuery(
     api.events.getEvents,
     { status: EVENT_STATUSES.upcoming as keyof typeof EVENT_STATUSES },
     { initialNumItems: 5 },
   );
+
+  const accountFullAccess =
+    user?.role === USER_ROLES.admin || user?.role === USER_ROLES.treasurer;
+
   const eventStat = useQuery(api.events.getEventStats);
   const userStat = useQuery(api.users.getMemberStats);
+  const accountStat = useQuery(api.accounts.getAccountStats, {
+    authEmail: user?.email || "",
+    userId: accountFullAccess ? undefined : (user?.id as Id<"users">),
+  });
+
+  const { goodStanding, owing, overdue } = accountStat ?? {
+    goodStanding: 0,
+    owing: 0,
+    overdue: 0,
+  };
+  const getWidth = (count: number) => {
+    const total = goodStanding + owing + overdue;
+    return `${total > 0 ? (count / total) * 100 : 0}%`;
+  };
 
   const activities = useQuery(api.activities.getRecentActivities, {
     limit: 5,
-    userId: user?._id,
+    userId: user?.id as Id<"users">,
   });
 
   const stats = [
@@ -125,21 +153,23 @@ export function DashboardHome() {
               <CardTitle>{t("quickActions.title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {quickActions.map((action, index) => (
-                <Button
-                  key={index}
-                  asChild
-                  variant="outline"
-                  className="w-full justify-start"
-                >
-                  <Link href={action.href}>
-                    <div className={`p-2 ${action.color} rounded-lg mr-3`}>
-                      <action.icon className="w-4 h-4 text-white" />
-                    </div>
-                    {t(action.label)}
-                  </Link>
-                </Button>
-              ))}
+              {quickActions(user?.role as keyof typeof USER_ROLES).map(
+                (action, index) => (
+                  <Button
+                    key={index}
+                    asChild
+                    variant="outline"
+                    className="w-full justify-start"
+                  >
+                    <Link href={action.href}>
+                      <div className={`p-2 ${action.color} rounded-lg mr-3`}>
+                        <action.icon className="w-4 h-4 text-white" />
+                      </div>
+                      {t(action.label)}
+                    </Link>
+                  </Button>
+                ),
+              )}
             </CardContent>
           </Card>
         </MotionDiv>
@@ -210,10 +240,10 @@ export function DashboardHome() {
             <CardContent className="space-y-4">
               {(activities ?? []).map((activity, index) => (
                 <div key={index} className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center shrink-0">
                     <span className="text-sm font-semibold text-orange-600">
                       {activity?.user?.[0]?.toUpperCase() ??
-                        user?.firstName?.[0]?.toUpperCase()}
+                        user?.name?.[0]?.toUpperCase()}
                       {activity?.user
                         ?.split(" ")
                         ?.slice(-1)[0]
@@ -250,7 +280,15 @@ export function DashboardHome() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t("accountStatus.title")}</CardTitle>
               <Button asChild variant="ghost" size="sm">
-                <Link href="/account-status">{t("accountStatus.viewAll")}</Link>
+                <Link
+                  href={
+                    accountFullAccess
+                      ? "/account-status"
+                      : `/account-status/${user?.id}`
+                  }
+                >
+                  {t("accountStatus.viewAll")}
+                </Link>
               </Button>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -259,12 +297,14 @@ export function DashboardHome() {
                   <span className="text-sm font-medium">
                     {t("accountStatus.goodStanding")}
                   </span>
-                  <span className="text-sm font-bold text-green-600">186</span>
+                  <span className="text-sm font-bold text-green-600">
+                    {goodStanding}
+                  </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-green-500"
-                    style={{ width: "75%" }}
+                    style={{ width: getWidth(goodStanding) }}
                   />
                 </div>
               </div>
@@ -274,12 +314,14 @@ export function DashboardHome() {
                   <span className="text-sm font-medium">
                     {t("accountStatus.pendingPayments")}
                   </span>
-                  <span className="text-sm font-bold text-yellow-600">44</span>
+                  <span className="text-sm font-bold text-yellow-600">
+                    {owing}
+                  </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-yellow-500"
-                    style={{ width: "18%" }}
+                    style={{ width: getWidth(owing) }}
                   />
                 </div>
               </div>
@@ -289,10 +331,15 @@ export function DashboardHome() {
                   <span className="text-sm font-medium">
                     {t("accountStatus.overdue")}
                   </span>
-                  <span className="text-sm font-bold text-red-600">18</span>
+                  <span className="text-sm font-bold text-red-600">
+                    {overdue}
+                  </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-red-500" style={{ width: "7%" }} />
+                  <div
+                    className="h-full bg-red-500"
+                    style={{ width: getWidth(overdue) }}
+                  />
                 </div>
               </div>
 
@@ -302,7 +349,7 @@ export function DashboardHome() {
                     {t("accountStatus.totalOutstanding")}
                   </span>
                   <span className="text-2xl font-bold text-orange-600">
-                    ₦246,000
+                    {"" + (accountStat?.totalOutstanding ?? 0).toLocaleString()}
                   </span>
                 </div>
               </div>

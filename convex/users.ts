@@ -180,11 +180,23 @@ export const createUser = mutation({
 
     const accountId = await ctx.db.insert("accounts", {
       userId: userId,
-      borrowedAmount: 0,
-      fineAmount: 0,
-      currentBalance: 0,
+      fineToBalance: 0,
+      currentFineAmount: 0,
+      totalFineAmount: 0,
+      currentBorrowedAmount: 0,
+      totalBorrowedAmount: 0,
+      borrowedAmountToBalance: 0,
+      duesToBalance: 0,
+      currentDuesAmount: 0,
+      totalDuesAmount: 0,
       status: "good_standing",
       paymentHistory: [],
+      searchField: buildSearchText([
+        args.firstName,
+        args.lastName,
+        args.email,
+        args.otherName || "",
+      ]),
     });
 
     // Create an activity log
@@ -336,7 +348,6 @@ export const updateUserStatusAndRole = mutation({
       },
       timestamp: Date.now(),
     });
-
     return args.id;
   },
 });

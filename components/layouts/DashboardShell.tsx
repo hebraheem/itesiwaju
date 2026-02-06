@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Loader2, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export function DashboardShell({
   children,
@@ -15,7 +16,12 @@ export function DashboardShell({
   topbar: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
+  const session = useSession();
+  const router = useRouter();
+
+  if (!session.data && session.status === "unauthenticated") {
+    router.push("/login");
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -59,7 +65,15 @@ export function DashboardShell({
           <div className="w-10" />
         </div>
         {topbar}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          {session.status !== "authenticated" ? (
+            <div className="flex items-center justify-center h-screen">
+              <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+            </div>
+          ) : (
+            children
+          )}
+        </main>
       </div>
     </div>
   );

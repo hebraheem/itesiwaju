@@ -1,12 +1,14 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser, hasPermission } from "@/convex/utils";
+import { paginationOptsValidator } from "convex/server";
 
 // Get account by user ID
 export const getAccountByUserId = query({
   args: { userId: v.id("users"), authEmail: v.string() },
   handler: async (ctx, args) => {
     await getCurrentUser(args.authEmail, ctx);
+    const user = await ctx.db.get(args.userId);
     const hasAccess = await hasPermission(
       ctx,
       ["admin", "treasurer"],
@@ -15,10 +17,22 @@ export const getAccountByUserId = query({
     if (!hasAccess) {
       throw new Error("Unauthorized");
     }
-    return await ctx.db
+    const account = await ctx.db
       .query("accounts")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .unique();
+
+    return {
+      ...account,
+      user: user
+        ? {
+            name: `${user.firstName} ${user.lastName}`,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+          }
+        : null,
+    };
   },
 });
 
@@ -49,27 +63,42 @@ export const getAllAccounts = query({
         v.literal("overdue"),
       ),
     ),
+    search: v.optional(v.string()),
     authEmail: v.string(),
+    paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
     await getCurrentUser(args.authEmail, ctx);
+
     const hasAccess = await hasPermission(
       ctx,
       ["admin", "treasurer"],
       args.authEmail,
     );
-    if (!hasAccess) {
-      throw new Error("Unauthorized");
-    }
-    let accounts = await ctx.db.query("accounts").collect();
+    if (!hasAccess) throw new Error("Unauthorized");
 
-    if (args.status) {
-      accounts = accounts.filter((acc) => acc.status === args.status);
+    let q;
+
+    if (args.search) {
+      q = ctx.db
+        .query("accounts")
+        .withSearchIndex("search_history", (q) =>
+          q.search("searchField", args.search!),
+        );
+    } else if (args.status) {
+      q = ctx.db
+        .query("accounts")
+        .withIndex("by_status", (q) => q.eq("status", args.status!));
+    }
+    // 📂 Fallback
+    else {
+      q = ctx.db.query("accounts");
     }
 
-    // Get user details for each account
-    return await Promise.all(
-      accounts.map(async (account) => {
+    const page = await q.paginate(args.paginationOpts);
+
+    const enriched = await Promise.all(
+      page.page.map(async (account) => {
         const user = await ctx.db.get(account.userId);
         return {
           ...account,
@@ -83,6 +112,11 @@ export const getAllAccounts = query({
         };
       }),
     );
+
+    return {
+      ...page,
+      page: enriched,
+    };
   },
 });
 
@@ -94,17 +128,11 @@ export const getAccountStats = query({
   },
   handler: async (ctx, args) => {
     await getCurrentUser(args.authEmail, ctx);
-    const hasAccess = await hasPermission(
-      ctx,
-      ["admin", "treasurer"],
-      args.authEmail,
-    );
-    if (!hasAccess) {
-      throw new Error("Unauthorized");
-    }
+
     let q = ctx.db.query("accounts");
-    if (args?.userId) {
-      // @ts-expect-error query type inference issue with optional args
+
+    if (args.userId) {
+      // @ts-expect-error query builder types
       q = q.withIndex("by_user", (q) => q.eq("userId", args.userId!));
     }
 
@@ -112,6 +140,12 @@ export const getAccountStats = query({
 
     return accounts.reduce(
       (acc, a) => {
+        acc.totalBorrowed += a.totalBorrowedAmount;
+        acc.totalFines += a.totalFineAmount;
+        acc.totalDues += a.totalDuesAmount;
+        acc.totalOutstanding +=
+          a.currentBorrowedAmount + a.currentFineAmount + a.currentDuesAmount;
+
         switch (a.status) {
           case "good_standing":
             acc.goodStanding++;
@@ -123,9 +157,7 @@ export const getAccountStats = query({
             acc.overdue++;
             break;
         }
-        acc.totalBorrowed += a.borrowedAmount;
-        acc.totalFines += a.fineAmount;
-        acc.totalOutstanding += a.currentBalance;
+
         return acc;
       },
       {
@@ -134,7 +166,9 @@ export const getAccountStats = query({
         overdue: 0,
         totalBorrowed: 0,
         totalFines: 0,
+        totalDues: 0,
         totalOutstanding: 0,
+        moneyAtHand: 0,
       },
     );
   },
@@ -156,58 +190,44 @@ export const recordBorrow = mutation({
       ["admin", "treasurer"],
       args.authEmail,
     );
-    if (!hasAccess) {
-      throw new Error("Unauthorized");
-    }
+    if (!hasAccess) throw new Error("Unauthorized");
+
     const account = await ctx.db
       .query("accounts")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .unique();
-
-    if (!account) {
-      throw new Error("Account not found");
-    }
+    if (!account) throw new Error("Account not found");
 
     const user = await ctx.db.get(args.userId);
 
-    const newBorrowedAmount = account.borrowedAmount + args.amount;
-    const newBalance = account.currentBalance + args.amount;
+    const currentBorrowedAmount = account.currentBorrowedAmount + args.amount;
 
-    // Determine status
-    let status: "good_standing" | "owing" | "overdue" = "owing";
-    if (newBalance === 0) {
-      status = "good_standing";
-    } else if (args.dueDate < Date.now()) {
-      status = "overdue";
-    }
-
-    // Update payment history
-    const newPaymentHistory = [
-      ...account.paymentHistory,
-      {
-        type: "borrow" as const,
-        amount: args.amount,
-        date: Date.now(),
-        description: args.description || "Borrowed amount",
-        dueDate: args.dueDate,
-      },
-    ];
+    const status = args.dueDate < Date.now() ? "overdue" : "owing";
 
     await ctx.db.patch(account._id, {
-      borrowedAmount: newBorrowedAmount,
-      currentBalance: newBalance,
+      currentBorrowedAmount,
+      borrowedAmountToBalance: account.borrowedAmountToBalance + args.amount,
+      totalBorrowedAmount: account.totalBorrowedAmount + args.amount,
       dueDate: args.dueDate,
       status,
-      paymentHistory: newPaymentHistory,
+      paymentHistory: [
+        ...account.paymentHistory,
+        {
+          type: "borrow",
+          amount: args.amount,
+          date: Date.now(),
+          description: args.description ?? "Borrowed amount",
+          dueDate: args.dueDate,
+        },
+      ],
     });
 
-    // Create an activity log
     await ctx.db.insert("activities", {
       userId: args.userId,
       type: "payment",
       user: `${authUser.firstName} ${authUser.lastName}`,
       action: "record_borrow",
-      description: `recorded borrowed amount of EUR${args.amount.toLocaleString()} for ${user?.firstName} ${user?.lastName}`,
+      description: `recorded borrow of EUR${args.amount.toLocaleString()} for ${user?.firstName}`,
       metadata: { amount: args.amount, dueDate: args.dueDate },
       timestamp: Date.now(),
     });
@@ -223,6 +243,11 @@ export const recordPayment = mutation({
     amount: v.number(),
     description: v.optional(v.string()),
     authEmail: v.string(),
+    paymentType: v.union(
+      v.literal("fine_payment"),
+      v.literal("borrow_payment"),
+      v.literal("due_payment"),
+    ),
   },
   handler: async (ctx, args) => {
     const authUser = await getCurrentUser(args.authEmail, ctx);
@@ -231,57 +256,67 @@ export const recordPayment = mutation({
       ["admin", "treasurer"],
       args.authEmail,
     );
-    if (!hasAccess) {
-      throw new Error("Unauthorized");
-    }
+    if (!hasAccess) throw new Error("Unauthorized");
+
     const account = await ctx.db
       .query("accounts")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .unique();
-
-    if (!account) {
-      throw new Error("Account not found");
-    }
+    if (!account) throw new Error("Account not found");
 
     const user = await ctx.db.get(args.userId);
 
-    const newBalance = Math.max(0, account.currentBalance - args.amount);
+    let newBorrowed = account.currentBorrowedAmount;
+    let newFine = account.currentFineAmount;
+    let newDues = account.currentDuesAmount;
 
-    // Determine status
-    let status: "good_standing" | "owing" | "overdue" = "good_standing";
-    if (newBalance > 0) {
-      if (account.dueDate && account.dueDate < Date.now()) {
-        status = "overdue";
-      } else {
-        status = "owing";
-      }
+    switch (args.paymentType) {
+      case "borrow_payment":
+        newBorrowed = Math.max(0, account.currentBorrowedAmount - args.amount);
+        break;
+      case "fine_payment":
+        newFine = Math.max(0, account.currentFineAmount - args.amount);
+        break;
+      case "due_payment":
+        newDues = Math.max(0, account.currentDuesAmount - args.amount);
+        break;
     }
 
-    // Update payment history
-    const newPaymentHistory = [
-      ...account.paymentHistory,
-      {
-        type: "payment" as const,
-        amount: args.amount,
-        date: Date.now(),
-        description: args.description || "Payment received",
-      },
-    ];
+    const outstanding = newBorrowed + newFine + newDues;
+
+    const status =
+      outstanding === 0
+        ? "good_standing"
+        : account.dueDate && account.dueDate < Date.now()
+          ? "overdue"
+          : "owing";
 
     await ctx.db.patch(account._id, {
-      currentBalance: newBalance,
+      currentBorrowedAmount: newBorrowed,
+      currentFineAmount: newFine,
+      currentDuesAmount: newDues,
       status,
-      paymentHistory: newPaymentHistory,
+      paymentHistory: [
+        ...account.paymentHistory,
+        {
+          type: args.paymentType,
+          amount: args.amount,
+          date: Date.now(),
+          description: args.description ?? `${args.paymentType} payment`,
+        },
+      ],
     });
 
-    // Create an activity log
     await ctx.db.insert("activities", {
       userId: args.userId,
       type: "payment",
       user: `${authUser.firstName} ${authUser.lastName}`,
       action: "record_payment",
-      description: `recorded payment of the sum EUR${args.amount.toLocaleString()} for ${user?.firstName} ${user?.lastName}`,
-      metadata: { amount: args.amount, newBalance },
+      description: `recorded ${args.paymentType} payment of EUR${args.amount.toLocaleString()} for ${user?.firstName}`,
+      metadata: {
+        paymentType: args.paymentType,
+        amount: args.amount,
+      },
       timestamp: Date.now(),
     });
 
@@ -304,56 +339,39 @@ export const recordFine = mutation({
       ["admin", "treasurer"],
       args.authEmail,
     );
-    if (!hasAccess) {
-      throw new Error("Unauthorized");
-    }
+    if (!hasAccess) throw new Error("Unauthorized");
+
     const account = await ctx.db
       .query("accounts")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .unique();
-
-    if (!account) {
-      throw new Error("Account not found");
-    }
-
-    const user = await ctx.db.get(args.userId);
-
-    const newFineAmount = account.fineAmount + args.amount;
-    const newBalance = account.currentBalance + args.amount;
-
-    // Update payment history
-    const newPaymentHistory = [
-      ...account.paymentHistory,
-      {
-        type: "fine" as const,
-        amount: args.amount,
-        date: Date.now(),
-        description: `Fine: ${args.reason}`,
-      },
-    ];
+    if (!account) throw new Error("Account not found");
 
     await ctx.db.patch(account._id, {
-      fineAmount: newFineAmount,
-      currentBalance: newBalance,
-      status: newBalance > 0 ? "owing" : "good_standing",
-      paymentHistory: newPaymentHistory,
+      currentFineAmount: account.currentFineAmount + args.amount,
+      fineToBalance: account.fineToBalance + args.amount,
+      totalFineAmount: account.totalFineAmount + args.amount,
+      status: "owing",
+      paymentHistory: [
+        ...account.paymentHistory,
+        {
+          type: "fine",
+          amount: args.amount,
+          date: Date.now(),
+          description: args.reason,
+        },
+      ],
     });
 
-    // Create an activity log
     await ctx.db.insert("activities", {
       userId: args.userId,
       type: "payment",
       user: `${authUser.firstName} ${authUser.lastName}`,
       action: "record_fine",
-      description: `gave fine of EUR${args.amount.toLocaleString()} to ${user?.firstName} ${user?.lastName}: ${args.reason}`,
-      metadata: {
-        amount: args.amount,
-        reason: args.reason,
-        user: user?.firstName,
-      },
+      description: `recorded fine of EUR${args.amount.toLocaleString()} for ${account.userId} for reason: ${args.reason}`,
+      metadata: { amount: args.amount, reason: args.reason },
       timestamp: Date.now(),
     });
-
     return account._id;
   },
 });
@@ -412,47 +430,31 @@ export const updateAccountStatus = mutation({
 export const updateOverdueAccounts = mutation({
   args: { authEmail: v.string() },
   handler: async (ctx, args) => {
-    const authUser = await getCurrentUser(args.authEmail, ctx);
     const hasAccess = await hasPermission(
       ctx,
       ["admin", "treasurer"],
       args.authEmail,
     );
-    if (!hasAccess) {
-      throw new Error("Unauthorized");
-    }
-    const accounts = await ctx.db.query("accounts").collect();
+    if (!hasAccess) throw new Error("Unauthorized");
+
     const now = Date.now();
-    let updatedCount = 0;
+    const overdue = await ctx.db
+      .query("accounts")
+      .withIndex("by_status", (q) => q.eq("status", "owing"))
+      .collect();
 
-    for (const account of accounts) {
-      if (
-        account.dueDate &&
-        account.dueDate < now &&
-        account.currentBalance > 0 &&
-        account.status !== "overdue"
-      ) {
-        await ctx.db.patch(account._id, { status: "overdue" });
-        updatedCount++;
+    let updated = 0;
 
-        const user = await ctx.db.get(account.userId);
-        await ctx.db.insert("activities", {
-          userId: account.userId,
-          type: "payment",
-          user: `${authUser.firstName} ${authUser.lastName}`,
-          action: "auto_update_overdue",
-          description: `update ${user?.firstName}'s account to overdue`,
-          metadata: {
-            dueDate: account.dueDate,
-            balance: account.currentBalance,
-            user: user?.firstName,
-          },
-          timestamp: Date.now(),
+    for (const acc of overdue) {
+      if (acc.dueDate && acc.dueDate < now) {
+        await ctx.db.patch(acc._id, {
+          status: "overdue",
         });
+        updated++;
       }
     }
 
-    return { updatedCount };
+    return { updated };
   },
 });
 
