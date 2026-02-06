@@ -1,5 +1,5 @@
 import { GenericQueryCtx, GenericMutationCtx } from "convex/server";
-import { DataModel } from "@/convex/_generated/dataModel";
+import { DataModel, Id } from "@/convex/_generated/dataModel";
 
 export async function getCurrentUser(
   email: string,
@@ -42,4 +42,15 @@ export function buildSearchText(fields: string[]): string {
     .map((field) => field.toLowerCase().trim())
     .join(" ")
     .toLowerCase();
+}
+
+export function isOwnerOrAdmin(
+  ctx: GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>,
+  email: string,
+  ownerId: Id<"users">,
+): Promise<boolean> {
+  return hasPermission(ctx, ["admin"], email).then((isAdmin) => {
+    if (isAdmin) return true;
+    return ctx.db.get(ownerId).then((owner) => owner?.email === email);
+  });
 }

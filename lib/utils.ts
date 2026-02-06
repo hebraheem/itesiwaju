@@ -116,3 +116,9 @@ export const getMonth = (dateString: string): string => {
 
   return date.toLocaleDateString(undefined, options);
 };
+
+export const ACCOUNT_STATUSES = Object.freeze({
+  good_standing: "good_standing",
+  owing: "owing",
+  overdue: "overdue",
+});

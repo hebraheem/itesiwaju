@@ -178,7 +178,27 @@ export const createUser = mutation({
       timestamp: Date.now(),
     });
 
-    return userId;
+    const accountId = await ctx.db.insert("accounts", {
+      userId: userId,
+      borrowedAmount: 0,
+      fineAmount: 0,
+      currentBalance: 0,
+      status: "good_standing",
+      paymentHistory: [],
+    });
+
+    // Create an activity log
+    await ctx.db.insert("activities", {
+      userId: userId,
+      type: "member",
+      action: "account_created",
+      user: `${args.firstName} ${args.lastName}`,
+      description: `created payment account`,
+      metadata: {},
+      timestamp: Date.now(),
+    });
+
+    return { userId, accountId };
   },
 });
 
