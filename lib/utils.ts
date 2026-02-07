@@ -147,3 +147,71 @@ const ROLE_ACTIONS: Record<Role, (keyof typeof ACTIONS)[]> = {
 export const quickActions = (role: Role): QuickAction[] => {
   return (ROLE_ACTIONS[role] ?? []).map((key) => ACTIONS[key]);
 };
+
+export const accountStatus = (accountSummary: {
+  totalOutStandingBorrow: number;
+  totalOutStandingDues: number;
+  totalOutStandingFine: number;
+  moneyAtHand: number;
+  fineToBalance: number;
+  borrowedAmountToBalance: number;
+  duesToBalance: number;
+  noOfOwingMembers: number;
+  noOfOverdueMembers: number;
+}) => {
+  return [
+    {
+      label: "stats.totalOutstanding",
+      value:
+        "€" +
+        (
+          (accountSummary?.totalOutStandingBorrow ?? 0) +
+          (accountSummary?.totalOutStandingDues ?? 0) +
+          (accountSummary?.totalOutStandingFine ?? 0)
+        ).toLocaleString(),
+      color: "text-orange-600",
+    },
+    {
+      label: "stats.moneyAtHand",
+      value: "€" + (accountSummary?.moneyAtHand ?? 0).toLocaleString(),
+      color: "text-green-600",
+    },
+    {
+      label: "stats.totalFine",
+      value: "€" + (accountSummary?.totalOutStandingFine ?? 0).toLocaleString(),
+      color: "text-orange-600",
+    },
+    {
+      label: "stats.totalBorrowed",
+      value:
+        "€" + (accountSummary?.totalOutStandingBorrow ?? 0).toLocaleString(),
+      color: "text-orange-600",
+    },
+    {
+      label: "stats.totalDues",
+      value: "€" + (accountSummary?.totalOutStandingDues ?? 0).toLocaleString(),
+      color: "text-green-600",
+    },
+    {
+      label: "stats.pendingPayments",
+      value: accountSummary?.noOfOwingMembers ?? 0,
+      color: "text-yellow-600",
+    },
+    {
+      label: "stats.overdue",
+      value: accountSummary?.noOfOverdueMembers ?? 0,
+      color: "text-red-600",
+    },
+  ];
+};
+
+export function extractErrorMessage(raw: any) {
+  if (!raw) return "Something went wrong";
+
+  const str = typeof raw === "string" ? raw : raw.message || String(raw);
+  let cleaned = str.replace(/\[Request ID:[^\]]+\]\s*/gi, "");
+  cleaned = cleaned.split(" at ")[0];
+  cleaned = cleaned.replace(/(Server Error|Uncaught Error|Error:)/gi, "");
+
+  return cleaned.trim();
+}

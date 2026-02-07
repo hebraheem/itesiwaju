@@ -40,16 +40,16 @@ export function DashboardHome() {
   const userStat = useQuery(api.users.getMemberStats);
   const accountStat = useQuery(api.accounts.getAccountStats, {
     authEmail: user?.email || "",
-    userId: accountFullAccess ? undefined : (user?.id as Id<"users">),
   });
 
-  const { goodStanding, owing, overdue } = accountStat ?? {
-    goodStanding: 0,
-    owing: 0,
-    overdue: 0,
-  };
+  const {
+    noOfGoodStandingMembers = 0,
+    noOfOverdueMembers = 0,
+    noOfOwingMembers = 0,
+  } = accountStat ?? {};
   const getWidth = (count: number) => {
-    const total = goodStanding + owing + overdue;
+    const total =
+      noOfGoodStandingMembers + noOfOwingMembers + noOfOverdueMembers;
     return `${total > 0 ? (count / total) * 100 : 0}%`;
   };
 
@@ -57,6 +57,11 @@ export function DashboardHome() {
     limit: 5,
     userId: user?.id as Id<"users">,
   });
+
+  const totalOutstanding =
+    (accountStat?.totalOutStandingBorrow ?? 0) +
+    (accountStat?.totalOutStandingDues ?? 0) +
+    (accountStat?.totalOutStandingFine ?? 0);
 
   const stats = [
     {
@@ -73,14 +78,14 @@ export function DashboardHome() {
     },
     {
       icon: DollarSign,
-      label: "stats.totalCollections",
-      value: "₦2.4M",
+      label: "stats.totalOutstanding",
+      value: `€${totalOutstanding.toLocaleString()}`,
       color: "from-green-500 to-green-600",
     },
     {
       icon: AlertCircle,
-      label: "stats.pendingPayments",
-      value: "18",
+      label: "stats.overdue",
+      value: accountStat?.overdue ?? 0,
       color: "from-red-500 to-red-600",
     },
   ];
@@ -298,13 +303,13 @@ export function DashboardHome() {
                     {t("accountStatus.goodStanding")}
                   </span>
                   <span className="text-sm font-bold text-green-600">
-                    {goodStanding}
+                    {noOfGoodStandingMembers}
                   </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-green-500"
-                    style={{ width: getWidth(goodStanding) }}
+                    style={{ width: getWidth(noOfGoodStandingMembers) }}
                   />
                 </div>
               </div>
@@ -315,13 +320,13 @@ export function DashboardHome() {
                     {t("accountStatus.pendingPayments")}
                   </span>
                   <span className="text-sm font-bold text-yellow-600">
-                    {owing}
+                    {noOfOwingMembers}
                   </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-yellow-500"
-                    style={{ width: getWidth(owing) }}
+                    style={{ width: getWidth(noOfOwingMembers) }}
                   />
                 </div>
               </div>
@@ -332,13 +337,13 @@ export function DashboardHome() {
                     {t("accountStatus.overdue")}
                   </span>
                   <span className="text-sm font-bold text-red-600">
-                    {overdue}
+                    {noOfOverdueMembers}
                   </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-red-500"
-                    style={{ width: getWidth(overdue) }}
+                    style={{ width: getWidth(noOfOverdueMembers) }}
                   />
                 </div>
               </div>
@@ -349,7 +354,7 @@ export function DashboardHome() {
                     {t("accountStatus.totalOutstanding")}
                   </span>
                   <span className="text-2xl font-bold text-orange-600">
-                    {"" + (accountStat?.totalOutstanding ?? 0).toLocaleString()}
+                    €{totalOutstanding.toLocaleString()}
                   </span>
                 </div>
               </div>

@@ -31,6 +31,7 @@ export async function loginAction(
         ...Object.fromEntries(formData.entries()),
       };
     }
+    await convexServer.mutation(api.accounts.initTreasury);
     const user = await convexServer.query(api.users.getUserByEmail, { email });
     if (user && user.status === USER_STATUSES.suspended) {
       return {

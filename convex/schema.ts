@@ -185,4 +185,17 @@ export default defineSchema({
     .index("by_type", ["type"])
     .index("by_status", ["status"])
     .index("by_creator", ["createdBy"]),
+
+  treasury: defineTable({
+    moneyAtHand: v.number(),
+    totalBorrowed: v.number(),
+    totalFines: v.number(),
+    totalDues: v.number(),
+    totalOutStandingBorrow: v.number(),
+    totalOutStandingFine: v.number(),
+    totalOutStandingDues: v.number(),
+    noOfGoodStandingMembers: v.number(),
+    noOfOwingMembers: v.number(),
+    noOfOverdueMembers: v.number(),
+  }),
 });

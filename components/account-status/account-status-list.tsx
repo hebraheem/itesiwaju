@@ -11,10 +11,15 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { ACCOUNT_STATUSES, removeEmptyFields } from "@/lib/utils";
+import {
+  ACCOUNT_STATUSES,
+  accountStatus,
+  parseDate,
+  removeEmptyFields,
+} from "@/lib/utils";
 import { usePaginatedQuery } from "convex-helpers/react";
 
 export function AccountStatusList() {
@@ -39,10 +44,10 @@ export function AccountStatusList() {
     { ...copyConvexArgs },
     { initialNumItems: 10 },
   );
+
   const accountSummary = useQuery(api.accounts.getAccountStats, {
     authEmail: session?.user?.email || "",
   });
-  console.log("accountSummary", accountSummary);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -79,47 +84,12 @@ export function AccountStatusList() {
       </motion.div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[
-          {
-            label: t("stats.totalOutstanding"),
-            value:
-              "€" + (accountSummary?.totalOutstanding ?? 0).toLocaleString(),
-            color: "text-orange-600",
-          },
-          {
-            label: t("stats.moneyAtHand"),
-            value: "€" + (accountSummary?.moneyAtHand ?? 0).toLocaleString(),
-            color: "text-green-600",
-          },
-          {
-            label: t("stats.totalFine"),
-            value: "€" + (accountSummary?.totalFines ?? 0).toLocaleString(),
-            color: "text-orange-600",
-          },
-          {
-            label: t("stats.totalBorrowed"),
-            value: "€" + (accountSummary?.totalBorrowed ?? 0).toLocaleString(),
-            color: "text-orange-600",
-          },
-          {
-            label: t("stats.goodStanding"),
-            value: accountSummary?.goodStanding ?? 0,
-            color: "text-green-600",
-          },
-          {
-            label: t("stats.pendingPayments"),
-            value: accountSummary?.owing ?? 0,
-            color: "text-yellow-600",
-          },
-          {
-            label: t("stats.overdue"),
-            value: accountSummary?.overdue ?? 0,
-            color: "text-red-600",
-          },
-        ].map((stat, i) => (
+        {accountStatus(accountSummary).map((stat, i) => (
           <Card key={i}>
             <CardContent className="p-6 text-center">
-              <p className="text-sm text-muted-foreground mb-2">{stat.label}</p>
+              <p className="text-sm text-muted-foreground mb-2">
+                {t(stat.label)}
+              </p>
               <p className={`text-2xl md:text-3xl font-bold ${stat.color}`}>
                 {stat.value}
               </p>
@@ -164,6 +134,12 @@ export function AccountStatusList() {
 
         {tabs.map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
+            {isLoading && status === "LoadingFirstPage" && (
+              <Loader2
+                className="animate-spin mx-auto my-12 text-orange-500"
+                size={24}
+              ></Loader2>
+            )}
             <div className="space-y-4">
               {results.length === 0 ? (
                 <Card>
@@ -199,11 +175,20 @@ export function AccountStatusList() {
                               {t("details.borrowedAmount")}: €
                               {account.currentBorrowedAmount.toLocaleString()}
                             </p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                              {t("details.fineAmount")}: €
+                              {account.currentFineAmount.toLocaleString()}
+                            </p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                              {t("details.dueAmount")}: €
+                              {account.duesToBalance.toLocaleString()}
+                            </p>
                           </div>
                           {account?.dueDate && (
                             <div className="hidden md:block">
                               <p className="text-sm text-muted-foreground">
-                                {t("details.dueDate")}: {account?.dueDate}
+                                {t("details.dueDate")}:{" "}
+                                {parseDate(account?.dueDate)}
                               </p>
                             </div>
                           )}
@@ -227,6 +212,17 @@ export function AccountStatusList() {
                 ))
               )}
             </div>
+            {status === "CanLoadMore" && (
+              <div className="text-center mt-6">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => loadMore(10)}
+                >
+                  {t("loadMore")}
+                </Button>
+              </div>
+            )}
           </TabsContent>
         ))}
       </Tabs>

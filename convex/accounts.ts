@@ -36,23 +36,6 @@ export const getAccountByUserId = query({
   },
 });
 
-// Get an account by ID
-export const getAccountById = query({
-  args: { id: v.id("accounts"), authEmail: v.string() },
-  handler: async (ctx, args) => {
-    await getCurrentUser(args.authEmail, ctx);
-    const hasAccess = await hasPermission(
-      ctx,
-      ["admin", "treasurer"],
-      args.authEmail,
-    );
-    if (!hasAccess) {
-      throw new Error("Unauthorized");
-    }
-    return await ctx.db.get(args.id);
-  },
-});
-
 // Get all accounts with user details
 export const getAllAccounts = query({
   args: {
@@ -122,55 +105,10 @@ export const getAllAccounts = query({
 
 // Get account statistics
 export const getAccountStats = query({
-  args: {
-    userId: v.optional(v.id("users")),
-    authEmail: v.string(),
-  },
+  args: { authEmail: v.string() },
   handler: async (ctx, args) => {
     await getCurrentUser(args.authEmail, ctx);
-
-    let q = ctx.db.query("accounts");
-
-    if (args.userId) {
-      // @ts-expect-error query builder types
-      q = q.withIndex("by_user", (q) => q.eq("userId", args.userId!));
-    }
-
-    const accounts = await q.collect();
-
-    return accounts.reduce(
-      (acc, a) => {
-        acc.totalBorrowed += a.totalBorrowedAmount;
-        acc.totalFines += a.totalFineAmount;
-        acc.totalDues += a.totalDuesAmount;
-        acc.totalOutstanding +=
-          a.currentBorrowedAmount + a.currentFineAmount + a.currentDuesAmount;
-
-        switch (a.status) {
-          case "good_standing":
-            acc.goodStanding++;
-            break;
-          case "owing":
-            acc.owing++;
-            break;
-          case "overdue":
-            acc.overdue++;
-            break;
-        }
-
-        return acc;
-      },
-      {
-        goodStanding: 0,
-        owing: 0,
-        overdue: 0,
-        totalBorrowed: 0,
-        totalFines: 0,
-        totalDues: 0,
-        totalOutstanding: 0,
-        moneyAtHand: 0,
-      },
-    );
+    return await getTreasury(ctx);
   },
 });
 
@@ -200,6 +138,19 @@ export const recordBorrow = mutation({
 
     const user = await ctx.db.get(args.userId);
 
+    const treasury = await getTreasury(ctx);
+
+    if (treasury.moneyAtHand > args.amount) {
+      throw new Error("Insufficient funds in treasury");
+    }
+    if (
+      account.status === "owing" &&
+      account.dueDate &&
+      account.dueDate < Date.now() &&
+      account.currentBorrowedAmount + args.amount > 500
+    ) {
+      throw new Error("Cannot borrow while account is not in good standing");
+    }
     const currentBorrowedAmount = account.currentBorrowedAmount + args.amount;
 
     const status = args.dueDate < Date.now() ? "overdue" : "owing";
@@ -220,6 +171,16 @@ export const recordBorrow = mutation({
           dueDate: args.dueDate,
         },
       ],
+    });
+
+    await ctx.db.patch(treasury._id, {
+      totalBorrowed: treasury.totalBorrowed + args.amount,
+      totalOutStandingBorrow: treasury.totalOutStandingBorrow + args.amount,
+      noOfOwingMembers:
+        account.status === "good_standing"
+          ? treasury.noOfOwingMembers + 1
+          : treasury.noOfOwingMembers,
+      moneyAtHand: treasury.moneyAtHand - args.amount,
     });
 
     await ctx.db.insert("activities", {
@@ -264,22 +225,57 @@ export const recordPayment = mutation({
       .unique();
     if (!account) throw new Error("Account not found");
 
+    if (args.paymentType === "fine_payment" && !account.fineToBalance) {
+      throw new Error("No outstanding fines to record");
+    }
+    if (
+      args.paymentType === "borrow_payment" &&
+      !account.borrowedAmountToBalance
+    ) {
+      throw new Error("No outstanding borrowed amount to record");
+    }
+    if (args.paymentType === "due_payment" && !account.duesToBalance) {
+      throw new Error("No outstanding dues to record");
+    }
+    if (
+      args.paymentType === "fine_payment" &&
+      args.amount > account.fineToBalance
+    ) {
+      throw new Error("Payment amount exceeds outstanding fine balance");
+    }
+
     const user = await ctx.db.get(args.userId);
 
     let newBorrowed = account.currentBorrowedAmount;
     let newFine = account.currentFineAmount;
     let newDues = account.currentDuesAmount;
+    let newAmountToBalance = account.borrowedAmountToBalance;
+    let newFineToBalance = account.fineToBalance;
+    let newDuesToBalance = account.duesToBalance;
 
     switch (args.paymentType) {
       case "borrow_payment":
         newBorrowed = Math.max(0, account.currentBorrowedAmount - args.amount);
+        newAmountToBalance = Math.max(
+          0,
+          account.borrowedAmountToBalance - args.amount,
+        );
         break;
       case "fine_payment":
         newFine = Math.max(0, account.currentFineAmount - args.amount);
+        newFineToBalance = Math.max(0, account.fineToBalance - args.amount);
         break;
       case "due_payment":
         newDues = Math.max(0, account.currentDuesAmount - args.amount);
+        newDuesToBalance = Math.max(0, account.duesToBalance - args.amount);
         break;
+    }
+    if (
+      newFineToBalance < 0 ||
+      newAmountToBalance < 0 ||
+      newDuesToBalance < 0
+    ) {
+      throw new Error("Payment amount exceeds outstanding balance");
     }
 
     const outstanding = newBorrowed + newFine + newDues;
@@ -295,6 +291,10 @@ export const recordPayment = mutation({
       currentBorrowedAmount: newBorrowed,
       currentFineAmount: newFine,
       currentDuesAmount: newDues,
+      borrowedAmountToBalance: newAmountToBalance,
+      fineToBalance: newFineToBalance,
+      duesToBalance: newDuesToBalance,
+      dueDate: status === "good_standing" ? undefined : account.dueDate,
       status,
       paymentHistory: [
         ...account.paymentHistory,
@@ -305,6 +305,35 @@ export const recordPayment = mutation({
           description: args.description ?? `${args.paymentType} payment`,
         },
       ],
+    });
+
+    const treasury = await getTreasury(ctx);
+
+    let outBorrow = treasury.totalOutStandingBorrow;
+    let outFine = treasury.totalOutStandingFine;
+    let outDues = treasury.totalOutStandingDues;
+
+    switch (args.paymentType) {
+      case "borrow_payment":
+        outBorrow = Math.max(0, outBorrow - args.amount);
+        break;
+      case "fine_payment":
+        outFine = Math.max(0, outFine - args.amount);
+        break;
+      case "due_payment":
+        outDues = Math.max(0, outDues - args.amount);
+        break;
+    }
+
+    await ctx.db.patch(treasury._id, {
+      moneyAtHand: treasury.moneyAtHand + args.amount,
+      totalOutStandingBorrow: outBorrow,
+      totalOutStandingFine: outFine,
+      totalOutStandingDues: outDues,
+      noOfOwingMembers:
+        status === "good_standing" && treasury.noOfOwingMembers
+          ? treasury.noOfOwingMembers - 1
+          : treasury.noOfOwingMembers,
     });
 
     await ctx.db.insert("activities", {
@@ -346,7 +375,7 @@ export const recordFine = mutation({
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .unique();
     if (!account) throw new Error("Account not found");
-
+    const prevAccountStatus = account.status;
     await ctx.db.patch(account._id, {
       currentFineAmount: account.currentFineAmount + args.amount,
       fineToBalance: account.fineToBalance + args.amount,
@@ -361,6 +390,17 @@ export const recordFine = mutation({
           description: args.reason,
         },
       ],
+    });
+
+    const treasury = await getTreasury(ctx);
+
+    await ctx.db.patch(treasury._id, {
+      totalFines: treasury.totalFines + args.amount,
+      totalOutStandingFine: treasury.totalOutStandingFine + args.amount,
+      noOfOwingMembers:
+        prevAccountStatus === "good_standing"
+          ? treasury.noOfOwingMembers + 1
+          : treasury.noOfOwingMembers,
     });
 
     await ctx.db.insert("activities", {
@@ -454,6 +494,14 @@ export const updateOverdueAccounts = mutation({
       }
     }
 
+    const treasury = await getTreasury(ctx);
+    const overdueCount = treasury.noOfOverdueMembers;
+
+    await ctx.db.patch(treasury._id, {
+      noOfOverdueMembers: overdueCount + updated,
+      noOfOwingMembers: treasury.noOfOwingMembers - updated,
+    });
+
     return { updated };
   },
 });
@@ -496,3 +544,107 @@ export const deleteAccount = mutation({
     return args.accountId;
   },
 });
+
+// Record dues for a user
+export const recordDue = mutation({
+  args: {
+    userId: v.id("users"),
+    amount: v.number(),
+    dueDate: v.number(),
+    description: v.optional(v.string()),
+    authEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const authUser = await getCurrentUser(args.authEmail, ctx);
+    const hasAccess = await hasPermission(
+      ctx,
+      ["admin", "treasurer"],
+      args.authEmail,
+    );
+    if (!hasAccess) throw new Error("Unauthorized");
+
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .unique();
+    if (!account) throw new Error("Account not found");
+
+    const user = await ctx.db.get(args.userId);
+    const treasury = await getTreasury(ctx);
+
+    const currentDuesAmount = account.currentDuesAmount + args.amount;
+    const status = args.dueDate < Date.now() ? "overdue" : "owing";
+
+    // ---- UPDATE ACCOUNT ----
+    await ctx.db.patch(account._id, {
+      currentDuesAmount,
+      duesToBalance: account.duesToBalance + args.amount,
+      totalDuesAmount: account.totalDuesAmount + args.amount,
+      dueDate: args.dueDate,
+      status,
+      paymentHistory: [
+        ...account.paymentHistory,
+        {
+          type: "dues",
+          amount: args.amount,
+          date: Date.now(),
+          description: args.description ?? "Membership dues",
+          dueDate: args.dueDate,
+        },
+      ],
+    });
+
+    // ---- UPDATE TREASURY ----
+    await ctx.db.patch(treasury._id, {
+      totalDues: treasury.totalDues + args.amount,
+      totalOutStandingDues: treasury.totalOutStandingDues + args.amount,
+      noOfOwingMembers:
+        account.status === "good_standing"
+          ? treasury.noOfOwingMembers + 1
+          : treasury.noOfOwingMembers,
+    });
+
+    // ---- ACTIVITY LOG ----
+    await ctx.db.insert("activities", {
+      userId: args.userId,
+      type: "payment",
+      user: `${authUser.firstName} ${authUser.lastName}`,
+      action: "record_due",
+      description: `recorded dues of EUR${args.amount.toLocaleString()} for ${user?.firstName}`,
+      metadata: { amount: args.amount, dueDate: args.dueDate },
+      timestamp: Date.now(),
+    });
+
+    return account._id;
+  },
+});
+
+export const initTreasury = mutation({
+  handler: async (ctx) => {
+    const existing = await ctx.db.query("treasury").first();
+    if (!existing) {
+      await ctx.db.insert("treasury", {
+        moneyAtHand: 0,
+        totalBorrowed: 0,
+        totalFines: 0,
+        totalDues: 0,
+        totalOutStandingBorrow: 0,
+        totalOutStandingFine: 0,
+        totalOutStandingDues: 0,
+        noOfGoodStandingMembers: 0,
+        noOfOwingMembers: 0,
+        noOfOverdueMembers: 0,
+      });
+    }
+  },
+});
+
+async function getTreasury(ctx: any) {
+  const t = await ctx.db.query("treasury").first();
+  const accounts = await ctx.db.query("accounts").collect();
+  t.noOfGoodStandingMembers = accounts.filter(
+    (acc: any) => acc.status === "good_standing",
+  ).length;
+  if (!t) throw new Error("Treasury not initialized");
+  return t;
+}

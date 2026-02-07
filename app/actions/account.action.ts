@@ -5,6 +5,7 @@ import {
   recordPaymentSchema,
   recordBorrowSchema,
   recordFineSchema,
+  recordDueSchema,
 } from "@/app/schemas/account.schema";
 
 type ActionResponse = {
@@ -129,6 +130,47 @@ export async function recordFineAction(
     return {
       success: true,
       message: "Fine recorded successfully!",
+    };
+  } catch (error) {
+    return {
+      message:
+        (error as Error)?.message ??
+        "An unexpected error occurred. Please try again.",
+      success: false,
+    };
+  }
+}
+
+export async function recordDueAction(
+  prev: ActionResponse,
+  formData: FormData,
+): Promise<ActionResponse> {
+  const userId = formData.get("userId") as string;
+  const amount = formData.get("amount") as string;
+  const description = formData.get("description") as string;
+  const authEmail = formData.get("authEmail") as string;
+
+  try {
+    const data = { amount, description };
+    const parsed = recordDueSchema.safeParse(data);
+
+    if (!parsed.success) {
+      return {
+        success: false,
+        errors: parsed.error.flatten().fieldErrors,
+      };
+    }
+
+    await convexServer.mutation(api.accounts.recordDue, {
+      userId: userId as Id<"users">,
+      ...parsed.data,
+      authEmail,
+      dueDate: Date.now() + 30 * 24 * 60 * 60 * 1000, // Set the due date to 30 days from now
+    });
+
+    return {
+      success: true,
+      message: "Due recorded successfully!",
     };
   } catch (error) {
     return {

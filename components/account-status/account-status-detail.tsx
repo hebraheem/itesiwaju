@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useRouter } from "@/i18n/navigation";
@@ -26,14 +26,28 @@ import {
   CheckCircle,
   Search,
   X,
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import RoleAction from "@/components/common/RoleAction";
-import { parseDate, USER_ROLES } from "@/lib/utils";
+import { extractErrorMessage, parseDate, USER_ROLES } from "@/lib/utils";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import {
+  recordPaymentAction,
+  recordBorrowAction,
+  recordFineAction,
+  recordDueAction,
+} from "@/app/actions/account.action";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import * as React from "react";
 
 export function AccountStatusDetail({ memberId }: { memberId: string }) {
   const t = useTranslations("accountStatus");
@@ -49,45 +63,16 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
     "payment" | "borrow" | "fine" | null
   >(null);
 
-  console.log("accountStand", accountStand);
-
-  const account = {
-    name: "Chioma Okoro",
-    borrowed: 50000,
-    paid: 35000,
-    remaining: 15000,
-    fine: 0,
-    dueDate: "December 1, 2026",
-    status: "owing",
-    payments: [
-      {
-        date: "2026-10-01",
-        amount: 20000,
-        method: "Bank Transfer",
-        type: "payment",
-        description: "Payment received",
-      },
-      {
-        date: "2026-10-15",
-        amount: 15000,
-        method: "Cash",
-        type: "payment",
-        description: "Payment received",
-      },
-      {
-        date: "2026-09-01",
-        amount: 50000,
-        method: "Loan",
-        type: "borrow",
-        description: "Borrowed amount",
-      },
-    ],
-  };
-
   const handleActionSelect = (action: string) => {
     setSelectedAction(action as "payment" | "borrow" | "fine");
     setIsActionDialogOpen(true);
   };
+
+  const filteredPayments = (accountStand?.paymentHistory || []).filter(
+    (payment) =>
+      payment.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      payment.amount?.toString().includes(searchQuery),
+  );
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -105,6 +90,9 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
   const getPaymentTypeLabel = (type: string) => {
     switch (type) {
       case "payment":
+      case "borrow_payment":
+      case "fine_payment":
+      case "due_payment":
         return t("paymentTypes.payment");
       case "borrow":
         return t("paymentTypes.borrow");
@@ -114,6 +102,14 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
         return type;
     }
   };
+
+  if (!accountStand) {
+    return (
+      <div className="flex items-center justify-center min-h-100">
+        <Loader2 className="w-12 h-12 animate-spin text-orange-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -126,10 +122,10 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
         <div className="flex items-center gap-4">
           <Avatar className="w-12 h-12 md:w-16 md:h-16">
             <AvatarFallback className="bg-orange-500 text-white text-lg md:text-xl font-bold">
-              {account.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
+              {accountStand?.user?.name
+                ?.split(" ")
+                .map((n: string) => n[0])
+                .join("") || ""}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -145,20 +141,29 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
           </div>
         </div>
         <RoleAction roles={[USER_ROLES.admin, USER_ROLES.treasurer]}>
-          <Select onValueChange={handleActionSelect}>
-            <SelectTrigger className="bg-green-500 hover:bg-green-600 text-white border-green-600">
-              <SelectValue placeholder={t("actions.recordAction")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="payment">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                {selectedAction
+                  ? t(`actions.record${selectedAction}`)
+                  : t("actions.recordAction")}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleActionSelect("payment")}>
                 {t("actions.recordPayment")}
-              </SelectItem>
-              <SelectItem value="borrow">
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleActionSelect("borrow")}>
                 {t("actions.recordBorrow")}
-              </SelectItem>
-              <SelectItem value="fine">{t("actions.recordFine")}</SelectItem>
-            </SelectContent>
-          </Select>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleActionSelect("fine")}>
+                {t("actions.recordFine")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleActionSelect("due")}>
+                {t("actions.recordDue")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </RoleAction>
       </div>
 
@@ -178,8 +183,8 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
           },
           {
             icon: AlertCircle,
-            label: t("details.currentBalance"),
-            value: `€${(accountStand?.borrowedAmountToBalance ?? 0).toLocaleString()}`,
+            label: t("details.dueToBalance"),
+            value: `€${(accountStand?.duesToBalance ?? 0).toLocaleString()}`,
             color: "bg-orange-500",
           },
           {
@@ -224,12 +229,12 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
         </CardHeader>
         <CardContent>
           <div className="space-y-3 md:space-y-4">
-            {accountStand?.paymentHistory?.length === 0 ? (
+            {filteredPayments.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">
                 {t("noRecords")}
               </p>
             ) : (
-              accountStand?.paymentHistory?.map((payment, i) => (
+              filteredPayments.map((payment, i) => (
                 <div
                   key={i}
                   className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-3 md:p-4 border rounded-lg"
@@ -248,13 +253,13 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
                     </p>
                   </div>
                   <p className="text-xs md:text-sm text-muted-foreground">
-                    {payment.date}
+                    {parseDate(payment.date)}
                   </p>
-                  <p className="text-xs md:text-sm text-red-500">
-                    {payment.dueDate
-                      ? `${t("details.dueDate")}: ${payment.dueDate}`
-                      : ""}
-                  </p>
+                  {payment.dueDate && (
+                    <p className="text-xs md:text-sm text-red-500">
+                      {t("details.dueDate")}: {parseDate(payment.dueDate)}
+                    </p>
+                  )}
                 </div>
               ))
             )}
@@ -270,7 +275,7 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
         }}
         actionType={selectedAction}
         memberId={memberId}
-        memberName={account.name}
+        memberName={accountStand?.user?.name ?? ""}
       />
     </div>
   );
@@ -285,12 +290,74 @@ function ActionDialog({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  actionType: "payment" | "borrow" | "fine" | null;
+  actionType: "payment" | "borrow" | "fine" | "due" | null;
   memberId: string;
   memberName: string;
 }) {
   const t = useTranslations("accountStatus");
   const { data: session } = useSession();
+
+  const [paymentState, paymentAction, isPendingPayment] = useActionState(
+    recordPaymentAction,
+    {},
+  );
+  const [borrowState, borrowAction, isPendingBorrow] = useActionState(
+    recordBorrowAction,
+    {},
+  );
+  const [fineState, fineAction, isPendingFine] = useActionState(
+    recordFineAction,
+    {},
+  );
+  const [dueState, dueAction, isPendingDue] = useActionState(
+    recordDueAction,
+    {},
+  );
+
+  const getState = () => {
+    switch (actionType) {
+      case "payment":
+        return paymentState;
+      case "borrow":
+        return borrowState;
+      case "fine":
+        return fineState;
+      case "due":
+        return dueState;
+      default:
+        return {};
+    }
+  };
+
+  const getAction = () => {
+    switch (actionType) {
+      case "payment":
+        return paymentAction;
+      case "borrow":
+        return borrowAction;
+      case "fine":
+        return fineAction;
+      case "due":
+        return dueAction;
+      default:
+        return () => {};
+    }
+  };
+
+  const isPending =
+    isPendingPayment || isPendingBorrow || isPendingFine || isPendingDue;
+  const state = getState();
+  const action = getAction();
+
+  useEffect(() => {
+    if (state.success) {
+      toast.success(state.message || t("actionSuccess"));
+      onClose();
+    }
+    if (state.success === false && state.message) {
+      toast.error(extractErrorMessage(state.message));
+    }
+  }, [state.success, state.message, onClose, t]);
 
   if (!actionType || !isOpen) return null;
 
@@ -302,16 +369,11 @@ function ActionDialog({
         return t("actions.recordBorrow");
       case "fine":
         return t("actions.recordFine");
+      case "due":
+        return t("actions.recordDue");
       default:
         return "";
     }
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Form handling will be done by useActionState
-    toast.success(t("actionSuccess"));
-    onClose();
   };
 
   return (
@@ -341,6 +403,7 @@ function ActionDialog({
                   size="icon"
                   onClick={onClose}
                   className="h-8 w-8"
+                  disabled={isPending}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -350,7 +413,7 @@ function ActionDialog({
               </p>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form action={action} className="space-y-4">
                 <input type="hidden" name="userId" value={memberId} />
                 <input
                   type="hidden"
@@ -367,13 +430,32 @@ function ActionDialog({
                     step="0.01"
                     placeholder="0.00"
                     required
+                    disabled={isPending}
+                    className={state.errors?.amount ? "border-red-500" : ""}
                   />
+                  {state.errors?.amount && (
+                    <p className="text-sm text-red-500">
+                      {state.errors.amount[0]}
+                    </p>
+                  )}
                 </div>
 
                 {actionType === "borrow" && (
                   <div className="space-y-2">
                     <Label htmlFor="dueDate">{t("form.dueDate")}</Label>
-                    <Input id="dueDate" name="dueDate" type="date" required />
+                    <Input
+                      id="dueDate"
+                      name="dueDate"
+                      type="date"
+                      required
+                      disabled={isPending}
+                      className={state.errors?.dueDate ? "border-red-500" : ""}
+                    />
+                    {state.errors?.dueDate && (
+                      <p className="text-sm text-red-500">
+                        {state.errors.dueDate[0]}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -385,16 +467,27 @@ function ActionDialog({
                       name="reason"
                       placeholder={t("form.reasonPlaceholder")}
                       required
+                      disabled={isPending}
+                      className={state.errors?.reason ? "border-red-500" : ""}
                     />
+                    {state.errors?.reason && (
+                      <p className="text-sm text-red-500">
+                        {state.errors.reason[0]}
+                      </p>
+                    )}
                   </div>
                 )}
 
                 {actionType === "payment" && (
                   <div className="space-y-2">
-                    <Label htmlFor="reason">{t("payment.paymentType")}</Label>
-                    <Select name="type">
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
+                    <Label htmlFor="type">{t("payment.paymentType")}</Label>
+                    <Select name="type" required disabled={isPending}>
+                      <SelectTrigger
+                        className={
+                          state.errors?.paymentType ? "border-red-500" : ""
+                        }
+                      >
+                        <SelectValue placeholder={t("payment.selectType")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="borrow_payment">
@@ -408,6 +501,11 @@ function ActionDialog({
                         </SelectItem>
                       </SelectContent>
                     </Select>
+                    {state.errors?.paymentType && (
+                      <p className="text-sm text-red-500">
+                        {state.errors.paymentType[0]}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -418,17 +516,31 @@ function ActionDialog({
                     name="description"
                     placeholder={t("form.descriptionPlaceholder")}
                     rows={3}
+                    disabled={isPending}
                   />
                 </div>
 
                 <div className="flex gap-3 pt-2">
                   <Button
                     type="submit"
-                    className="flex-1 bg-green-500 hover:bg-green-600"
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                    disabled={isPending}
                   >
-                    {t("form.submit")}
+                    {isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {t("form.submitting")}
+                      </>
+                    ) : (
+                      t("form.submit")
+                    )}
                   </Button>
-                  <Button type="button" variant="outline" onClick={onClose}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={isPending}
+                  >
                     {t("form.cancel")}
                   </Button>
                 </div>
