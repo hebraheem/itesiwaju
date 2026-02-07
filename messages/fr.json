@@ -284,7 +284,13 @@
       "method": "Méthode de Paiement",
       "notes": "Notes",
       "submit": "Enregistrer le Paiement",
-      "paid": "Payé"
+      "paid": "Payé",
+      "fineToBalance": "Solde des Amendes",
+      "paymentType": "Type de Paiement",
+      "selectType": "Sélectionner le type",
+      "borrow_payment": "Paiement Emprunt",
+      "fine_payment": "Paiement Amende",
+      "due_payment": "Paiement Cotisation"
     },
     "actions": {
       "recordAction": "Enregistrer une Action",
@@ -307,7 +313,8 @@
       "description": "Description (Optionnel)",
       "descriptionPlaceholder": "Ajouter des notes supplémentaires",
       "submit": "Soumettre",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "submitting": "En cours..."
     }
   },
   "settings": {

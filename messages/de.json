@@ -284,7 +284,13 @@
       "method": "Zahlungsmethode",
       "notes": "Notizen",
       "submit": "Zahlung Erfassen",
-      "paid": "Bezahlt"
+      "paid": "Bezahlt",
+      "fineToBalance": "Bußgeld-Saldo",
+      "paymentType": "Zahlungsart",
+      "selectType": "Zahlungsart wählen",
+      "borrow_payment": "Ausleihe-Zahlung",
+      "fine_payment": "Bußgeld-Zahlung",
+      "due_payment": "Beitrags-Zahlung"
     },
     "actions": {
       "recordAction": "Aktion Erfassen",
@@ -307,7 +313,8 @@
       "description": "Beschreibung (Optional)",
       "descriptionPlaceholder": "Zusätzliche Notizen hinzufügen",
       "submit": "Absenden",
-      "cancel": "Abbrechen"
+      "cancel": "Abbrechen",
+      "submitting": "Wird übermittelt..."
     }
   },
   "settings": {

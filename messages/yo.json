@@ -284,7 +284,13 @@
       "method": "Ọna Isanwo",
       "notes": "Awọn Akọsilẹ",
       "submit": "Ṣe Igbasilẹ Isanwo",
-      "paid": "Ti San"
+      "paid": "Ti San",
+      "fineToBalance": "Iwontunwonsi Itanran",
+      "paymentType": "Iru Isanwo",
+      "selectType": "Yan iru isanwo",
+      "borrow_payment": "Isanwo Awin",
+      "fine_payment": "Isanwo Itanran",
+      "due_payment": "Isanwo Owo Iṣowo"
     },
     "actions": {
       "recordAction": "Ṣe Igbasilẹ Iṣe",
@@ -307,7 +313,8 @@
       "description": "Apejuwe (Ti ko pọn dandan)",
       "descriptionPlaceholder": "Fi awọn akọsilẹ afikun kun",
       "submit": "Firanṣẹ",
-      "cancel": "Fagilee"
+      "cancel": "Fagilee",
+      "submitting": "N firanṣẹ..."
     }
   },
   "settings": {

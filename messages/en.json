@@ -261,7 +261,10 @@
       "totalOutstanding": "Total Outstanding",
       "goodStanding": "Good Standing",
       "pendingPayments": "Pending Payments",
-      "overdue": "Overdue"
+      "overdue": "Overdue",
+      "moneyAtHand": "Money at Hand",
+      "totalFine": "Total Fines",
+      "totalBorrowed": "Total Borrowed"
     },
     "details": {
       "borrowedAmount": "Borrowed Amount",
@@ -269,7 +272,8 @@
       "fineAmount": "Fine Amount",
       "paymentHistory": "Payment History",
       "currentBalance": "Remaining Balance",
-      "accountStatus": "Account Status"
+      "accountStatus": "Account Status",
+      "goodStanding": "Good Standing"
     },
     "status": {
       "goodStanding": "Good Standing",
@@ -284,7 +288,13 @@
       "method": "Payment Method",
       "notes": "Notes",
       "submit": "Record Payment",
-      "paid": "Paid"
+      "paid": "Paid",
+      "fineToBalance": "Fine Balance",
+      "paymentType": "Payment Type",
+      "selectType": "Select payment type",
+      "borrow_payment": "Borrow Payment",
+      "fine_payment": "Fine Payment",
+      "due_payment": "Dues Payment"
     },
     "actions": {
       "recordAction": "Record Action",
@@ -307,7 +317,8 @@
       "description": "Description (Optional)",
       "descriptionPlaceholder": "Add any additional notes",
       "submit": "Submit",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "submitting": "Submitting..."
     }
   },
   "settings": {
