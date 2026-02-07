@@ -9,14 +9,6 @@ export const getAccountByUserId = query({
   handler: async (ctx, args) => {
     await getCurrentUser(args.authEmail, ctx);
     const user = await ctx.db.get(args.userId);
-    const hasAccess = await hasPermission(
-      ctx,
-      ["admin", "treasurer"],
-      args.authEmail,
-    );
-    if (!hasAccess) {
-      throw new Error("Unauthorized");
-    }
     const account = await ctx.db
       .query("accounts")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -52,7 +44,6 @@ export const getAllAccounts = query({
   },
   handler: async (ctx, args) => {
     await getCurrentUser(args.authEmail, ctx);
-
     const hasAccess = await hasPermission(
       ctx,
       ["admin", "treasurer"],
@@ -140,7 +131,7 @@ export const recordBorrow = mutation({
 
     const treasury = await getTreasury(ctx);
 
-    if (treasury.moneyAtHand > args.amount) {
+    if (treasury.moneyAtHand < args.amount) {
       throw new Error("Insufficient funds in treasury");
     }
     if (
@@ -468,15 +459,7 @@ export const updateAccountStatus = mutation({
 
 // Check and update overdue accounts
 export const updateOverdueAccounts = mutation({
-  args: { authEmail: v.string() },
-  handler: async (ctx, args) => {
-    const hasAccess = await hasPermission(
-      ctx,
-      ["admin", "treasurer"],
-      args.authEmail,
-    );
-    if (!hasAccess) throw new Error("Unauthorized");
-
+  handler: async (ctx) => {
     const now = Date.now();
     const overdue = await ctx.db
       .query("accounts")
