@@ -28,6 +28,7 @@ import { UserModel } from "@/types/userModel";
 export function MemberForm({ user }: { user?: UserModel | null }) {
   const router = useRouter();
   const t = useTranslations("auth.register");
+  const tc = useTranslations("common");
   const session = useSession();
 
   const [state, action, isPending] = useActionState(
@@ -169,7 +170,7 @@ export function MemberForm({ user }: { user?: UserModel | null }) {
                 <Label>Role</Label>
                 <Select name="role" defaultValue={state?.role ?? "member"}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
+                    <SelectValue placeholder={tc("selectRole")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="admin">Admin</SelectItem>
@@ -185,7 +186,7 @@ export function MemberForm({ user }: { user?: UserModel | null }) {
                 <Label>Status</Label>
                 <Select name="status" defaultValue={state?.status ?? "member"}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
+                    <SelectValue placeholder={tc("selectStatus")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">Active</SelectItem>

@@ -12,37 +12,38 @@ import { Moon, Sun, Globe, Bell } from 'lucide-react';
 
 export function Settings() {
   const t = useTranslations('settings');
+  const tl = useTranslations('locale');
 
   return (
     <div className="space-y-6 max-w-4xl">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-3xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground">Manage your preferences</p>
+        <p className="text-muted-foreground">{t('subtitle')}</p>
       </motion.div>
 
       <div className="space-y-6">
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Sun className="w-5 h-5" />Appearance</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Sun className="w-5 h-5" />{t('appearance')}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <div><Label>Dark Mode</Label><p className="text-sm text-muted-foreground">Toggle dark mode theme</p></div>
+              <div><Label>{t('darkMode')}</Label><p className="text-sm text-muted-foreground">{t('darkModeDesc')}</p></div>
               <Switch />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Globe className="w-5 h-5" />Language</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Globe className="w-5 h-5" />{t('language')}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label>Preferred Language</Label>
+              <Label>{t('preferredLanguage')}</Label>
               <Select defaultValue="en">
                 <SelectTrigger className="mt-2"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="yo">Yoruba</SelectItem>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="fr">French</SelectItem>
-                  <SelectItem value="de">German</SelectItem>
+                  <SelectItem value="yo">{tl('yo')}</SelectItem>
+                  <SelectItem value="en">{tl('en')}</SelectItem>
+                  <SelectItem value="fr">{tl('fr')}</SelectItem>
+                  <SelectItem value="de">{tl('de')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -50,20 +51,20 @@ export function Settings() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />Notifications</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />{t('notifications')}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <div><Label>Email Notifications</Label><p className="text-sm text-muted-foreground">Receive email updates</p></div>
+              <div><Label>{t('emailNotifications')}</Label><p className="text-sm text-muted-foreground">{t('emailNotificationsDesc')}</p></div>
               <Switch defaultChecked />
             </div>
             <div className="flex items-center justify-between">
-              <div><Label>Event Reminders</Label><p className="text-sm text-muted-foreground">Get reminded about events</p></div>
+              <div><Label>{t('eventReminders')}</Label><p className="text-sm text-muted-foreground">{t('eventRemindersDesc')}</p></div>
               <Switch defaultChecked />
             </div>
           </CardContent>
         </Card>
 
-        <Button className="bg-orange-500 hover:bg-orange-600" onClick={() => toast.success('Settings saved')}>Save Changes</Button>
+        <Button className="bg-orange-500 hover:bg-orange-600" onClick={() => toast.success(t('saveSuccess'))}>{t('save')}</Button>
       </div>
     </div>
   );

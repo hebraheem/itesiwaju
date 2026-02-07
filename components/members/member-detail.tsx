@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,8 @@ import { buildAddress, parseDate } from "@/lib/utils";
 import { UserModel } from "@/types/userModel";
 
 export function MemberDetail({ memberId }: { memberId: string }) {
+  const t = useTranslations("members");
+  const tc = useTranslations("common");
   const router = useRouter();
   const session = useSession();
 
@@ -36,7 +39,7 @@ export function MemberDetail({ memberId }: { memberId: string }) {
       >
         <Button variant="ghost" onClick={() => router.back()} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          {tc("back")}
         </Button>
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-4">
@@ -68,7 +71,7 @@ export function MemberDetail({ memberId }: { memberId: string }) {
           <Link href={`/members/update/${memberId}`}>
             <Button>
               <Edit className="w-4 h-4 mr-2" />
-              Edit
+              {tc("edit")}
             </Button>
           </Link>
         </div>
@@ -80,7 +83,7 @@ export function MemberDetail({ memberId }: { memberId: string }) {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
+            <CardTitle>{t("contactInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">

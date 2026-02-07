@@ -138,14 +138,17 @@
       "totalMembers": "Membres Totaux",
       "eventsThisMonth": "Événements ce Mois",
       "totalCollections": "Collections Totales",
-      "pendingPayments": "Paiements en Attente"
+      "pendingPayments": "Paiements en Attente",
+      "totalOutstanding": "Total Impayé",
+      "overdue": "En Retard"
     },
     "quickActions": {
       "title": "Actions Rapides",
       "createEvent": "Créer un Événement",
       "addMember": "Ajouter un Membre",
       "recordPayment": "Enregistrer un Paiement",
-      "viewReports": "Voir les Rapports"
+      "viewReports": "Voir les Rapports",
+      "viewActivity": "Voir l'Activité"
     },
     "upcomingEvents": {
       "title": "Événements à Venir",
@@ -197,20 +200,40 @@
       "endTime": "Heure de Fin",
       "minutes": "Procès-verbal",
       "files": "Photos de l'Événement",
-      "filesHint": "Téléchargez des images et des vidéos de l'événement. Formats acceptés: JPG, PNG, GIF, MP4, MOV"
+      "filesHint": "Téléchargez des images et des vidéos de l'événement. Formats acceptés: JPG, PNG, GIF, MP4, MOV",
+      "placeholders": {
+        "title": "Réunion Générale Mensuelle",
+        "description": "Rejoignez-nous pour notre réunion mensuelle où nous discutons des affaires de la communauté...",
+        "location": "Salle Communautaire, 123 Rue Principale",
+        "minutes": "Ce qui s'est passé lors de l'événement..."
+      }
     },
     "status": {
       "confirmed": "Confirmé",
       "pending": "En Attente",
       "cancelled": "Annulé",
-      "completed": "Terminé"
+      "completed": "Terminé",
+      "upcoming": "À venir",
+      "ongoing": "En cours"
     },
     "type": {
       "meeting": "Réunion",
       "workshop": "Atelier",
       "social": "Social",
       "fundraiser": "Collecte de Fonds"
-    }
+    },
+    "ongoing": "En cours",
+    "completed": "Terminé",
+    "cancelled": "Annulé",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet événement?",
+    "deleteSuccess": "Événement supprimé avec succès",
+    "confirmComplete": "Êtes-vous sûr de vouloir marquer cet événement comme terminé?",
+    "completeSuccess": "Événement marqué comme terminé",
+    "confirmCancel": "Êtes-vous sûr de vouloir annuler cet événement?",
+    "cancelSuccess": "Événement annulé avec succès",
+    "complete": "Terminer",
+    "attendees": "Participants",
+    "allMembers": "Tous les membres"
   },
   "members": {
     "title": "Membres",
@@ -242,7 +265,9 @@
       "admin": "Administrateur",
       "member": "Membre",
       "executive": "Exécutif"
-    }
+    },
+    "view": "Voir",
+    "contactInfo": "Informations de Contact"
   },
   "accountStatus": {
     "title": "État du Compte",
@@ -261,7 +286,11 @@
       "totalOutstanding": "Total Impayé",
       "goodStanding": "Bonne Position",
       "pendingPayments": "Paiements en Attente",
-      "overdue": "En Retard"
+      "overdue": "En Retard",
+      "moneyAtHand": "Argent Disponible",
+      "totalFine": "Total Amendes",
+      "totalBorrowed": "Total Emprunté",
+      "totalDues": "Total Cotisations"
     },
     "details": {
       "borrowedAmount": "Montant Emprunté",
@@ -269,7 +298,10 @@
       "fineAmount": "Montant de l'Amende",
       "paymentHistory": "Historique des Paiements",
       "currentBalance": "Solde Restant",
-      "accountStatus": "État du Compte"
+      "accountStatus": "État du Compte",
+      "dueToBalance": "Solde Cotisations",
+      "dueAmount": "Montant Dû",
+      "goodStanding": "Bon Standing"
     },
     "status": {
       "goodStanding": "Bonne Position",
@@ -296,7 +328,8 @@
       "recordAction": "Enregistrer une Action",
       "recordPayment": "Enregistrer un Paiement",
       "recordBorrow": "Enregistrer un Emprunt",
-      "recordFine": "Enregistrer une Amende"
+      "recordFine": "Enregistrer une Amende",
+      "recordDue": "Enregistrer Cotisations"
     },
     "paymentTypes": {
       "payment": "Paiement",
@@ -325,14 +358,46 @@
     "language": "Langue",
     "theme": "Thème",
     "save": "Enregistrer les Modifications",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "subtitle": "Gérez vos préférences",
+    "appearance": "Apparence",
+    "darkMode": "Mode Sombre",
+    "darkModeDesc": "Activer/désactiver le thème sombre",
+    "preferredLanguage": "Langue Préférée",
+    "emailNotifications": "Notifications par Email",
+    "emailNotificationsDesc": "Recevoir des mises à jour par email",
+    "eventReminders": "Rappels d'Événements",
+    "eventRemindersDesc": "Être rappelé des événements",
+    "saveSuccess": "Paramètres enregistrés"
   },
   "profile": {
     "title": "Mon Profil",
-    "edit": "Modifier le Profil",
+    "subtitle": "Gérer vos informations personnelles",
+    "edit": "Modifier",
+    "cancel": "Annuler",
     "personalInfo": "Informations Personnelles",
     "contactInfo": "Informations de Contact",
-    "accountInfo": "Informations du Compte"
+    "accountInfo": "Informations du Compte",
+    "addressData": "Données d'Adresse",
+    "saveChanges": "Enregistrer les Modifications",
+    "security": "Sécurité",
+    "oldPassword": "Ancien mot de passe",
+    "newPassword": "Nouveau mot de passe",
+    "updatePassword": "Mettre à jour le mot de passe",
+    "passwordUpdateSuccess": "Mot de passe mis à jour avec succès",
+    "passwordUpdateError": "Échec de la mise à jour du mot de passe",
+    "updateSuccess": "Profil mis à jour avec succès",
+    "updateError": "Échec de la mise à jour du profil",
+    "joined": "Inscrit",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "otherName": "Autre Nom",
+    "email": "E-mail",
+    "phone": "Téléphone",
+    "street": "Rue et Numéro",
+    "city": "Ville",
+    "state": "État",
+    "country": "Pays"
   },
   "theme": {
     "toggle": "Basculer le thème",
@@ -396,7 +461,23 @@
     "passwordUpdate": "Mise à jour du mot de passe",
     "passwordReset": "Réinitialisation du mot de passe",
     "onlyMine": "Seulement Mes Activités",
-    "search": "Rechercher des activités..."
+    "search": "Rechercher des activités...",
+    "record_due": "cotisations enregistrées",
+    "record_payment": "paiement enregistré",
+    "record_borrow": "emprunt enregistré",
+    "record_fine": "amende enregistrée",
+    "account_created": "compte créé",
+    "details": "Détails de l'Activité",
+    "notFound": "Activité non trouvée",
+    "activityInfo": "Informations sur l'Activité",
+    "performedBy": "Effectué Par",
+    "date": "Date",
+    "time": "Heure",
+    "actionType": "Type d'Action",
+    "noAction": "Aucune action spécifiée",
+    "additionalDetails": "Détails Supplémentaires",
+    "fullDescription": "Description Complète",
+    "noDescription": "Aucune description disponible"
   },
   "common": {
     "loading": "Chargement...",
@@ -420,7 +501,14 @@
     "success": "Succès",
     "error": "Erreur",
     "warning": "Avertissement",
-    "info": "Info"
+    "info": "Info",
+    "selectStatus": "Sélectionner le statut",
+    "selectRole": "Sélectionner le rôle",
+    "selectType": "Sélectionner le type",
+    "loadMore": "Charger Plus",
+    "update": "Mettre à jour",
+    "create": "Créer",
+    "add": "Ajouter"
   },
   "errors": {
     "required": "Ce champ est obligatoire",

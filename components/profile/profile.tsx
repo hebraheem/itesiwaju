@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import { updateUserAction } from "@/app/actions/update-user.action";
 import PasswordUpdateComponent from "@/components/profile/PasswordUpdateComponent";
 
 export function Profile() {
+  const t = useTranslations("profile");
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [state, action, isPending] = useActionState(updateUserAction, {});
@@ -24,11 +26,11 @@ export function Profile() {
   useEffect(
     () => {
       if (state.success) {
-        toast.success(state.message || "Profile updated successfully");
+        toast.success(state.message || t("updateSuccess"));
         setIsEditing(false);
       }
       if (String(state.success) === "false") {
-        toast.error(state.message || "Failed to update profile");
+        toast.error(state.message || t("updateError"));
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -45,22 +47,22 @@ export function Profile() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-3xl font-bold">My Profile</h1>
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
         <p className="text-muted-foreground">
-          Manage your personal information
+          {t("subtitle")}
         </p>
       </motion.div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Personal Information</CardTitle>
+          <CardTitle>{t("personalInfo")}</CardTitle>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsEditing(!isEditing)}
           >
             <Edit className="w-4 h-4 mr-2" />
-            {isEditing ? "Cancel" : "Edit"}
+            {isEditing ? t("cancel") : t("edit")}
           </Button>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -79,14 +81,14 @@ export function Profile() {
                 <Badge>{user?.status}</Badge>
               </div>
               <div className="mt-2">
-                Joined: <Badge>{parseDate(user?.joinedAt)}</Badge>
+                {t("joined")}: <Badge>{parseDate(user?.joinedAt)}</Badge>
               </div>
             </div>
           </div>
           <form action={action}>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label>First Name</Label>
+                <Label>{t("firstName")}</Label>
                 <Input
                   name="firstName"
                   type="text"
@@ -95,7 +97,7 @@ export function Profile() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Last Name</Label>
+                <Label>{t("lastName")}</Label>
                 <Input
                   name="lastName"
                   type="text"
@@ -104,7 +106,7 @@ export function Profile() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Other Name</Label>
+                <Label>{t("otherName")}</Label>
                 <Input
                   name="otherName"
                   type="text"
@@ -113,7 +115,7 @@ export function Profile() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">Email</Label>
+                <Label className="flex items-center gap-2">{t("email")}</Label>
                 <Input
                   type="email"
                   name="email"
@@ -122,7 +124,7 @@ export function Profile() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">Phone</Label>
+                <Label className="flex items-center gap-2">{t("phone")}</Label>
                 <Input
                   type="text"
                   name="phone"
@@ -132,12 +134,12 @@ export function Profile() {
               </div>
             </div>
             <div className="mb-6">
-              <h3 className="py-6 font-bold">Address data</h3>
+              <h3 className="py-6 font-bold">{t("addressData")}</h3>
               <hr className="border-gray-5 mb-6" />
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                    Street and Number
+                    {t("street")}
                   </Label>
                   <Input
                     type="text"
@@ -147,7 +149,7 @@ export function Profile() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">City</Label>
+                  <Label className="flex items-center gap-2">{t("city")}</Label>
                   <Input
                     type="text"
                     name="city"
@@ -156,7 +158,7 @@ export function Profile() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">State</Label>
+                  <Label className="flex items-center gap-2">{t("state")}</Label>
                   <Input
                     type="text"
                     name="state"
@@ -165,7 +167,7 @@ export function Profile() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">Country</Label>
+                  <Label className="flex items-center gap-2">{t("country")}</Label>
                   <Input
                     type="text"
                     name="country"
@@ -188,7 +190,7 @@ export function Profile() {
                 ) : (
                   <Save className="w-4 h-4 mr-2" />
                 )}
-                Save Changes
+                {t("saveChanges")}
               </Button>
             )}
           </form>

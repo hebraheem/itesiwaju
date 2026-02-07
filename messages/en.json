@@ -138,14 +138,17 @@
       "totalMembers": "Total Members",
       "eventsThisMonth": "Events This Month",
       "totalCollections": "Total Collections",
-      "pendingPayments": "Pending Payments"
+      "pendingPayments": "Pending Payments",
+      "totalOutstanding": "Total Outstanding",
+      "overdue": "Overdue"
     },
     "quickActions": {
       "title": "Quick Actions",
       "createEvent": "Create Event",
       "addMember": "Add Member",
       "recordPayment": "Record Payment",
-      "viewReports": "View Reports"
+      "viewReports": "View Reports",
+      "viewActivity": "View Activity"
     },
     "upcomingEvents": {
       "title": "Upcoming Events",
@@ -183,6 +186,12 @@
     "delete": "Delete Event",
     "details": "Event Details",
     "noEvents": "No events found",
+    "confirmDelete": "Are you sure you want to delete this event?",
+    "deleteSuccess": "Event deleted successfully",
+    "confirmComplete": "Are you sure you want to mark this event as completed?",
+    "completeSuccess": "Event marked as completed",
+    "confirmCancel": "Are you sure you want to cancel this event?",
+    "cancelSuccess": "Event cancelled successfully",
     "form": {
       "title": "Event Title",
       "description": "Description",
@@ -196,21 +205,32 @@
       "endDate": "End Date",
       "endTime": "End Time",
       "minutes": "Minutes",
-      "files": "Event Photos",
-      "filesHint": "Upload images and videos from the event. Accepted formats: JPG, PNG, GIF, MP4, MOV"
+      "files": "Event Photos & Videos",
+      "filesHint": "Upload images and videos from the event. Accepted formats: JPG, PNG, GIF, MP4, MOV",
+      "placeholders": {
+        "title": "Monthly General Meeting",
+        "description": "Join us for our monthly meeting where we discuss community matters...",
+        "location": "Community Hall, 123 Main St.",
+        "minutes": "What happened at the event..."
+      }
     },
     "status": {
       "confirmed": "Confirmed",
       "pending": "Pending",
       "cancelled": "Cancelled",
-      "completed": "Completed"
+      "completed": "Completed",
+      "upcoming": "Upcoming",
+      "ongoing": "Ongoing"
     },
     "type": {
       "meeting": "Meeting",
       "workshop": "Workshop",
       "social": "Social",
       "fundraiser": "Fundraiser"
-    }
+    },
+    "complete": "Complete",
+    "attendees": "Attendees",
+    "allMembers": "All members"
   },
   "members": {
     "title": "Members",
@@ -222,6 +242,7 @@
     "editMember": "Edit Member",
     "memberDetails": "Member Details",
     "noMembers": "No members found",
+    "view": "View",
     "status": {
       "active": "Active",
       "suspended": "Suspended",
@@ -242,7 +263,8 @@
       "admin": "Admin",
       "member": "Member",
       "executive": "Executive"
-    }
+    },
+    "contactInfo": "Contact Information"
   },
   "accountStatus": {
     "title": "Account Status",
@@ -264,7 +286,8 @@
       "overdue": "Overdue",
       "moneyAtHand": "Money at Hand",
       "totalFine": "Total Fines",
-      "totalBorrowed": "Total Borrowed"
+      "totalBorrowed": "Total Borrowed",
+      "totalDues": "Total Dues"
     },
     "details": {
       "borrowedAmount": "Borrowed Amount",
@@ -273,7 +296,9 @@
       "paymentHistory": "Payment History",
       "currentBalance": "Remaining Balance",
       "accountStatus": "Account Status",
-      "goodStanding": "Good Standing"
+      "goodStanding": "Good Standing",
+      "dueToBalance": "Dues Balance",
+      "dueAmount": "Due Amount"
     },
     "status": {
       "goodStanding": "Good Standing",
@@ -300,7 +325,8 @@
       "recordAction": "Record Action",
       "recordPayment": "Record Payment",
       "recordBorrow": "Record Borrow",
-      "recordFine": "Record Fine"
+      "recordFine": "Record Fine",
+      "recordDue": "Record Dues"
     },
     "paymentTypes": {
       "payment": "Payment",
@@ -329,14 +355,46 @@
     "language": "Language",
     "theme": "Theme",
     "save": "Save Changes",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "subtitle": "Manage your preferences",
+    "appearance": "Appearance",
+    "darkMode": "Dark Mode",
+    "darkModeDesc": "Toggle dark mode theme",
+    "preferredLanguage": "Preferred Language",
+    "emailNotifications": "Email Notifications",
+    "emailNotificationsDesc": "Receive email updates",
+    "eventReminders": "Event Reminders",
+    "eventRemindersDesc": "Get reminded about events",
+    "saveSuccess": "Settings saved"
   },
   "profile": {
     "title": "My Profile",
-    "edit": "Edit Profile",
+    "subtitle": "Manage your personal information",
+    "edit": "Edit",
+    "cancel": "Cancel",
     "personalInfo": "Personal Information",
     "contactInfo": "Contact Information",
-    "accountInfo": "Account Information"
+    "accountInfo": "Account Information",
+    "addressData": "Address Data",
+    "saveChanges": "Save Changes",
+    "security": "Security",
+    "oldPassword": "Old Password",
+    "newPassword": "New Password",
+    "updatePassword": "Update Password",
+    "passwordUpdateSuccess": "Password updated successfully",
+    "passwordUpdateError": "Failed to update password",
+    "updateSuccess": "Profile updated successfully",
+    "updateError": "Failed to update profile",
+    "joined": "Joined",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "otherName": "Other Name",
+    "email": "Email",
+    "phone": "Phone",
+    "street": "Street and Number",
+    "city": "City",
+    "state": "State",
+    "country": "Country"
   },
   "theme": {
     "toggle": "Toggle theme",
@@ -400,7 +458,23 @@
     "passwordUpdate": "updated their password",
     "passwordReset": "reset their password",
     "onlyMine": "Only My Activities",
-    "search": "Search activities..."
+    "search": "Search activities...",
+    "record_due": "recorded dues",
+    "record_payment": "recorded payment",
+    "record_borrow": "recorded borrow",
+    "record_fine": "recorded fine",
+    "account_created": "created account",
+    "details": "Activity Details",
+    "notFound": "Activity not found",
+    "activityInfo": "Activity Information",
+    "performedBy": "Performed By",
+    "date": "Date",
+    "time": "Time",
+    "actionType": "Action Type",
+    "noAction": "No action specified",
+    "additionalDetails": "Additional Details",
+    "fullDescription": "Full Description",
+    "noDescription": "No description available"
   },
   "common": {
     "loading": "Loading...",
@@ -424,7 +498,14 @@
     "success": "Success",
     "error": "Error",
     "warning": "Warning",
-    "info": "Info"
+    "info": "Info",
+    "loadMore": "Load More",
+    "update": "Update",
+    "create": "Create",
+    "add": "Add",
+    "selectStatus": "Select status",
+    "selectRole": "Select role",
+    "selectType": "Select type"
   },
   "errors": {
     "required": "This field is required",

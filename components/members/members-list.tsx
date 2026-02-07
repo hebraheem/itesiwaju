@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,8 @@ import { useQuery } from "convex/react";
 import RoleAction from "@/components/common/RoleAction";
 
 export function MembersList() {
+  const t = useTranslations("members");
+  const tc = useTranslations("common");
   const { data: session } = useSession();
   const [query, setQuery] = useState({ search: "", limit: 10 });
   const { results, loadMore, isLoading, status } = usePaginatedQuery(
@@ -61,25 +64,25 @@ export function MembersList() {
         {[
           {
             icon: Users,
-            label: "Total Members",
+            label: t("totalMembers"),
             value: getMemberStats?.totalMembers ?? "0",
             color: "bg-blue-500",
           },
           {
             icon: UserCheck,
-            label: "Active",
+            label: t("status.active"),
             value: getMemberStats?.activeMembers ?? "0",
             color: "bg-green-500",
           },
           {
             icon: ShieldQuestionMark,
-            label: "Inactive",
+            label: t("status.inactive"),
             value: getMemberStats?.inactiveMembers ?? "0",
             color: "bg-orange-500",
           },
           {
             icon: UserX,
-            label: "Suspended",
+            label: t("status.suspended"),
             value: getMemberStats?.suspendedMembers ?? "0",
             color: "bg-red-500",
           },
@@ -159,7 +162,7 @@ export function MembersList() {
                 </Badge>
                 <RoleAction roles={["admin"]}>
                   <Button asChild variant="outline" size="sm">
-                    <Link href={`/members/${member._id}`}>View</Link>
+                    <Link href={`/members/${member._id}`}>{t("view")}</Link>
                   </Button>
                 </RoleAction>
               </CardContent>

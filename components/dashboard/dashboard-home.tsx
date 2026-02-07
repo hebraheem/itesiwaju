@@ -247,21 +247,30 @@ export function DashboardHome() {
                 <div key={index} className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center shrink-0">
                     <span className="text-sm font-semibold text-orange-600">
-                      {activity?.user?.[0]?.toUpperCase() ??
-                        user?.name?.[0]?.toUpperCase()}
-                      {activity?.user
-                        ?.split(" ")
-                        ?.slice(-1)[0]
-                        ?.charAt(0)
-                        ?.toUpperCase()}
+                      {(() => {
+                        const userName = typeof activity?.user === 'string' 
+                          ? activity.user 
+                          : activity?.user?.name || user?.name || 'Unknown';
+                        const parts = userName.split(" ");
+                        return (
+                          <>
+                            {parts[0]?.[0]?.toUpperCase() ?? "A"}
+                            {parts[parts.length - 1]?.[0]?.toUpperCase() ?? ""}
+                          </>
+                        );
+                      })()}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">
-                      <span className="font-semibold">{activity.user}</span>{" "}
+                      <span className="font-semibold">
+                        {typeof activity.user === 'string' 
+                          ? activity.user 
+                          : activity.user?.name || 'Unknown User'}
+                      </span>{" "}
                       <span className="text-muted-foreground">
                         {activity?.action
-                          ? at(activity?.action)
+                          ? at(activity?.action, activity.metadata || {})
                           : activity?.description}
                       </span>
                     </p>

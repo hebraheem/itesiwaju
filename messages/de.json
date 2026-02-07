@@ -138,14 +138,17 @@
       "totalMembers": "Gesamtmitglieder",
       "eventsThisMonth": "Veranstaltungen Diesen Monat",
       "totalCollections": "Gesamtsammlungen",
-      "pendingPayments": "Ausstehende Zahlungen"
+      "pendingPayments": "Ausstehende Zahlungen",
+      "totalOutstanding": "Gesamt Ausstehend",
+      "overdue": "Überfällig"
     },
     "quickActions": {
       "title": "Schnellaktionen",
       "createEvent": "Veranstaltung Erstellen",
       "addMember": "Mitglied Hinzufügen",
       "recordPayment": "Zahlung Erfassen",
-      "viewReports": "Berichte Anzeigen"
+      "viewReports": "Berichte Anzeigen",
+      "viewActivity": "Aktivität Anzeigen"
     },
     "upcomingEvents": {
       "title": "Kommende Veranstaltungen",
@@ -197,20 +200,40 @@
       "endTime": "Endzeit",
       "minutes": "Protokoll",
       "files": "Veranstaltungsfotos",
-      "filesHint": "Laden Sie Bilder und Videos von der Veranstaltung hoch. Akzeptierte Formate: JPG, PNG, GIF, MP4, MOV"
+      "filesHint": "Laden Sie Bilder und Videos von der Veranstaltung hoch. Akzeptierte Formate: JPG, PNG, GIF, MP4, MOV",
+      "placeholders": {
+        "title": "Monatliche Generalversammlung",
+        "description": "Nehmen Sie an unserer monatlichen Versammlung teil...",
+        "location": "Gemeinschaftssaal, Hauptstraße 123",
+        "minutes": "Was bei der Veranstaltung passiert ist..."
+      }
     },
     "status": {
       "confirmed": "Bestätigt",
       "pending": "Ausstehend",
       "cancelled": "Abgesagt",
-      "completed": "Abgeschlossen"
+      "completed": "Abgeschlossen",
+      "upcoming": "Bevorstehend",
+      "ongoing": "Laufend"
     },
     "type": {
       "meeting": "Besprechung",
       "workshop": "Workshop",
       "social": "Sozial",
       "fundraiser": "Spendenaktion"
-    }
+    },
+    "ongoing": "Laufend",
+    "completed": "Abgeschlossen",
+    "cancelled": "Abgesagt",
+    "confirmDelete": "Sind Sie sicher, dass Sie diese Veranstaltung löschen möchten?",
+    "deleteSuccess": "Veranstaltung erfolgreich gelöscht",
+    "confirmComplete": "Sind Sie sicher, dass Sie diese Veranstaltung als abgeschlossen markieren möchten?",
+    "completeSuccess": "Veranstaltung als abgeschlossen markiert",
+    "confirmCancel": "Sind Sie sicher, dass Sie diese Veranstaltung absagen möchten?",
+    "cancelSuccess": "Veranstaltung erfolgreich abgesagt",
+    "complete": "Abschließen",
+    "attendees": "Teilnehmer",
+    "allMembers": "Alle Mitglieder"
   },
   "members": {
     "title": "Mitglieder",
@@ -242,7 +265,9 @@
       "admin": "Administrator",
       "member": "Mitglied",
       "executive": "Vorstand"
-    }
+    },
+    "view": "Ansehen",
+    "contactInfo": "Kontaktinformationen"
   },
   "accountStatus": {
     "title": "Kontostatus",
@@ -261,7 +286,11 @@
       "totalOutstanding": "Gesamt Ausstehend",
       "goodStanding": "Guter Stand",
       "pendingPayments": "Ausstehende Zahlungen",
-      "overdue": "Überfällig"
+      "overdue": "Überfällig",
+      "moneyAtHand": "Verfügbares Geld",
+      "totalFine": "Gesamte Bußgelder",
+      "totalBorrowed": "Gesamt Geliehen",
+      "totalDues": "Gesamte Beiträge"
     },
     "details": {
       "borrowedAmount": "Geliehener Betrag",
@@ -269,7 +298,10 @@
       "fineAmount": "Bußgeldbetrag",
       "paymentHistory": "Zahlungshistorie",
       "currentBalance": "Verbleibender Saldo",
-      "accountStatus": "Kontostatus"
+      "accountStatus": "Kontostatus",
+      "dueToBalance": "Beitrags-Saldo",
+      "dueAmount": "Fälliger Betrag",
+      "goodStanding": "Guter Stand"
     },
     "status": {
       "goodStanding": "Guter Stand",
@@ -296,7 +328,8 @@
       "recordAction": "Aktion Erfassen",
       "recordPayment": "Zahlung Erfassen",
       "recordBorrow": "Ausleihe Erfassen",
-      "recordFine": "Bußgeld Erfassen"
+      "recordFine": "Bußgeld Erfassen",
+      "recordDue": "Beiträge Erfassen"
     },
     "paymentTypes": {
       "payment": "Zahlung",
@@ -325,14 +358,46 @@
     "language": "Sprache",
     "theme": "Design",
     "save": "Änderungen Speichern",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "subtitle": "Verwalten Sie Ihre Einstellungen",
+    "appearance": "Erscheinungsbild",
+    "darkMode": "Dunkelmodus",
+    "darkModeDesc": "Dunkles Thema umschalten",
+    "preferredLanguage": "Bevorzugte Sprache",
+    "emailNotifications": "E-Mail-Benachrichtigungen",
+    "emailNotificationsDesc": "E-Mail-Updates erhalten",
+    "eventReminders": "Event-Erinnerungen",
+    "eventRemindersDesc": "An Events erinnert werden",
+    "saveSuccess": "Einstellungen gespeichert"
   },
   "profile": {
     "title": "Mein Profil",
-    "edit": "Profil Bearbeiten",
+    "edit": "Bearbeiten",
     "personalInfo": "Persönliche Informationen",
     "contactInfo": "Kontaktinformationen",
-    "accountInfo": "Kontoinformationen"
+    "accountInfo": "Kontoinformationen",
+    "subtitle": "Verwalten Sie Ihre persönlichen Informationen",
+    "cancel": "Abbrechen",
+    "addressData": "Adressdaten",
+    "saveChanges": "Änderungen Speichern",
+    "security": "Sicherheit",
+    "oldPassword": "Altes Passwort",
+    "newPassword": "Neues Passwort",
+    "updatePassword": "Passwort aktualisieren",
+    "passwordUpdateSuccess": "Passwort erfolgreich aktualisiert",
+    "passwordUpdateError": "Fehler beim Aktualisieren des Passworts",
+    "updateSuccess": "Profil erfolgreich aktualisiert",
+    "updateError": "Fehler beim Aktualisieren des Profils",
+    "joined": "Beigetreten",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "otherName": "Weiterer Name",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "street": "Straße und Nummer",
+    "city": "Stadt",
+    "state": "Bundesland",
+    "country": "Land"
   },
   "theme": {
     "toggle": "Design umschalten",
@@ -396,7 +461,23 @@
     "passwordUpdate": "Passwort aktualisiert",
     "passwordReset": "Passwort zurückgesetzt",
     "onlyMine": "Nur Meine Aktivitäten",
-    "search": "Aktivitäten suchen..."
+    "search": "Aktivitäten suchen...",
+    "record_due": "Beiträge erfasst",
+    "record_payment": "Zahlung erfasst",
+    "record_borrow": "Ausleihe erfasst",
+    "record_fine": "Bußgeld erfasst",
+    "account_created": "Konto erstellt",
+    "details": "Aktivitätsdetails",
+    "notFound": "Aktivität nicht gefunden",
+    "activityInfo": "Aktivitätsinformationen",
+    "performedBy": "Durchgeführt Von",
+    "date": "Datum",
+    "time": "Zeit",
+    "actionType": "Aktionstyp",
+    "noAction": "Keine Aktion angegeben",
+    "additionalDetails": "Zusätzliche Details",
+    "fullDescription": "Vollständige Beschreibung",
+    "noDescription": "Keine Beschreibung verfügbar"
   },
   "common": {
     "loading": "Laden...",
@@ -420,7 +501,14 @@
     "success": "Erfolg",
     "error": "Fehler",
     "warning": "Warnung",
-    "info": "Info"
+    "info": "Info",
+    "selectStatus": "Status wählen",
+    "selectRole": "Rolle wählen",
+    "selectType": "Typ wählen",
+    "loadMore": "Mehr Laden",
+    "update": "Aktualisieren",
+    "create": "Erstellen",
+    "add": "Hinzufügen"
   },
   "errors": {
     "required": "Dieses Feld ist erforderlich",

@@ -138,14 +138,17 @@
       "totalMembers": "Apapọ Awọn Ọmọ Ẹgbẹ",
       "eventsThisMonth": "Awọn Iṣẹlẹ Oṣu Yii",
       "totalCollections": "Apapọ Awọn Gbigba",
-      "pendingPayments": "Awọn Isanwo Ti Nduro"
+      "pendingPayments": "Awọn Isanwo Ti Nduro",
+      "totalOutstanding": "Lapapọ Ti O Ku",
+      "overdue": "Ti Kọja Akoko"
     },
     "quickActions": {
       "title": "Awọn Iṣe Kiakia",
       "createEvent": "Ṣẹda Iṣẹlẹ",
       "addMember": "Fi Ọmọ Ẹgbẹ Kun",
       "recordPayment": "Ṣe Igbasilẹ Isanwo",
-      "viewReports": "Wo Awọn Ijabọ"
+      "viewReports": "Wo Awọn Ijabọ",
+      "viewActivity": "Wo Iṣe"
     },
     "upcomingEvents": {
       "title": "Awọn Iṣẹlẹ Ti Nbọ",
@@ -197,20 +200,40 @@
       "endTime": "Akoko Ipari",
       "minutes": "Iwe Akọsilẹ",
       "files": "Awọn Aworan",
-      "filesHint": "Gbe awọn aworan ati fidio soke lati iṣẹlẹ naa. Awọn iru ti a gba: JPG, PNG, GIF, MP4, MOV"
+      "filesHint": "Gbe awọn aworan ati fidio soke lati iṣẹlẹ naa. Awọn iru ti a gba: JPG, PNG, GIF, MP4, MOV",
+      "placeholders": {
+        "title": "Ipade Gbogbogbo Oṣooṣu",
+        "description": "Darapọ mọ wa fun ipade oṣooṣu wa...",
+        "location": "Gbọngan Agbegbe, 123 Ọna Akọkọ",
+        "minutes": "Ohun ti o ṣẹlẹ ni iṣẹlẹ naa..."
+      }
     },
     "status": {
       "confirmed": "Ti Jẹrisi",
       "pending": "N duro",
       "cancelled": "Ti fagilee",
-      "completed": "Ti pari"
+      "completed": "Ti pari",
+      "upcoming": "Nbo",
+      "ongoing": "N lọ lọwọ"
     },
     "type": {
       "meeting": "Ipade",
       "workshop": "Iṣẹ-ẹkọ",
       "social": "Awujo",
       "fundraiser": "Ikojọpo Owo"
-    }
+    },
+    "ongoing": "N lọ lọwọ",
+    "completed": "Ti pari",
+    "cancelled": "Ti fagilee",
+    "confirmDelete": "Ṣe o da ọ loju pe o fẹ paarẹ iṣẹlẹ yii?",
+    "deleteSuccess": "Iṣẹlẹ ti paarẹ ni aṣeyọri",
+    "confirmComplete": "Ṣe o da ọ loju pe o fẹ samisi iṣẹlẹ yii bi ti pari?",
+    "completeSuccess": "Iṣẹlẹ ti samisi bi ti pari",
+    "confirmCancel": "Ṣe o da ọ loju pe o fẹ fagilee iṣẹlẹ yii?",
+    "cancelSuccess": "Iṣẹlẹ ti fagilee ni aṣeyọri",
+    "complete": "Pari",
+    "attendees": "Awọn Olukopa",
+    "allMembers": "Gbogbo awọn ọmọ ẹgbẹ"
   },
   "members": {
     "title": "Awọn Ọmọ Ẹgbẹ",
@@ -242,7 +265,9 @@
       "admin": "Alakoso",
       "member": "Ọmọ Ẹgbẹ",
       "executive": "Adari"
-    }
+    },
+    "view": "Wo",
+    "contactInfo": "Alaye Olubasọrọ"
   },
   "accountStatus": {
     "title": "Ipo Akaun",
@@ -261,7 +286,11 @@
       "totalOutstanding": "Lapapọ Ti O Ku",
       "goodStanding": "Ipo Daradara",
       "pendingPayments": "Awọn Isanwo Ti N Duro",
-      "overdue": "Ti Kọja Akoko"
+      "overdue": "Ti Kọja Akoko",
+      "moneyAtHand": "Owo Lọwọ",
+      "totalFine": "Lapapọ Awọn Itanran",
+      "totalBorrowed": "Lapapọ Ti A Yawo",
+      "totalDues": "Lapapọ Awọn Owo Iṣowo"
     },
     "details": {
       "borrowedAmount": "Iye Ti A Yawo",
@@ -269,7 +298,10 @@
       "fineAmount": "Iye Itanran",
       "paymentHistory": "Itan Isanwo",
       "currentBalance": "Iwontunwonsi Ti O Ku",
-      "accountStatus": "Ipo Akaun"
+      "accountStatus": "Ipo Akaun",
+      "dueToBalance": "Iwontunwonsi Owo Iṣowo",
+      "dueAmount": "Iye Ti O Yẹ",
+      "goodStanding": "Ipo To Dara"
     },
     "status": {
       "goodStanding": "Ipo Daradara",
@@ -296,7 +328,8 @@
       "recordAction": "Ṣe Igbasilẹ Iṣe",
       "recordPayment": "Ṣe Igbasilẹ Isanwo",
       "recordBorrow": "Ṣe Igbasilẹ Awin",
-      "recordFine": "Ṣe Igbasilẹ Itanran"
+      "recordFine": "Ṣe Igbasilẹ Itanran",
+      "recordDue": "Ṣe Igbasilẹ Owo Iṣowo"
     },
     "paymentTypes": {
       "payment": "Isanwo",
@@ -325,14 +358,46 @@
     "language": "Ede",
     "theme": "Akori",
     "save": "Fipamọ Awọn Ayipada",
-    "cancel": "Fagilee"
+    "cancel": "Fagilee",
+    "subtitle": "Ṣakoso awọn aṣayan rẹ",
+    "appearance": "Irisi",
+    "darkMode": "Ipo Dudu",
+    "darkModeDesc": "Yipada akori ipo dudu",
+    "preferredLanguage": "Ede Ti O Fẹran",
+    "emailNotifications": "Awọn Ifitonileti Imeeli",
+    "emailNotificationsDesc": "Gba awọn imudojuiwọn imeeli",
+    "eventReminders": "Awọn Iranti Iṣẹlẹ",
+    "eventRemindersDesc": "Gba iranti nipa awọn iṣẹlẹ",
+    "saveSuccess": "Awọn eto ti fipamọ"
   },
   "profile": {
     "title": "Profaili Mi",
-    "edit": "Ṣatunkọ Profaili",
+    "edit": "Ṣatunkọ",
     "personalInfo": "Alaye Ti Ara Ẹni",
     "contactInfo": "Alaye Olubasọrọ",
-    "accountInfo": "Alaye Akaun"
+    "accountInfo": "Alaye Akaun",
+    "subtitle": "Ṣakoso alaye ti ara ẹni",
+    "cancel": "Fagilee",
+    "addressData": "Data Adirẹsi",
+    "saveChanges": "Fipamọ Awọn Ayipada",
+    "security": "Aabo",
+    "oldPassword": "Ọrọ aṣina Atijọ",
+    "newPassword": "Ọrọ aṣina Tuntun",
+    "updatePassword": "Ṣe imudojuiwọn Ọrọ aṣina",
+    "passwordUpdateSuccess": "Ọrọ aṣina ti ṣe imudojuiwọn ni aṣeyọri",
+    "passwordUpdateError": "Kuna lati ṣe imudojuiwọn ọrọ aṣina",
+    "updateSuccess": "Profaili ti ṣe imudojuiwọn ni aṣeyọri",
+    "updateError": "Kuna lati ṣe imudojuiwọn profaili",
+    "joined": "Darapọ",
+    "firstName": "Orukọ Akọkọ",
+    "lastName": "Orukọ Idile",
+    "otherName": "Orukọ Miiran",
+    "email": "Imeeli",
+    "phone": "Foonu",
+    "street": "Ọna ati Nọmba",
+    "city": "Ilu",
+    "state": "Ipinlẹ",
+    "country": "Orilẹ-ede"
   },
   "theme": {
     "toggle": "Yi akori pada",
@@ -396,7 +461,23 @@
     "passwordUpdate": "Imudojuiwọn ọrọ aṣina",
     "passwordReset": "Tun ọrọ aṣina ṣe",
     "onlyMine": "Awọn Iṣe Mi Nikan",
-    "search": "Wa awọn iṣe..."
+    "search": "Wa awọn iṣe...",
+    "record_due": "awọn owo iṣowo ti gbasilẹ",
+    "record_payment": "isanwo ti gbasilẹ",
+    "record_borrow": "awin ti gbasilẹ",
+    "record_fine": "itanran ti gbasilẹ",
+    "account_created": "akaun ti ṣẹda",
+    "details": "Awọn Alaye Iṣe",
+    "notFound": "A ko ri iṣe naa",
+    "activityInfo": "Alaye Iṣe",
+    "performedBy": "Ti Ṣe Nipasẹ",
+    "date": "Ọjọ",
+    "time": "Akoko",
+    "actionType": "Iru Iṣe",
+    "noAction": "Ko si iṣe ti a pato",
+    "additionalDetails": "Awọn Alaye Afikun",
+    "fullDescription": "Apejuwe Kikun",
+    "noDescription": "Ko si apejuwe ti o wa"
   },
   "common": {
     "loading": "N ṣiṣẹ...",
@@ -420,7 +501,14 @@
     "success": "Aṣeyọri",
     "error": "Aṣiṣe",
     "warning": "Ikilọ",
-    "info": "Alaye"
+    "info": "Alaye",
+    "selectStatus": "Yan ipo",
+    "selectRole": "Yan ipa",
+    "selectType": "Yan iru",
+    "loadMore": "Ṣii Diẹ Sii",
+    "update": "Ṣe imudojuiwọn",
+    "create": "Ṣẹda",
+    "add": "Fikun"
   },
   "errors": {
     "required": "A nilo aaye yii",

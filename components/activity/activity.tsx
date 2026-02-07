@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -102,9 +103,7 @@ export function Activity() {
                   }))
                 }
               />
-              <Label htmlFor="switch-disabled-unchecked">
-                {t("onlyMine")}
-              </Label>
+              <Label htmlFor="switch-disabled-unchecked">{t("onlyMine")}</Label>
             </div>
           </RoleAction>
         </div>
@@ -173,54 +172,81 @@ export function Activity() {
                     };
                     const color = colorMap[activity.type] || "bg-muted";
                     const Icon = iconMap[activity.type] || FileText;
-
                     return (
-                      <motion.div
+                      <Link
+                        href={`/activity/${activity._id}`}
                         key={activity._id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="flex items-start gap-3 md:gap-4 p-3 md:p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <Avatar className="w-10 h-10 md:w-12 md:h-12 shrink-0">
-                          <AvatarFallback className="bg-orange-500 text-white font-semibold text-xs md:text-sm">
-                            {activity?.user?.[0]?.toUpperCase() ?? "A"}
-                            {activity?.user
-                              ?.split(" ")
-                              ?.slice(-1)[0]
-                              ?.charAt(0)
-                              ?.toUpperCase() ?? "B"}
-                          </AvatarFallback>
-                        </Avatar>
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="flex items-start gap-3 md:gap-4 p-3 md:p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                        >
+                          <Avatar className="w-10 h-10 md:w-12 md:h-12 shrink-0">
+                            <AvatarFallback className="bg-orange-500 text-white font-semibold text-xs md:text-sm">
+                              {(() => {
+                                const userName =
+                                  typeof activity?.user === "string"
+                                    ? activity.user
+                                    : (
+                                        activity?.user as unknown as {
+                                          name: string;
+                                        }
+                                      )?.name || "Unknown";
+                                const parts = userName.split(" ");
+                                return (
+                                  <>
+                                    {parts[0]?.[0]?.toUpperCase() ?? "A"}
+                                    {parts[
+                                      parts.length - 1
+                                    ]?.[0]?.toUpperCase() ?? "B"}
+                                  </>
+                                );
+                              })()}
+                            </AvatarFallback>
+                          </Avatar>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
-                            <div className="min-w-0">
-                              <p className="text-sm md:text-base">
-                                <span className="font-semibold">
-                                  {activity.user}
-                                </span>{" "}
-                                <span className="text-muted-foreground">
-                                  {activity?.action
-                                    ? t(activity.action)
-                                    : activity.description}
-                                </span>
-                              </p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
+                              <div className="min-w-0">
+                                <p className="text-sm md:text-base">
+                                  <span className="font-semibold">
+                                    {typeof activity.user === "string"
+                                      ? activity.user
+                                      : (
+                                          activity?.user as unknown as {
+                                            name: string;
+                                          }
+                                        )?.name || "Unknown User"}
+                                  </span>{" "}
+                                  <span className="text-muted-foreground">
+                                    {activity?.action
+                                      ? activity.metadata &&
+                                        Object.keys(activity.metadata).length >
+                                          0
+                                        ? t(activity.action, activity.metadata)
+                                        : activity.description ||
+                                          t(activity.action, {})
+                                      : activity.description}
+                                  </span>
+                                </p>
+                              </div>
+                              <Badge
+                                variant="outline"
+                                className={`${color} border-0 shrink-0`}
+                              >
+                                <Icon className="w-3 h-3 mr-1" />
+                                {activity.type}
+                              </Badge>
                             </div>
-                            <Badge
-                              variant="outline"
-                              className={`${color} border-0 shrink-0`}
-                            >
-                              <Icon className="w-3 h-3 mr-1" />
-                              {activity.type}
-                            </Badge>
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                              <Clock className="w-3 h-3" />
+                              {parseDate(activity._creationTime)}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                            <Clock className="w-3 h-3" />
-                            {parseDate(activity._creationTime)}
-                          </div>
-                        </div>
-                      </motion.div>
+                        </motion.div>
+                      </Link>
                     );
                   })}
                   {status === "CanLoadMore" && (

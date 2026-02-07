@@ -35,6 +35,7 @@ import { Id } from "@/convex/_generated/dataModel";
 
 export function EventForm({ eventId }: { eventId?: Id<"events"> }) {
   const t = useTranslations("events.form");
+  const tc = useTranslations("common");
   const event = useQuery(
     api.events.getEventById,
     eventId ? { id: eventId } : "skip",
@@ -100,7 +101,7 @@ export function EventForm({ eventId }: { eventId?: Id<"events"> }) {
                 id="title"
                 name="title"
                 defaultValue={event?.title ?? state?.title}
-                placeholder="Monthly General Meeting"
+                placeholder={t("placeholders.title")}
                 className={state?.errors?.title ? "border-red-500" : ""}
               />
               {state?.errors?.title && (
@@ -116,7 +117,7 @@ export function EventForm({ eventId }: { eventId?: Id<"events"> }) {
                 id="description"
                 name="description"
                 defaultValue={event?.description ?? state?.description}
-                placeholder="Join us for our monthly meeting where we discuss community matters..."
+                placeholder={t("placeholders.description")}
                 rows={4}
                 className={state?.errors?.description ? "border-red-500" : ""}
               />
@@ -200,7 +201,7 @@ export function EventForm({ eventId }: { eventId?: Id<"events"> }) {
                 id="location"
                 name="location"
                 defaultValue={event?.location ?? state?.location}
-                placeholder="Community Hall, 123 Main St."
+                placeholder={t("placeholders.location")}
                 className={state?.errors?.location ? "border-red-500" : ""}
               />
               {state?.errors?.location && (
@@ -217,7 +218,7 @@ export function EventForm({ eventId }: { eventId?: Id<"events"> }) {
                   <SelectTrigger
                     className={state?.errors?.type ? "border-red-500" : ""}
                   >
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder={tc("selectType")} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.keys(EVENT_TYPES).map((type) => (
@@ -241,7 +242,7 @@ export function EventForm({ eventId }: { eventId?: Id<"events"> }) {
                   <SelectTrigger
                     className={state?.errors?.status ? "border-red-500" : ""}
                   >
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder={tc("selectStatus")} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.keys(EVENT_STATUSES).map((type) => (
@@ -264,7 +265,7 @@ export function EventForm({ eventId }: { eventId?: Id<"events"> }) {
               <Textarea
                 id="minutes"
                 name="minutes"
-                placeholder="What happend at the event.."
+                placeholder={t("placeholders.minutes")}
                 rows={4}
                 defaultValue={event?.minutes ?? state?.minutes}
                 className={state?.errors?.minutes ? "border-red-500" : ""}
