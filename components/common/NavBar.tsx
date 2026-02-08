@@ -31,7 +31,7 @@ const NavBar = () => {
       </div>
       <div className="flex items-center gap-2">
         <Link href="/login">
-          <Button variant="link" className="hidden sm:flex">
+          <Button variant="link">
             {t("login")}
           </Button>
         </Link>

@@ -59,7 +59,9 @@ export function Notifications() {
     try {
       await markAsRead({ notificationId });
     } catch (error) {
-      toast.error(t("errors.markReadFailed"));
+      toast.error(
+        t((error as { message: string })?.message ?? "errors.markReadFailed"),
+      );
     }
   };
 
@@ -69,7 +71,11 @@ export function Notifications() {
       await markAllAsRead({ userId: currentUser._id });
       toast.success(t("success.markedAllRead"));
     } catch (error) {
-      toast.error(t("errors.markAllReadFailed"));
+      toast.error(
+        t(
+          (error as { message: string })?.message ?? "errors.markAllReadFailed",
+        ),
+      );
     }
   };
 
@@ -78,7 +84,9 @@ export function Notifications() {
       await deleteNotification({ notificationId });
       toast.success(t("success.deleted"));
     } catch (error) {
-      toast.error(t("errors.deleteFailed"));
+      toast.error(
+        t((error as { message: string })?.message ?? "errors.deleteFailed"),
+      );
     }
   };
 
@@ -88,13 +96,15 @@ export function Notifications() {
       await deleteReadNotifications({ userId: currentUser._id });
       toast.success(t("success.clearedRead"));
     } catch (error) {
-      toast.error(t("errors.clearReadFailed"));
+      toast.error(
+        t((error as { message: string })?.message ?? "errors.clearReadFailed"),
+      );
     }
   };
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = async (notification: any) => {
     if (!notification.read) {
-      handleMarkAsRead(notification._id);
+      await handleMarkAsRead(notification._id);
     }
     if (notification.actionUrl) {
       router.push(notification.actionUrl);
@@ -233,7 +243,7 @@ export function Notifications() {
                       <CardContent className="p-4">
                         <div className="flex gap-4">
                           <div
-                            className={`flex-shrink-0 w-10 h-10 rounded-full ${getIconColor(notification.type)} flex items-center justify-center text-white`}
+                            className={`shrink-0 w-10 h-10 rounded-full ${getIconColor(notification.type)} flex items-center justify-center text-white`}
                           >
                             {getIcon(notification.type)}
                           </div>
@@ -268,9 +278,9 @@ export function Notifications() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation();
-                                  handleMarkAsRead(notification._id);
+                                  await handleMarkAsRead(notification._id);
                                 }}
                               >
                                 <Check className="w-4 h-4" />
@@ -280,9 +290,9 @@ export function Notifications() {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                handleDelete(notification._id);
+                                await handleDelete(notification._id);
                               }}
                             >
                               <Trash2 className="w-4 h-4" />

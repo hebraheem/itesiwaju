@@ -175,7 +175,10 @@
     "members": "Members",
     "accountStatus": "Account Status",
     "settings": "Settings",
-    "profile": "Profile"
+    "profile": "Profile",
+    "activity": "Activity",
+    "more": "More",
+    "logout": "Logout"
   },
   "events": {
     "title": "Events",
