@@ -54,3 +54,62 @@ export function isOwnerOrAdmin(
     return ctx.db.get(ownerId).then((owner) => owner?.email === email);
   });
 }
+
+// Notification helper functions
+export async function notifyUser(
+  ctx: GenericMutationCtx<DataModel>,
+  params: {
+    userId: Id<"users">;
+    title: string;
+    message: string;
+    type: "member" | "event" | "payment" | "profile" | "system";
+    relatedId?: string;
+    actionUrl?: string;
+  }
+) {
+  await ctx.db.insert("notifications", {
+    userId: params.userId,
+    title: params.title,
+    message: params.message,
+    type: params.type,
+    relatedId: params.relatedId,
+    actionUrl: params.actionUrl,
+    read: false,
+    createdAt: Date.now(),
+  });
+}
+
+export async function notifyAllMembers(
+  ctx: GenericMutationCtx<DataModel>,
+  params: {
+    title: string;
+    message: string;
+    type: "member" | "event" | "payment" | "profile" | "system";
+    relatedId?: string;
+    actionUrl?: string;
+    excludeUserId?: Id<"users">;
+  }
+) {
+  const users = await ctx.db
+    .query("users")
+    .withIndex("by_status", (q) => q.eq("status", "active"))
+    .collect();
+
+  const notifications = users
+    .filter((user) => !params.excludeUserId || user._id !== params.excludeUserId)
+    .map((user) => ({
+      userId: user._id,
+      title: params.title,
+      message: params.message,
+      type: params.type,
+      relatedId: params.relatedId,
+      actionUrl: params.actionUrl,
+      read: false,
+      createdAt: Date.now(),
+    }));
+
+  await Promise.all(
+    notifications.map((notification) => ctx.db.insert("notifications", notification))
+  );
+}
+

@@ -1,0 +1,10 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin and auth pages
+Disallow: /api/
+Disallow: /auth/
+
+# Sitemap location
+Sitemap: http://localhost:3000/sitemap.xml
