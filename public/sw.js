@@ -1,14 +1,16 @@
 const CACHE_NAME = "itesiwaju-v1";
-const urlsToCache = ["/", "/offline"];
+const urlsToCache = ["/offline.html"];
 
 // Install event - cache essential assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
-    }),
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => {
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => self.skipWaiting()),
   );
-  self.skipWaiting();
 });
 
 // Activate event - clean up old caches
@@ -29,21 +31,49 @@ self.addEventListener("activate", (event) => {
 
 // Fetch event - network first, fallback to cache
 self.addEventListener("fetch", (event) => {
+  // Only handle GET requests
+  if (event.request.method !== "GET") return;
+
+  // Skip chrome-extension and other unsupported schemes
+  const url = event.request.url;
+  if (
+    url.startsWith("chrome-extension://") ||
+    url.startsWith("moz-extension://") ||
+    url.startsWith("safari-extension://")
+  ) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clone the response
-        const responseToCache = response.clone();
-
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
+        // Only cache successful responses from our origin
+        if (response.status === 200 && url.startsWith(self.location.origin)) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache).catch((err) => {
+              // Silently ignore cache errors
+              console.log("Cache put failed:", err);
+            });
+          });
+        }
         return response;
       })
       .catch(() => {
-        return caches.match(event.request).then((response) => {
-          return response || caches.match("/offline");
+        // Try to get from cache first
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // If navigation request and not in cache, show offline page
+          if (event.request.mode === "navigate") {
+            return caches.match("/offline.html");
+          }
+          // For other requests, return a basic offline response
+          return new Response("Offline", {
+            status: 503,
+            statusText: "Service Unavailable",
+          });
         });
       }),
   );

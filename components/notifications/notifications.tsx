@@ -7,7 +7,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,13 +38,13 @@ export function Notifications() {
   // Get current user
   const currentUser = useQuery(
     api.users.getUserByEmail,
-    userEmail ? { email: userEmail } : "skip"
+    userEmail ? { email: userEmail } : "skip",
   );
 
   // Get all notifications
   const allNotifications = useQuery(
     api.notifications.getUserNotifications,
-    currentUser?._id ? { userId: currentUser._id, limit: 100 } : "skip"
+    currentUser?._id ? { userId: currentUser._id, limit: 100 } : "skip",
   );
 
   // Mutations
@@ -52,7 +52,7 @@ export function Notifications() {
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
   const deleteNotification = useMutation(api.notifications.deleteNotification);
   const deleteReadNotifications = useMutation(
-    api.notifications.deleteReadNotifications
+    api.notifications.deleteReadNotifications,
   );
 
   const handleMarkAsRead = async (notificationId: Id<"notifications">) => {
@@ -186,7 +186,7 @@ export function Notifications() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full">
+        <TabsList className="flex overflow-x-auto pl-5 w-full">
           <TabsTrigger value="all">{t("tabs.all")}</TabsTrigger>
           <TabsTrigger value="unread">
             {t("tabs.unread")}
@@ -208,9 +208,7 @@ export function Notifications() {
               <Card>
                 <CardContent className="py-16 text-center">
                   <Bell className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">
-                    {t("empty")}
-                  </p>
+                  <p className="text-muted-foreground">{t("empty")}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -226,7 +224,9 @@ export function Notifications() {
                   >
                     <Card
                       className={`cursor-pointer transition-all hover:shadow-md ${
-                        !notification.read ? "border-l-4 border-l-orange-500 bg-orange-50/50 dark:bg-orange-950/20" : ""
+                        !notification.read
+                          ? "border-l-4 border-l-orange-500 bg-orange-50/50 dark:bg-orange-950/20"
+                          : ""
                       }`}
                       onClick={() => handleNotificationClick(notification)}
                     >

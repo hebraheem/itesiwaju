@@ -1,6 +1,5 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
 
 // Get notifications for a user
 export const getUserNotifications = query({
@@ -10,14 +9,12 @@ export const getUserNotifications = query({
   },
   handler: async (ctx, args) => {
     const limit = args.limit || 50;
-    
-    const notifications = await ctx.db
+
+    return await ctx.db
       .query("notifications")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .order("desc")
       .take(limit);
-
-    return notifications;
   },
 });
 
@@ -29,8 +26,8 @@ export const getUnreadCount = query({
   handler: async (ctx, args) => {
     const notifications = await ctx.db
       .query("notifications")
-      .withIndex("by_user_read", (q) => 
-        q.eq("userId", args.userId).eq("read", false)
+      .withIndex("by_user_read", (q) =>
+        q.eq("userId", args.userId).eq("read", false),
       )
       .collect();
 
@@ -38,7 +35,7 @@ export const getUnreadCount = query({
   },
 });
 
-// Mark notification as read
+// Mark the notification as read
 export const markAsRead = mutation({
   args: {
     notificationId: v.id("notifications"),
@@ -58,15 +55,15 @@ export const markAllAsRead = mutation({
   handler: async (ctx, args) => {
     const notifications = await ctx.db
       .query("notifications")
-      .withIndex("by_user_read", (q) => 
-        q.eq("userId", args.userId).eq("read", false)
+      .withIndex("by_user_read", (q) =>
+        q.eq("userId", args.userId).eq("read", false),
       )
       .collect();
 
     await Promise.all(
       notifications.map((notification) =>
-        ctx.db.patch(notification._id, { read: true })
-      )
+        ctx.db.patch(notification._id, { read: true }),
+      ),
     );
   },
 });
@@ -88,7 +85,7 @@ export const createNotification = mutation({
     actionUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const notificationId = await ctx.db.insert("notifications", {
+    return await ctx.db.insert("notifications", {
       userId: args.userId,
       title: args.title,
       message: args.message,
@@ -98,8 +95,6 @@ export const createNotification = mutation({
       read: false,
       createdAt: Date.now(),
     });
-
-    return notificationId;
   },
 });
 
@@ -117,7 +112,7 @@ export const createBulkNotifications = mutation({
     ),
     relatedId: v.optional(v.string()),
     actionUrl: v.optional(v.string()),
-    excludeUserId: v.optional(v.id("users")), // Optional: exclude a specific user
+    excludeUserId: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
     // Get all active users
@@ -140,7 +135,9 @@ export const createBulkNotifications = mutation({
       }));
 
     await Promise.all(
-      notifications.map((notification) => ctx.db.insert("notifications", notification))
+      notifications.map((notification) =>
+        ctx.db.insert("notifications", notification),
+      ),
     );
 
     return notifications.length;
@@ -165,13 +162,13 @@ export const deleteReadNotifications = mutation({
   handler: async (ctx, args) => {
     const notifications = await ctx.db
       .query("notifications")
-      .withIndex("by_user_read", (q) => 
-        q.eq("userId", args.userId).eq("read", true)
+      .withIndex("by_user_read", (q) =>
+        q.eq("userId", args.userId).eq("read", true),
       )
       .collect();
 
     await Promise.all(
-      notifications.map((notification) => ctx.db.delete(notification._id))
+      notifications.map((notification) => ctx.db.delete(notification._id)),
     );
 
     return notifications.length;

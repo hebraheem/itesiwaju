@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1920" height="1080" fill="#FF6B35"/>
+  <text x="960" y="400" font-family="Arial, sans-serif" font-size="100" fill="white" text-anchor="middle" font-weight="bold">Itesiwaju</text>
+  <text x="960" y="530" font-family="Arial, sans-serif" font-size="60" fill="white" text-anchor="middle">Community Management Platform</text>
+  <text x="960" y="650" font-family="Arial, sans-serif" font-size="45" fill="white" text-anchor="middle">Desktop Dashboard</text>
+  <circle cx="960" cy="200" r="80" fill="white" opacity="0.2"/>
+  <rect x="360" y="750" width="500" height="150" rx="20" fill="white" opacity="0.3"/>
+  <rect x="960" y="750" width="500" height="150" rx="20" fill="white" opacity="0.3"/>
+  <rect x="1560" y="750" width="240" height="150" rx="20" fill="white" opacity="0.3"/>
+</svg>
