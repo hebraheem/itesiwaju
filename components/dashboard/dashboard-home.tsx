@@ -250,7 +250,7 @@ export function DashboardHome() {
                       {(() => {
                         const userName = typeof activity?.user === 'string' 
                           ? activity.user 
-                          : activity?.user?.name || user?.name || 'Unknown';
+                          : (activity?.user as any)?.name || user?.name || 'Unknown';
                         const parts = userName.split(" ");
                         return (
                           <>
@@ -264,9 +264,7 @@ export function DashboardHome() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">
                       <span className="font-semibold">
-                        {typeof activity.user === 'string' 
-                          ? activity.user 
-                          : activity.user?.name || 'Unknown User'}
+                        {activity.user || 'Unknown User'}
                       </span>{" "}
                       <span className="text-muted-foreground">
                         {activity?.action
