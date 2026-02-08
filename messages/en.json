@@ -180,6 +180,9 @@
   "events": {
     "title": "Events",
     "upcoming": "Upcoming Events",
+    "ongoing": "Ongoing Events",
+    "completed": "Completed Events",
+    "cancelled": "Cancelled Events",
     "past": "Past Events",
     "create": "Create Event",
     "edit": "Edit Event",
@@ -518,5 +521,43 @@
     "unauthorized": "You are not authorized to perform this action",
     "notFound": "Resource not found",
     "serverError": "Server error. Please try again later."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "You have {count} unread notifications",
+    "empty": "No notifications to display",
+    "tabs": {
+      "all": "All",
+      "unread": "Unread",
+      "member": "Members",
+      "event": "Events",
+      "payment": "Payments",
+      "system": "System"
+    },
+    "types": {
+      "member": "Member",
+      "event": "Event",
+      "payment": "Payment",
+      "profile": "Profile",
+      "system": "System"
+    },
+    "status": {
+      "new": "New"
+    },
+    "actions": {
+      "markAllRead": "Mark all as read",
+      "clearRead": "Clear read"
+    },
+    "success": {
+      "markedAllRead": "All notifications marked as read",
+      "deleted": "Notification deleted",
+      "clearedRead": "All read notifications cleared"
+    },
+    "errors": {
+      "markReadFailed": "Failed to mark notification as read",
+      "markAllReadFailed": "Failed to mark all as read",
+      "deleteFailed": "Failed to delete notification",
+      "clearReadFailed": "Failed to clear read notifications"
+    }
   }
 }

@@ -180,12 +180,21 @@
   "events": {
     "title": "Veranstaltungen",
     "upcoming": "Kommende Veranstaltungen",
+    "ongoing": "Laufende Veranstaltungen",
+    "completed": "Abgeschlossene Veranstaltungen",
+    "cancelled": "Abgesagte Veranstaltungen",
     "past": "Vergangene Veranstaltungen",
     "create": "Veranstaltung Erstellen",
     "edit": "Veranstaltung Bearbeiten",
     "delete": "Veranstaltung Löschen",
     "details": "Veranstaltungsdetails",
     "noEvents": "Keine Veranstaltungen gefunden",
+    "confirmDelete": "Sind Sie sicher, dass Sie diese Veranstaltung löschen möchten?",
+    "deleteSuccess": "Veranstaltung erfolgreich gelöscht",
+    "confirmComplete": "Sind Sie sicher, dass Sie diese Veranstaltung als abgeschlossen markieren möchten?",
+    "completeSuccess": "Veranstaltung als abgeschlossen markiert",
+    "confirmCancel": "Sind Sie sicher, dass Sie diese Veranstaltung absagen möchten?",
+    "cancelSuccess": "Veranstaltung erfolgreich abgesagt",
     "form": {
       "title": "Veranstaltungstitel",
       "description": "Beschreibung",
@@ -508,7 +517,10 @@
     "loadMore": "Mehr Laden",
     "update": "Aktualisieren",
     "create": "Erstellen",
-    "add": "Hinzufügen"
+    "add": "Hinzufügen",
+    "selectStatus": "Status auswählen",
+    "selectRole": "Rolle auswählen",
+    "selectType": "Typ auswählen"
   },
   "errors": {
     "required": "Dieses Feld ist erforderlich",
@@ -521,5 +533,43 @@
     "unauthorized": "Sie sind nicht berechtigt, diese Aktion auszuführen",
     "notFound": "Ressource nicht gefunden",
     "serverError": "Serverfehler. Bitte versuchen Sie es später erneut."
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "subtitle": "Sie haben {count} ungelesene Benachrichtigungen",
+    "empty": "Keine Benachrichtigungen anzuzeigen",
+    "tabs": {
+      "all": "Alle",
+      "unread": "Ungelesen",
+      "member": "Mitglieder",
+      "event": "Veranstaltungen",
+      "payment": "Zahlungen",
+      "system": "System"
+    },
+    "types": {
+      "member": "Mitglied",
+      "event": "Veranstaltung",
+      "payment": "Zahlung",
+      "profile": "Profil",
+      "system": "System"
+    },
+    "status": {
+      "new": "Neu"
+    },
+    "actions": {
+      "markAllRead": "Alle als gelesen markieren",
+      "clearRead": "Gelesene löschen"
+    },
+    "success": {
+      "markedAllRead": "Alle Benachrichtigungen als gelesen markiert",
+      "deleted": "Benachrichtigung gelöscht",
+      "clearedRead": "Alle gelesenen Benachrichtigungen gelöscht"
+    },
+    "errors": {
+      "markReadFailed": "Fehler beim Markieren als gelesen",
+      "markAllReadFailed": "Fehler beim Markieren aller als gelesen",
+      "deleteFailed": "Fehler beim Löschen der Benachrichtigung",
+      "clearReadFailed": "Fehler beim Löschen gelesener Benachrichtigungen"
+    }
   }
 }

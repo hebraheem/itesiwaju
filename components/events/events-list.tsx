@@ -16,55 +16,8 @@ import {
   EVENT_STATUSES,
   EVENT_TYPES,
   getMonth,
-  parseDate,
   removeEmptyFields,
 } from "@/lib/utils";
-
-const mockEvents = [
-  {
-    id: "1",
-    date: "15",
-    month: "NOV",
-    title: "Monthly General Meeting",
-    time: "2:00 PM - 5:00 PM",
-    location: "Community Hall Lagos",
-    status: "confirmed",
-    type: "meeting",
-  },
-  {
-    id: "2",
-    date: "22",
-    month: "NOV",
-    title: "Financial Workshop",
-    time: "10:00 AM - 1:00 PM",
-    location: "Online (Zoom)",
-    status: "pending",
-    type: "workshop",
-  },
-  {
-    id: "3",
-    date: "30",
-    month: "NOV",
-    title: "Community Outreach Program",
-    time: "8:00 AM - 4:00 PM",
-    location: "Ikeja District",
-    status: "confirmed",
-    type: "social",
-  },
-];
-
-const pastEvents = [
-  {
-    id: "4",
-    date: "05",
-    month: "OCT",
-    title: "Annual General Meeting",
-    time: "1:00 PM - 4:00 PM",
-    location: "Community Hall",
-    status: "completed",
-    type: "meeting",
-  },
-];
 
 export function EventsList() {
   const t = useTranslations("events");
@@ -118,7 +71,7 @@ export function EventsList() {
       </div>
 
       <Tabs defaultValue="upcoming" className="space-y-6">
-        <TabsList>
+        <TabsList className="overflow-x-auto w-full pl-32">
           {Object.keys(EVENT_STATUSES).map((evt) => (
             <TabsTrigger
               key={evt}

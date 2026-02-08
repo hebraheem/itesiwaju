@@ -180,12 +180,21 @@
   "events": {
     "title": "Événements",
     "upcoming": "Événements à Venir",
+    "ongoing": "Événements en Cours",
+    "completed": "Événements Terminés",
+    "cancelled": "Événements Annulés",
     "past": "Événements Passés",
     "create": "Créer un Événement",
     "edit": "Modifier l'Événement",
     "delete": "Supprimer l'Événement",
     "details": "Détails de l'Événement",
     "noEvents": "Aucun événement trouvé",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet événement?",
+    "deleteSuccess": "Événement supprimé avec succès",
+    "confirmComplete": "Êtes-vous sûr de vouloir marquer cet événement comme terminé?",
+    "completeSuccess": "Événement marqué comme terminé",
+    "confirmCancel": "Êtes-vous sûr de vouloir annuler cet événement?",
+    "cancelSuccess": "Événement annulé avec succès",
     "form": {
       "title": "Titre de l'Événement",
       "description": "Description",
@@ -508,7 +517,10 @@
     "loadMore": "Charger Plus",
     "update": "Mettre à jour",
     "create": "Créer",
-    "add": "Ajouter"
+    "add": "Ajouter",
+    "selectStatus": "Sélectionner le statut",
+    "selectRole": "Sélectionner le rôle",
+    "selectType": "Sélectionner le type"
   },
   "errors": {
     "required": "Ce champ est obligatoire",
@@ -521,5 +533,43 @@
     "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action",
     "notFound": "Ressource non trouvée",
     "serverError": "Erreur serveur. Veuillez réessayer plus tard."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Vous avez {count} notifications non lues",
+    "empty": "Aucune notification à afficher",
+    "tabs": {
+      "all": "Tout",
+      "unread": "Non lu",
+      "member": "Membres",
+      "event": "Événements",
+      "payment": "Paiements",
+      "system": "Système"
+    },
+    "types": {
+      "member": "Membre",
+      "event": "Événement",
+      "payment": "Paiement",
+      "profile": "Profil",
+      "system": "Système"
+    },
+    "status": {
+      "new": "Nouveau"
+    },
+    "actions": {
+      "markAllRead": "Tout marquer comme lu",
+      "clearRead": "Effacer les lus"
+    },
+    "success": {
+      "markedAllRead": "Toutes les notifications marquées comme lues",
+      "deleted": "Notification supprimée",
+      "clearedRead": "Toutes les notifications lues effacées"
+    },
+    "errors": {
+      "markReadFailed": "Échec du marquage de la notification comme lue",
+      "markAllReadFailed": "Échec du marquage de toutes comme lues",
+      "deleteFailed": "Échec de la suppression de la notification",
+      "clearReadFailed": "Échec de l'effacement des notifications lues"
+    }
   }
 }

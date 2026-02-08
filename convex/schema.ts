@@ -98,6 +98,7 @@ export default defineSchema({
       v.literal("member"),
       v.literal("profile"),
       v.literal("event"),
+      v.literal("system"),
     ),
     action: v.optional(v.string()),
     user: v.optional(v.string()),
@@ -198,4 +199,25 @@ export default defineSchema({
     noOfOwingMembers: v.number(),
     noOfOverdueMembers: v.number(),
   }),
+
+  // Notifications - User notifications
+  notifications: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    message: v.string(),
+    type: v.union(
+      v.literal("member"),
+      v.literal("event"),
+      v.literal("payment"),
+      v.literal("profile"),
+      v.literal("system"),
+    ),
+    relatedId: v.optional(v.string()), // ID of related entity (event, member, etc)
+    actionUrl: v.optional(v.string()),
+    read: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_read", ["userId", "read"])
+    .index("by_timestamp", ["createdAt"]),
 });

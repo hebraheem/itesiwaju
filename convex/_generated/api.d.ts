@@ -14,6 +14,7 @@ import type * as auth_actions from "../auth/actions.js";
 import type * as crons from "../crons.js";
 import type * as events from "../events.js";
 import type * as files from "../files.js";
+import type * as notifications from "../notifications.js";
 import type * as reports from "../reports.js";
 import type * as users from "../users.js";
 import type * as utils from "../utils.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   events: typeof events;
   files: typeof files;
+  notifications: typeof notifications;
   reports: typeof reports;
   users: typeof users;
   utils: typeof utils;

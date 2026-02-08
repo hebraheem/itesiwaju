@@ -150,21 +150,23 @@ export function MembersList() {
                     Phone: {member.phone}
                   </p>
                 </div>
-                <Badge variant="outline" className="capitalize">
-                  {member.role}
-                </Badge>
-                <Badge
-                  variant={
-                    member.status === "active" ? "default" : "destructive"
-                  }
-                >
-                  {member.status}
-                </Badge>
-                <RoleAction roles={["admin"]}>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/members/${member._id}`}>{t("view")}</Link>
-                  </Button>
-                </RoleAction>
+                <div className="flex gap-2 md:flex-row flex-col">
+                  <Badge variant="outline" className="capitalize">
+                    {member.role}
+                  </Badge>
+                  <Badge
+                    variant={
+                      member.status === "active" ? "default" : "destructive"
+                    }
+                  >
+                    {member.status}
+                  </Badge>
+                  <RoleAction roles={["admin"]}>
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/members/${member._id}`}>{t("view")}</Link>
+                    </Button>
+                  </RoleAction>
+                </div>
               </CardContent>
             </Card>
           </motion.div>

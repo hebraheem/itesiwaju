@@ -180,12 +180,21 @@
   "events": {
     "title": "Awọn Iṣẹlẹ",
     "upcoming": "Awọn Iṣẹlẹ Ti Nbọ",
+    "ongoing": "Awọn Iṣẹlẹ Ti Nlọ",
+    "completed": "Awọn Iṣẹlẹ Ti Pari",
+    "cancelled": "Awọn Iṣẹlẹ Ti Fagilee",
     "past": "Awọn Iṣẹlẹ Ti Kọja",
     "create": "Ṣẹda Iṣẹlẹ",
     "edit": "Ṣatunkọ Iṣẹlẹ",
     "delete": "Pa Iṣẹlẹ Rẹ",
     "details": "Alaye Iṣẹlẹ",
     "noEvents": "Ko si awọn iṣẹlẹ ti a rii",
+    "confirmDelete": "Ṣe o da ọ loju pe o fẹ pa iṣẹlẹ yii rẹ?",
+    "deleteSuccess": "Iṣẹlẹ ti pa rẹ ni aṣeyọri",
+    "confirmComplete": "Ṣe o da ọ loju pe o fẹ samisi iṣẹlẹ yii bi ti pari?",
+    "completeSuccess": "Iṣẹlẹ ti samisi bi ti pari",
+    "confirmCancel": "Ṣe o da ọ loju pe o fẹ fagilee iṣẹlẹ yii?",
+    "cancelSuccess": "Iṣẹlẹ ti fagilee ni aṣeyọri",
     "form": {
       "title": "Akọle Iṣẹlẹ",
       "description": "Apejuwe",
@@ -508,7 +517,10 @@
     "loadMore": "Ṣii Diẹ Sii",
     "update": "Ṣe imudojuiwọn",
     "create": "Ṣẹda",
-    "add": "Fikun"
+    "add": "Fikun",
+    "selectStatus": "Yan ipo",
+    "selectRole": "Yan ipa",
+    "selectType": "Yan iru"
   },
   "errors": {
     "required": "A nilo aaye yii",
@@ -521,5 +533,43 @@
     "unauthorized": "O ko ni aṣẹ lati ṣe iṣe yii",
     "notFound": "A ko rii ohun elo",
     "serverError": "Aṣiṣe olupin. Jọwọ gbiyanju nigbamii."
+  },
+  "notifications": {
+    "title": "Awọn Ikede",
+    "subtitle": "O ni {count} awọn ikede ti ko ka",
+    "empty": "Ko si awọn ikede lati fihan",
+    "tabs": {
+      "all": "Gbogbo",
+      "unread": "Ti ko ka",
+      "member": "Awọn Ọmọ ẹgbẹ",
+      "event": "Awọn Iṣẹlẹ",
+      "payment": "Awọn Isanwo",
+      "system": "Eto"
+    },
+    "types": {
+      "member": "Ọmọ ẹgbẹ",
+      "event": "Iṣẹlẹ",
+      "payment": "Isanwo",
+      "profile": "Profaili",
+      "system": "Eto"
+    },
+    "status": {
+      "new": "Tuntun"
+    },
+    "actions": {
+      "markAllRead": "Samisi gbogbo bi tika",
+      "clearRead": "Pa awọn tika"
+    },
+    "success": {
+      "markedAllRead": "Gbogbo awọn ikede ti samisi bi tika",
+      "deleted": "Ikede ti paarẹ",
+      "clearedRead": "Gbogbo awọn ikede tika ti paarẹ"
+    },
+    "errors": {
+      "markReadFailed": "Kuna lati samisi ikede bi tika",
+      "markAllReadFailed": "Kuna lati samisi gbogbo bi tika",
+      "deleteFailed": "Kuna lati pa ikede rẹ",
+      "clearReadFailed": "Kuna lati pa awọn ikede tika"
+    }
   }
 }

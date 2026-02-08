@@ -99,7 +99,7 @@ export function AccountStatusList() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 h-auto overflow-auto">
+        <TabsList className="flex w-full overflow-auto">
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.value}

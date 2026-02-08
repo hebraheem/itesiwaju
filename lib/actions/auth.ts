@@ -5,6 +5,7 @@ import {
   signOut as nextAuthSignOut,
 } from "@/lib/auth";
 import { AuthError } from "next-auth";
+import { revalidatePath } from "next/cache";
 
 export async function signIn(email: string, password: string) {
   try {
@@ -14,6 +15,9 @@ export async function signIn(email: string, password: string) {
       redirect: false,
     });
 
+    // Force revalidate all paths after login
+    revalidatePath("/", "layout");
+    
     return { success: true, error: null };
   } catch (error) {
     if (error instanceof AuthError) {
@@ -24,5 +28,11 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signOut() {
-  await nextAuthSignOut({ redirectTo: "/" });
+  // Clear cache before sign out
+  revalidatePath("/", "layout");
+  
+  await nextAuthSignOut({ 
+    redirectTo: "/",
+    redirect: true 
+  });
 }

@@ -22,6 +22,15 @@ export function Profile() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [state, action, isPending] = useActionState(updateUserAction, {});
+  const [userId, setUserId] = useState(user?._id);
+
+  // Force component reset when user changes
+  useEffect(() => {
+    if (user?._id && user._id !== userId) {
+      setUserId(user._id);
+      setIsEditing(false);
+    }
+  }, [user?._id, userId]);
 
   useEffect(
     () => {

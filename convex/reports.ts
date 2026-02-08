@@ -139,7 +139,9 @@ export const createReport = mutation({
     // Create an activity log
     await ctx.db.insert("activities", {
       userId: args.createdBy,
-      type: "report_created",
+      type: "system",
+      action: "report_created",
+      user: `${user.firstName} ${user.lastName}`,
       description: `New ${args.type} report "${args.title}" created`,
       metadata: { reportId, type: args.type },
       timestamp: Date.now(),
@@ -167,12 +169,12 @@ export const generateReportData = mutation({
         // Generate financial report
         const accounts = await ctx.db.query("accounts").collect();
         const totalBorrowed = accounts.reduce(
-          (sum, a) => sum + a.borrowedAmount,
+          (sum, a) => sum + a.totalBorrowedAmount,
           0,
         );
-        const totalFines = accounts.reduce((sum, a) => sum + a.fineAmount, 0);
+        const totalFines = accounts.reduce((sum, a) => sum + a.totalFineAmount, 0);
         const totalOutstanding = accounts.reduce(
-          (sum, a) => sum + a.currentBalance,
+          (sum, a) => sum + a.borrowedAmountToBalance + a.fineToBalance + a.duesToBalance,
           0,
         );
 
@@ -217,8 +219,10 @@ export const generateReportData = mutation({
         // Generate events report
         const events = await ctx.db.query("events").collect();
         const eventsInRange = events.filter(
-          (e) =>
-            e.date >= report.dateRange.start && e.date <= report.dateRange.end,
+          (e) => {
+            const eventDate = new Date(e.startDate).getTime();
+            return eventDate >= report.dateRange.start && eventDate <= report.dateRange.end;
+          }
         );
 
         const totalEvents = eventsInRange.length;
@@ -247,10 +251,14 @@ export const generateReportData = mutation({
         updatedAt: Date.now(),
       });
 
+      const creator = await ctx.db.get(report.createdBy);
+      
       // Create an activity log
       await ctx.db.insert("activities", {
         userId: report.createdBy,
-        type: "report_generated",
+        type: "system",
+        action: "report_generated",
+        user: creator ? `${creator.firstName} ${creator.lastName}` : "System",
         description: `Report "${report.title}" generated successfully`,
         metadata: { reportId: args.reportId },
         timestamp: Date.now(),
@@ -295,10 +303,14 @@ export const updateReport = mutation({
       updatedAt: Date.now(),
     });
 
+    const creator = await ctx.db.get(report.createdBy);
+
     // Create an activity log
     await ctx.db.insert("activities", {
       userId: report.createdBy,
-      type: "report_updated",
+      type: "system",
+      action: "report_updated",
+      user: creator ? `${creator.firstName} ${creator.lastName}` : "System",
       description: `Report "${report.title}" was updated`,
       metadata: { reportId: id, updates },
       timestamp: Date.now(),
@@ -330,7 +342,9 @@ export const deleteReport = mutation({
     // Create an activity log
     await ctx.db.insert("activities", {
       userId: args.deletedBy,
-      type: "report_deleted",
+      type: "system",
+      action: "report_deleted",
+      user: `${user.firstName} ${user.lastName}`,
       description: `Report "${report.title}" was deleted`,
       metadata: { reportId: args.id },
       timestamp: Date.now(),

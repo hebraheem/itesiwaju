@@ -1,5 +1,6 @@
 import { EventForm } from '@/components/events/event-form';
 import { Metadata } from 'next';
+import { Id } from '@/convex/_generated/dataModel';
 
 export const metadata: Metadata = {
   title: 'Edit Event | Itesiwaju',
@@ -11,5 +12,5 @@ export default async function EditEventPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <EventForm eventId={id} />;
+  return <EventForm eventId={id as Id<"events">} />;
 }
