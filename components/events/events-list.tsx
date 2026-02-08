@@ -37,7 +37,7 @@ export function EventsList() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex justify-between items-center"
+        className="flex gap-4 md:flex-row flex-col md:items-center  md:justify-between justify-start"
       >
         <div>
           <h1 className="text-3xl font-bold">{t("title")}</h1>
@@ -71,7 +71,7 @@ export function EventsList() {
       </div>
 
       <Tabs defaultValue="upcoming" className="space-y-6">
-        <TabsList className="overflow-x-auto w-full pl-32">
+        <TabsList className="overflow-x-auto w-full md:pl-32">
           {Object.keys(EVENT_STATUSES).map((evt) => (
             <TabsTrigger
               key={evt}

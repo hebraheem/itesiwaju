@@ -91,7 +91,7 @@ export function EventDetail({ eventId }: { eventId: Id<"events"> }) {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl mb-4">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -100,7 +100,7 @@ export function EventDetail({ eventId }: { eventId: Id<"events"> }) {
           <ArrowLeft className="w-4 h-4 mr-2" />
           {tc("back")}
         </Button>
-        <div className="flex justify-between items-start">
+        <div className="flex md:flex-row flex-col md:justify-between justify-start items-start gap-2">
           <div>
             <Badge className="mb-2">{t(`status.${event?.status}`)}</Badge>
             <h1 className="text-3xl font-bold mb-2">{event.title}</h1>
@@ -156,7 +156,9 @@ export function EventDetail({ eventId }: { eventId: Id<"events"> }) {
                   <Calendar className="w-6 h-6 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">{t("form.date")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("form.date")}
+                  </p>
                   <p className="font-semibold">
                     {parseDate(new Date(event.startDate).getTime())}{" "}
                     {event?.endDate
@@ -171,7 +173,9 @@ export function EventDetail({ eventId }: { eventId: Id<"events"> }) {
                   <Clock className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">{t("form.time")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("form.time")}
+                  </p>
                   <p className="font-semibold">
                     {event.startTime} {event.endTime ? event.endTime : ""}
                   </p>
@@ -183,7 +187,9 @@ export function EventDetail({ eventId }: { eventId: Id<"events"> }) {
                   <MapPin className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">{t("form.location")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("form.location")}
+                  </p>
                   <p className="font-semibold">{event.location}</p>
                 </div>
               </div>
@@ -193,14 +199,18 @@ export function EventDetail({ eventId }: { eventId: Id<"events"> }) {
                   <Users className="w-6 h-6 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">{t("attendees")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("attendees")}
+                  </p>
                   <p className="font-semibold">{t("allMembers")}</p>
                 </div>
               </div>
             </div>
 
             <div className="border-t pt-6">
-              <h3 className="font-semibold text-lg mb-3">{t("form.description")}</h3>
+              <h3 className="font-semibold text-lg mb-3">
+                {t("form.description")}
+              </h3>
               <p className="text-muted-foreground leading-relaxed">
                 {event.description}
               </p>

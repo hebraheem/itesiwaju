@@ -21,7 +21,11 @@ const NavBar = () => {
             alt="logo"
             width={60}
             height={60}
-            className="rounded-full"
+            className="rounded-full
+             w-10 h-10
+             sm:w-12 sm:h-12
+             md:w-14 md:h-14
+             lg:w-16 lg:h-16"
           />
           <div className="flex flex-col justify-center ml-2">
             <p>Itesiwaju</p>
@@ -31,9 +35,7 @@ const NavBar = () => {
       </div>
       <div className="flex items-center gap-2">
         <Link href="/login">
-          <Button variant="link">
-            {t("login")}
-          </Button>
+          <Button variant="link">{t("login")}</Button>
         </Link>
         <LanguageSwitcher />
         <ThemeSwitcher />
