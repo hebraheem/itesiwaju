@@ -28,8 +28,8 @@ const NavBar = () => {
              lg:w-16 lg:h-16"
           />
           <div className="flex flex-col justify-center ml-2">
-            <p>Itesiwaju</p>
-            <p className="text-lg">Ìgbìmọ̀ Ìṣọ̀kan</p>
+            <p className="md:text-2xl text-lg font-bold">Itesiwaju</p>
+            <p className="text-xs md:text-lg hidden md:block">Ìgbìmọ̀ Ìṣọ̀kan</p>
           </div>
         </Link>
       </div>

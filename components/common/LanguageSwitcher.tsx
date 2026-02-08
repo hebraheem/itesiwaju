@@ -38,7 +38,7 @@ const LanguageSwitcher = () => {
             height={20}
             preload={true}
           />{" "}
-          {t(locale)}
+          <p className="hidden md:block"> {t(locale)}</p>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

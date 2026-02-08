@@ -1,11 +1,10 @@
 "use server";
 
 import { loginSchema } from "@/app/schemas/login.schema";
-import { signIn } from "@/lib/auth";
-import { revalidatePath } from "next/cache";
 import { convexServer } from "@/lib/convexServer";
 import { api } from "@/convex/_generated/api";
 import { USER_STATUSES } from "@/lib/utils";
+import { signIn } from "@/lib/actions/auth";
 
 export type RegisterState = {
   errors?: Record<string, string>;
@@ -39,19 +38,7 @@ export async function loginAction(
         success: false,
       };
     }
-    await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
-    revalidatePath("/dashboard");
-    revalidatePath("/events");
-    revalidatePath("/members");
-    revalidatePath("/account-status");
-    revalidatePath("/activity");
-    revalidatePath("/profile");
-    revalidatePath("/settings");
-    return { success: true, message: "Login successful!" };
+    return await signIn(email, password);
   } catch (e: any) {
     return {
       message: e.message || "Login failed",

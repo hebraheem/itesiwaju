@@ -9,7 +9,13 @@ import { Label } from "@/components/ui/label";
 import { updateUserPasswordAction } from "@/app/actions/update-user.action";
 import { toast } from "sonner";
 
-const PasswordUpdateComponent = ({ email }: { email: string }) => {
+const PasswordUpdateComponent = ({
+  email,
+  id,
+}: {
+  email: string;
+  id: string;
+}) => {
   const t = useTranslations("profile");
   const [showPassword, setShowPassword] = useState(false);
   const [passwordState, passwordAction, isPending] = useActionState(
@@ -91,6 +97,7 @@ const PasswordUpdateComponent = ({ email }: { email: string }) => {
         </div>
       </div>
       <input hidden name="authEmail" defaultValue={email} />
+      <input hidden name="id" defaultValue={id} />
       <Button
         type="submit"
         className="bg-orange-500 hover:bg-orange-600 text-white mt-6"

@@ -9,30 +9,41 @@ import { revalidatePath } from "next/cache";
 
 export async function signIn(email: string, password: string) {
   try {
-    const result = await nextAuthSignIn("credentials", {
+    await nextAuthSignIn("credentials", {
       email,
       password,
       redirect: false,
     });
 
-    // Force revalidate all paths after login
-    revalidatePath("/", "layout");
-    
+    revalidatePath("/dashboard", "layout");
+
     return { success: true, error: null };
   } catch (error) {
     if (error instanceof AuthError) {
-      return { success: false, error: "Invalid email or password" };
+      return {
+        success: false,
+        error: "Invalid email or password",
+        email,
+        password,
+      };
     }
-    return { success: false, error: "An error occurred. Please try again." };
+    return {
+      success: false,
+      error: "An error occurred. Please try again.",
+      email,
+      password,
+    };
   }
 }
 
 export async function signOut() {
-  // Clear cache before sign out
-  revalidatePath("/", "layout");
-  
-  await nextAuthSignOut({ 
-    redirectTo: "/",
-    redirect: true 
+  await nextAuthSignOut({
+    redirectTo: "/login",
+    redirect: true,
   });
+  await revalidatePaths();
 }
+
+export const revalidatePaths = async () => {
+  revalidatePath("/dashboard", "layout");
+};

@@ -1,6 +1,10 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getCurrentUser, hasPermission } from "@/convex/utils";
+import {
+  getCurrentUser,
+  hasPermission,
+  notifyAllMembers,
+} from "@/convex/utils";
 import { Id } from "@/convex/_generated/dataModel";
 import { paginationOptsValidator } from "convex/server";
 
@@ -211,6 +215,13 @@ export const createEvent = mutation({
       metadata: { eventId: event },
       timestamp: Date.now(),
     });
+    await notifyAllMembers(ctx, {
+      title: "New Event",
+      message: "new event has been created: " + args.title,
+      type: "event",
+      actionUrl: `/events/${event}`,
+      excludeUserId: user._id,
+    });
   },
 });
 
@@ -292,6 +303,14 @@ export const updateEvent = mutation({
         `${args.title ?? event.title} ${args.description ?? event.description} ${args.location ?? event.location}`.toLowerCase(),
     });
 
+    await notifyAllMembers(ctx, {
+      title: "Event Updated",
+      message: "Event has been updated: " + (args.title ?? event.title),
+      type: "event",
+      actionUrl: `/events/${event._id}`,
+      excludeUserId: user._id,
+    });
+
     // Create an activity log
     await ctx.db.insert("activities", {
       userId: user._id,
@@ -345,6 +364,14 @@ export const deleteEvent = mutation({
       timestamp: Date.now(),
     });
 
+    await notifyAllMembers(ctx, {
+      title: "Event Deleted",
+      message: "Event has been deleted: " + event.title,
+      type: "event",
+      actionUrl: `/events/${event._id}`,
+      excludeUserId: user._id,
+    });
+
     return args.id;
   },
 });
@@ -388,6 +415,14 @@ export const cancelEvent = mutation({
       timestamp: Date.now(),
     });
 
+    await notifyAllMembers(ctx, {
+      title: "Event Canceled",
+      message: "Event has been canceled: " + event.title,
+      type: "event",
+      actionUrl: `/events/${event._id}`,
+      excludeUserId: user._id,
+    });
+
     return args.id;
   },
 });
@@ -428,6 +463,14 @@ export const completeEvent = mutation({
       description: `marked event "${event.title}" as completed`,
       metadata: { eventId: args.id },
       timestamp: Date.now(),
+    });
+
+    await notifyAllMembers(ctx, {
+      title: "Event Completed",
+      message: "Event is marked as completed: " + event.title,
+      type: "event",
+      actionUrl: `/events/${event._id}`,
+      excludeUserId: user._id,
     });
 
     return args.id;

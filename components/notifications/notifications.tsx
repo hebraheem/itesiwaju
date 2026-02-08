@@ -196,7 +196,7 @@ export function Notifications() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex overflow-x-auto pl-5 w-full">
+        <TabsList className="flex overflow-x-auto w-full">
           <TabsTrigger value="all">{t("tabs.all")}</TabsTrigger>
           <TabsTrigger value="unread">
             {t("tabs.unread")}
@@ -206,10 +206,6 @@ export function Notifications() {
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="member">{t("tabs.member")}</TabsTrigger>
-          <TabsTrigger value="event">{t("tabs.event")}</TabsTrigger>
-          <TabsTrigger value="payment">{t("tabs.payment")}</TabsTrigger>
-          <TabsTrigger value="system">{t("tabs.system")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">

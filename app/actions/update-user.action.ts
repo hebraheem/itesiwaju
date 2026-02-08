@@ -82,6 +82,7 @@ export async function updateUserPasswordAction(
   const currentPassword = formData.get("oldPassword")?.toString() as string;
   const newPassword = formData.get("newPassword")?.toString() as string;
   const authEmail = formData.get("authEmail")?.toString() as string;
+  const id = formData.get("id")?.toString() as string;
   console.log("currentPassword", currentPassword);
 
   if (!currentPassword || currentPassword.length < 8) {

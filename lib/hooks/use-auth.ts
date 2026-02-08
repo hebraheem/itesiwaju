@@ -9,11 +9,11 @@ export function useAuth() {
   const { data: session, status } = useSession();
   const [queryKey, setQueryKey] = useState(0);
 
-  // Force query refresh when session changes
+  // Force query refresh when the session changes
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
-      // Increment key to force new query
-      setQueryKey(prev => prev + 1);
+      // Increment key to force a new query
+      setQueryKey((prev) => prev + 1);
     } else if (status === "unauthenticated") {
       // Reset on logout
       setQueryKey(0);
@@ -25,8 +25,8 @@ export function useAuth() {
   const user = useQuery(
     api.users.getUserByEmail,
     session?.user?.email && status === "authenticated" && queryKey > 0
-      ? { email: session.user.email } 
-      : "skip"
+      ? { email: session.user.email }
+      : "skip",
   );
 
   return {
@@ -36,8 +36,10 @@ export function useAuth() {
           name: `${user.firstName ?? ""} ${user.lastName ?? ""}`,
         }
       : null,
-    isLoading: status === "loading" || (status === "authenticated" && user === undefined),
-    isAuthenticated: status === "authenticated",
+    isLoading:
+      status === "loading" ||
+      (status === "authenticated" && user === undefined),
+    isAuthenticated: status === "authenticated" && !!user,
     isAdmin: session?.user?.role === "admin" || user?.role === "admin",
     isMember: session?.user?.role === "member" || user?.role === "member",
   };

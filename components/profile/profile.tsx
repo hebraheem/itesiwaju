@@ -57,9 +57,7 @@ export function Profile() {
         animate={{ opacity: 1, y: 0 }}
       >
         <h1 className="text-3xl font-bold">{t("title")}</h1>
-        <p className="text-muted-foreground">
-          {t("subtitle")}
-        </p>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
       </motion.div>
 
       <Card>
@@ -167,7 +165,9 @@ export function Profile() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">{t("state")}</Label>
+                  <Label className="flex items-center gap-2">
+                    {t("state")}
+                  </Label>
                   <Input
                     type="text"
                     name="state"
@@ -176,7 +176,9 @@ export function Profile() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">{t("country")}</Label>
+                  <Label className="flex items-center gap-2">
+                    {t("country")}
+                  </Label>
                   <Input
                     type="text"
                     name="country"
@@ -203,7 +205,7 @@ export function Profile() {
               </Button>
             )}
           </form>
-          <PasswordUpdateComponent email={user.email} />
+          <PasswordUpdateComponent email={user.email} id={user._id ?? ""} />
         </CardContent>
       </Card>
     </div>
