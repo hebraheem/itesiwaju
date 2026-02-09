@@ -6,7 +6,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Itesiwaju",
     description:
       "Community management platform for events, members, and account tracking",
-    start_url: "/login",
+    start_url: "/",
+    scope: "/",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#f97316",

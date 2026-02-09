@@ -12,7 +12,7 @@ export function PWAInstaller() {
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker
-          .register("/sw.js")
+          .register("/sw.js", { scope: "/" })
           .then((registration) => {
             console.log("Service Worker registered:", registration);
 
@@ -35,19 +35,24 @@ export function PWAInstaller() {
                 });
               }
             });
+
+            // Request notification permission after service worker is ready
+            if ("Notification" in window && Notification.permission === "default") {
+              setTimeout(() => {
+                Notification.requestPermission().then((permission) => {
+                  if (permission === "granted") {
+                    console.log("Notification permission granted");
+                    toast.success("Notifications enabled!");
+                  } else if (permission === "denied") {
+                    console.log("Notification permission denied");
+                  }
+                });
+              }, 2000); // Delay to avoid overwhelming the user
+            }
           })
           .catch((error) => {
             console.error("Service Worker registration failed:", error);
           });
-      });
-    }
-
-    // Request notification permission
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          console.log("Notification permission granted");
-        }
       });
     }
 
@@ -62,6 +67,15 @@ export function PWAInstaller() {
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    
+    // Check if already running as PWA
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
+      || (window.navigator as any).standalone 
+      || document.referrer.includes('android-app://');
+    
+    if (isStandalone) {
+      console.log("App is running as installed PWA");
+    }
 
     // Handle app installed
     window.addEventListener("appinstalled", () => {
