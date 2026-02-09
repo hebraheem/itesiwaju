@@ -296,7 +296,7 @@ export const updateEvent = mutation({
     await ctx.db.patch(id, {
       ...updateData,
       media: mediaWithUrl?.length
-        ? [...mediaWithUrl, ...(event.media as MediaWithUrl)]
+        ? [...mediaWithUrl, ...((event?.media ?? []) as MediaWithUrl)]
         : event.media,
       updatedAt: Date.now(),
       searchField:

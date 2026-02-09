@@ -44,17 +44,6 @@ export function buildSearchText(fields: string[]): string {
     .toLowerCase();
 }
 
-export function isOwnerOrAdmin(
-  ctx: GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>,
-  email: string,
-  ownerId: Id<"users">,
-): Promise<boolean> {
-  return hasPermission(ctx, ["admin"], email).then((isAdmin) => {
-    if (isAdmin) return true;
-    return ctx.db.get(ownerId).then((owner) => owner?.email === email);
-  });
-}
-
 // Notification helper functions
 export async function notifyUser(
   ctx: GenericMutationCtx<DataModel>,
@@ -65,7 +54,7 @@ export async function notifyUser(
     type: "member" | "event" | "payment" | "profile" | "system";
     relatedId?: string;
     actionUrl?: string;
-  }
+  },
 ) {
   await ctx.db.insert("notifications", {
     userId: params.userId,
@@ -88,7 +77,7 @@ export async function notifyAllMembers(
     relatedId?: string;
     actionUrl?: string;
     excludeUserId?: Id<"users">;
-  }
+  },
 ) {
   const users = await ctx.db
     .query("users")
@@ -96,7 +85,9 @@ export async function notifyAllMembers(
     .collect();
 
   const notifications = users
-    .filter((user) => !params.excludeUserId || user._id !== params.excludeUserId)
+    .filter(
+      (user) => !params.excludeUserId || user._id !== params.excludeUserId,
+    )
     .map((user) => ({
       userId: user._id,
       title: params.title,
@@ -109,7 +100,8 @@ export async function notifyAllMembers(
     }));
 
   await Promise.all(
-    notifications.map((notification) => ctx.db.insert("notifications", notification))
+    notifications.map((notification) =>
+      ctx.db.insert("notifications", notification),
+    ),
   );
 }
-

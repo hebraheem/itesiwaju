@@ -2,7 +2,7 @@
 
 import React from "react";
 import { USER_ROLES } from "@/lib/utils";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 const RoleAction = ({
   roles,
@@ -11,8 +11,8 @@ const RoleAction = ({
   roles: (keyof typeof USER_ROLES)[];
   children: React.ReactNode;
 }) => {
-  const session = useSession();
-  const userRole = session.data?.user.role ?? "";
+  const { user } = useAuth();
+  const userRole = user?.role ?? "";
 
   if (!roles.includes(userRole as keyof typeof USER_ROLES)) {
     return null;

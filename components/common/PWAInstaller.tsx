@@ -36,8 +36,11 @@ export function PWAInstaller() {
               }
             });
 
-            // Request notification permission after service worker is ready
-            if ("Notification" in window && Notification.permission === "default") {
+            // Request notification permission after a service worker is ready
+            if (
+              "Notification" in window &&
+              Notification.permission === "default"
+            ) {
               setTimeout(() => {
                 Notification.requestPermission().then((permission) => {
                   if (permission === "granted") {
@@ -67,12 +70,13 @@ export function PWAInstaller() {
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    
+
     // Check if already running as PWA
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-      || (window.navigator as any).standalone 
-      || document.referrer.includes('android-app://');
-    
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone ||
+      document.referrer.includes("android-app://");
+
     if (isStandalone) {
       console.log("App is running as installed PWA");
     }
@@ -87,7 +91,7 @@ export function PWAInstaller() {
     return () => {
       window.removeEventListener(
         "beforeinstallprompt",
-        handleBeforeInstallPrompt
+        handleBeforeInstallPrompt,
       );
     };
   }, []);

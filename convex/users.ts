@@ -472,3 +472,22 @@ export const verifyCredentials = query({
     return user;
   },
 });
+
+export const saveSubscription = mutation({
+  args: { subscription: v.string(), email: v.string() },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(args.email, ctx); // or pass from Next
+    if (!user) throw new Error("Not logged in");
+
+    await ctx.db.insert("pushSubscriptions", {
+      userId: user._id,
+      subscription: args.subscription,
+    });
+  },
+});
+
+export const getAllUser = query({
+  handler: async (ctx) => {
+    return await ctx.db.query("users").collect();
+  },
+});

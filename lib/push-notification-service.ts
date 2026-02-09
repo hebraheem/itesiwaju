@@ -1,5 +1,9 @@
 "use client";
 
+import { api } from "@/convex/_generated/api";
+import { convexServer } from "@/lib/convexServer";
+import { Id } from "@/convex/_generated/dataModel";
+
 export class PushNotificationService {
   private static instance: PushNotificationService;
 
@@ -12,6 +16,7 @@ export class PushNotificationService {
     return PushNotificationService.instance;
   }
 
+  /** Ask the user for notification permission */
   async requestPermission(): Promise<NotificationPermission> {
     if (!("Notification" in window)) {
       console.warn("This browser does not support notifications");
@@ -21,7 +26,8 @@ export class PushNotificationService {
     return await Notification.requestPermission();
   }
 
-  async subscribe(): Promise<PushSubscription | null> {
+  /** Subscribe the user to push notifications */
+  async subscribe(userId: string): Promise<PushSubscription | null> {
     if (!("serviceWorker" in navigator)) {
       console.warn("Service Worker not supported");
       return null;
@@ -29,17 +35,19 @@ export class PushNotificationService {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      
-      // Check if already subscribed
-      const existingSubscription = await registration.pushManager.getSubscription();
+      // Already subscribed?
+      const existingSubscription =
+        await registration.pushManager.getSubscription();
       if (existingSubscription) {
+        await this.sendSubscriptionToBackend(
+          existingSubscription,
+          userId as Id<"users">,
+        );
         return existingSubscription;
       }
 
-      // Subscribe to push notifications
-      // Note: You'll need to replace this with your actual VAPID public key
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
-      
+      // Subscribe
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
       if (!vapidPublicKey) {
         console.warn("VAPID public key not configured");
         return null;
@@ -50,9 +58,8 @@ export class PushNotificationService {
         applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey),
       });
 
-      // Send subscription to backend
-      await this.sendSubscriptionToBackend(subscription);
-
+      // Send subscription to backend (Convex)
+      await this.sendSubscriptionToBackend(subscription, userId as Id<"users">);
       return subscription;
     } catch (error) {
       console.error("Error subscribing to push notifications:", error);
@@ -60,10 +67,9 @@ export class PushNotificationService {
     }
   }
 
+  /** Unsubscribe the user */
   async unsubscribe(): Promise<boolean> {
-    if (!("serviceWorker" in navigator)) {
-      return false;
-    }
+    if (!("serviceWorker" in navigator)) return false;
 
     try {
       const registration = await navigator.serviceWorker.ready;
@@ -71,7 +77,6 @@ export class PushNotificationService {
 
       if (subscription) {
         await subscription.unsubscribe();
-        // Remove subscription from backend
         await this.removeSubscriptionFromBackend(subscription);
         return true;
       }
@@ -83,14 +88,12 @@ export class PushNotificationService {
     }
   }
 
+  /** Show a local notification immediately */
   async sendLocalNotification(
     title: string,
-    options?: NotificationOptions
+    options?: NotificationOptions,
   ): Promise<void> {
-    if (!("Notification" in window)) {
-      console.warn("Notifications not supported");
-      return;
-    }
+    if (!("Notification" in window)) return;
 
     if (Notification.permission === "granted") {
       const registration = await navigator.serviceWorker.ready;
@@ -102,36 +105,39 @@ export class PushNotificationService {
     }
   }
 
+  /** Send subscription info to the backend */
   private async sendSubscriptionToBackend(
-    subscription: PushSubscription
-  ): Promise<void> {
-    // Implement your backend API call here
-    // Example:
-    // await fetch('/api/push/subscribe', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(subscription),
-    // });
-    console.log("Subscription to send to backend:", subscription);
+    subscription: PushSubscription,
+    userId: Id<"users">,
+  ) {
+    try {
+      await convexServer.mutation(api.notifications.addSubscription, {
+        subscription: JSON.stringify(subscription),
+        userId,
+      });
+      console.log("Subscription saved to backend:", subscription.endpoint);
+    } catch (error) {
+      console.error("Failed to save subscription:", error);
+    }
   }
 
-  private async removeSubscriptionFromBackend(
-    subscription: PushSubscription
-  ): Promise<void> {
-    // Implement your backend API call here
-    // Example:
-    // await fetch('/api/push/unsubscribe', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ endpoint: subscription.endpoint }),
-    // });
-    console.log("Subscription to remove from backend:", subscription);
+  /** Remove subscription from the backend */
+  private async removeSubscriptionFromBackend(subscription: PushSubscription) {
+    try {
+      await convexServer.mutation(api.notifications.removeSubscription, {
+        endpoint: subscription.endpoint,
+      });
+      console.log("Subscription removed from backend:", subscription.endpoint);
+    } catch (error) {
+      console.error("Failed to remove subscription:", error);
+    }
   }
 
+  /** Convert VAPID public key to UInt8Array for pushManager */
   private urlBase64ToUint8Array(base64String: string) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding)
-      .replace(/\-/g, "+")
+      .replace(/-/g, "+")
       .replace(/_/g, "/");
 
     const rawData = window.atob(base64);
@@ -140,7 +146,8 @@ export class PushNotificationService {
     for (let i = 0; i < rawData.length; ++i) {
       outputArray[i] = rawData.charCodeAt(i);
     }
-    return outputArray.buffer;
+
+    return outputArray;
   }
 }
 

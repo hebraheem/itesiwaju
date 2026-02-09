@@ -220,4 +220,13 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_read", ["userId", "read"])
     .index("by_timestamp", ["createdAt"]),
+
+  pushSubscriptions: defineTable({
+    userId: v.id("users"),
+    subscription: v.string(),
+    endpoint: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_endpoint", ["endpoint"]),
 });

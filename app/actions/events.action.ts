@@ -98,7 +98,16 @@ export async function createEventAction(
       (dataToSave as any).id = id;
     }
     await convexServer.mutation(service, dataToSave);
-
+    await convexServer.action(api.actionNode.notifications.sendPush, {
+      title: id ? "Event Updated" : "New Event Created",
+      message: `The event "${parsed.data.title}" has been ${
+        id ? "updated" : "created"
+      }.`,
+      type: "event",
+      authEmail,
+      relatedId: id ?? undefined,
+      actionUrl: `/events/${id ?? ""}`,
+    });
     return {
       success: true,
       message: "Event created successfully!",
@@ -123,6 +132,14 @@ export const deleteEventAction = async (
       id: eventId as Id<"events">,
       authEmail,
     });
+    await convexServer.action(api.actionNode.notifications.sendPush, {
+      title: "Event Deleted",
+      message: `An event has been deleted.`,
+      type: "event",
+      authEmail,
+      relatedId: eventId,
+      actionUrl: `/events`,
+    });
     return { success: true, message: "Event deleted successfully!" };
   } catch (error) {
     return {
@@ -143,6 +160,14 @@ export const cancelEventAction = async (
       id: eventId as Id<"events">,
       authEmail,
     });
+    await convexServer.action(api.actionNode.notifications.sendPush, {
+      title: "Event Cancelled",
+      message: `An event has been cancelled.`,
+      type: "event",
+      authEmail,
+      relatedId: eventId,
+      actionUrl: `/events/${eventId}`,
+    });
     return { success: true, message: "Event cancelled successfully!" };
   } catch (error) {
     return {
@@ -162,6 +187,14 @@ export const markEventCompletedAction = async (
     await convexServer.mutation(api.events.completeEvent, {
       id: eventId as Id<"events">,
       authEmail,
+    });
+    await convexServer.action(api.actionNode.notifications.sendPush, {
+      title: "Event Completed",
+      message: `An event has been marked as completed.`,
+      type: "event",
+      authEmail,
+      relatedId: eventId,
+      actionUrl: `/events/${eventId}`,
     });
     return { success: true, message: "Event marked as completed!" };
   } catch (error) {
