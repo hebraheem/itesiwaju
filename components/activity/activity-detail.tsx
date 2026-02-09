@@ -5,7 +5,6 @@ import { useRouter } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   ArrowLeft,
   Calendar,
@@ -19,7 +18,7 @@ import { motion } from "framer-motion";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { parseDate } from "@/lib/utils";
+import { ActivityType, getMetadataDescription, parseDate } from "@/lib/utils";
 
 const activityIcons = {
   payment: FileText,
@@ -48,7 +47,7 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
 
   if (activity === undefined) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <Loader2 className="w-12 h-12 animate-spin text-orange-600" />
       </div>
     );
@@ -56,7 +55,7 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
 
   if (activity === null) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <div className="flex flex-col items-center justify-center min-h-100 space-y-4">
         <ActivityIcon className="w-16 h-16 text-muted-foreground" />
         <p className="text-xl text-muted-foreground">{t("notFound")}</p>
         <Button variant="outline" onClick={() => router.back()}>
@@ -67,8 +66,11 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
     );
   }
 
-  const Icon = activityIcons[activity.type as keyof typeof activityIcons] || ActivityIcon;
-  const colorClass = activityColors[activity.type as keyof typeof activityColors] || "text-gray-600 bg-gray-100 dark:bg-gray-900/30";
+  const Icon =
+    activityIcons[activity.type as keyof typeof activityIcons] || ActivityIcon;
+  const colorClass =
+    activityColors[activity.type as keyof typeof activityColors] ||
+    "text-gray-600 bg-gray-100 dark:bg-gray-900/30";
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -92,11 +94,12 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              {activity?.action ? (
-                activity.metadata && Object.keys(activity.metadata).length > 0 
-                  ? t(activity.action, activity.metadata)
-                  : activity.description || t(activity.action, {})
-              ) : activity.description}
+              {activity?.action
+                ? t(
+                    activity?.action,
+                    getMetadataDescription(activity as unknown as ActivityType),
+                  )
+                : activity?.description}
             </p>
           </div>
         </div>
@@ -118,11 +121,13 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
                 <User className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">{t("performedBy")}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("performedBy")}
+                </p>
                 <p className="font-semibold">
-                  {typeof activity.user === 'string' 
-                    ? activity.user 
-                    : activity.user?.name || 'Unknown User'}
+                  {typeof activity.user === "string"
+                    ? activity.user
+                    : activity.user?.name || "Unknown User"}
                 </p>
               </div>
             </div>
@@ -133,7 +138,9 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{t("date")}</p>
-                <p className="font-semibold">{parseDate(activity._creationTime)}</p>
+                <p className="font-semibold">
+                  {parseDate(activity._creationTime)}
+                </p>
               </div>
             </div>
 
@@ -154,8 +161,12 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
                 <ActivityIcon className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">{t("actionType")}</p>
-                <p className="font-semibold capitalize">{activity.action || t("noAction")}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("actionType")}
+                </p>
+                <p className="font-semibold capitalize">
+                  {activity.action || t("noAction")}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -164,17 +175,20 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
         {activity.metadata && Object.keys(activity.metadata).length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t("additionalDetails")}</CardTitle>
+              <CardTitle className="text-lg">
+                {t("additionalDetails")}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {Object.entries(activity.metadata).map(([key, value]) => (
                   <div key={key} className="flex justify-between items-start">
                     <span className="text-sm text-muted-foreground capitalize">
-                      {key.replace(/([A-Z])/g, ' $1').trim()}:
+                      {key.replace(/([A-Z])/g, " $1").trim()}:
                     </span>
                     <span className="font-semibold text-sm text-right max-w-[60%]">
-                      {typeof value === 'number' && key.toLowerCase().includes('date')
+                      {typeof value === "number" &&
+                      key.toLowerCase().includes("date")
                         ? parseDate(value)
                         : String(value)}
                     </span>

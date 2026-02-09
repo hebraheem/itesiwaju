@@ -10,7 +10,9 @@ import MotionDiv from "@/components/animations/MotionDiv";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
+  ActivityType,
   EVENT_STATUSES,
+  getMetadataDescription,
   getMonth,
   parseDate,
   quickActions,
@@ -252,44 +254,50 @@ export function DashboardHome() {
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
-              {(activities ?? []).map((activity, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center shrink-0">
-                    <span className="text-sm font-semibold text-orange-600">
-                      {(() => {
-                        const userName =
-                          typeof activity?.user === "string"
-                            ? activity.user
-                            : (activity?.user as any)?.name ||
-                              user?.name ||
-                              "Unknown";
-                        const parts = userName.split(" ");
-                        return (
-                          <>
-                            {parts[0]?.[0]?.toUpperCase() ?? "A"}
-                            {parts[parts.length - 1]?.[0]?.toUpperCase() ?? ""}
-                          </>
-                        );
-                      })()}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm">
-                      <span className="font-semibold">
-                        {activity.user || "Unknown User"}
-                      </span>{" "}
-                      <span className="text-muted-foreground">
-                        {activity?.action
-                          ? at(activity?.action, activity.metadata || {})
-                          : activity?.description}
+              {(activities ?? []).map((activity, index) => {
+                return (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center shrink-0">
+                      <span className="text-sm font-semibold text-orange-600">
+                        {(() => {
+                          const userName =
+                            typeof activity?.user === "string"
+                              ? activity.user
+                              : (activity?.user as any)?.name ||
+                                user?.name ||
+                                "Unknown";
+                          const parts = userName.split(" ");
+                          return (
+                            <>
+                              {parts[0]?.[0]?.toUpperCase() ?? "A"}
+                              {parts[parts.length - 1]?.[0]?.toUpperCase() ??
+                                ""}
+                            </>
+                          );
+                        })()}
                       </span>
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {parseDate(activity?._creationTime)}
-                    </p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm">
+                        <span className="font-semibold">
+                          {activity.user || "Unknown User"}
+                        </span>{" "}
+                        <span className="text-muted-foreground">
+                          {activity?.action
+                            ? at(
+                                activity?.action,
+                                getMetadataDescription(activity),
+                              )
+                            : activity?.description}
+                        </span>
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {parseDate(activity?._creationTime)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         </MotionDiv>

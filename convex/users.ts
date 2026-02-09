@@ -174,7 +174,11 @@ export const createUser = mutation({
       user: `${args.firstName} ${args.lastName}`,
       action: "signUp",
       description: `registered on the platform`,
-      metadata: { email: args.email, role: args.role || "member" },
+      metadata: {
+        email: args.email,
+        role: args.role || "member",
+        user: args.firstName,
+      },
       timestamp: Date.now(),
     });
 
@@ -206,7 +210,9 @@ export const createUser = mutation({
       action: "account_created",
       user: `${args.firstName} ${args.lastName}`,
       description: `created payment account`,
-      metadata: {},
+      metadata: {
+        user: args.firstName,
+      },
       timestamp: Date.now(),
     });
 
@@ -282,7 +288,10 @@ export const updateUser = mutation({
       user: `${user.firstName} ${user.lastName}`,
       action: "profileUpdate",
       description: `updated their profile`,
-      metadata: updates,
+      metadata: {
+        ...updates,
+        user: user.firstName,
+      },
       timestamp: Date.now(),
     });
 
@@ -342,7 +351,7 @@ export const updateUserStatusAndRole = mutation({
       metadata: {
         oldStatus: user.status,
         newStatus: args.status,
-        userAffected: user.firstName,
+        user: user.firstName,
         newRole: args.role,
         oldRole: user.role,
       },
@@ -375,7 +384,7 @@ export const deleteUser = mutation({
       user: `${authUser.firstName} ${authUser.lastName}`,
       action: "userDeletion",
       description: `removed ${user.firstName} from the system`,
-      metadata: { email: user.email, deleteUser: user.firstName },
+      metadata: { email: user.email, user: user.firstName },
       timestamp: Date.now(),
     });
 
@@ -407,7 +416,9 @@ export const updatePassword = mutation({
       user: `${user.firstName} ${user.lastName}`,
       action: "passwordUpdate",
       description: `updated their password`,
-      metadata: {},
+      metadata: {
+        user: user.firstName,
+      },
       timestamp: Date.now(),
     });
 
@@ -445,7 +456,9 @@ export const resetPassword = mutation({
       action: "passwordReset",
       type: "profile",
       description: `reset their password using the forgot password flow`,
-      metadata: {},
+      metadata: {
+        user: user.firstName,
+      },
       timestamp: Date.now(),
     });
 
@@ -470,19 +483,6 @@ export const verifyCredentials = query({
     }
 
     return user;
-  },
-});
-
-export const saveSubscription = mutation({
-  args: { subscription: v.string(), email: v.string() },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(args.email, ctx); // or pass from Next
-    if (!user) throw new Error("Not logged in");
-
-    await ctx.db.insert("pushSubscriptions", {
-      userId: user._id,
-      subscription: args.subscription,
-    });
   },
 });
 

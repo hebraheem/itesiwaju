@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser, hasPermission } from "@/convex/utils";
 import { paginationOptsValidator } from "convex/server";
+import { parseDate } from "@/lib/utils";
 
 // Get account by user ID
 export const getAccountByUserId = query({
@@ -180,7 +181,11 @@ export const recordBorrow = mutation({
       user: `${authUser.firstName} ${authUser.lastName}`,
       action: "record_borrow",
       description: `recorded borrow of EUR${args.amount.toLocaleString()} for ${user?.firstName}`,
-      metadata: { amount: args.amount, dueDate: args.dueDate },
+      metadata: {
+        amount: args.amount,
+        dueDate: args.dueDate,
+        user: user?.firstName,
+      },
       timestamp: Date.now(),
     });
 
@@ -336,6 +341,7 @@ export const recordPayment = mutation({
       metadata: {
         paymentType: args.paymentType,
         amount: args.amount,
+        user: user?.firstName,
       },
       timestamp: Date.now(),
     });
@@ -360,7 +366,7 @@ export const recordFine = mutation({
       args.authEmail,
     );
     if (!hasAccess) throw new Error("Unauthorized");
-
+    const user = await ctx.db.get(args.userId);
     const account = await ctx.db
       .query("accounts")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -399,8 +405,12 @@ export const recordFine = mutation({
       type: "payment",
       user: `${authUser.firstName} ${authUser.lastName}`,
       action: "record_fine",
-      description: `recorded fine of EUR${args.amount.toLocaleString()} for ${account.userId} for reason: ${args.reason}`,
-      metadata: { amount: args.amount, reason: args.reason },
+      description: `recorded fine of EUR${args.amount.toLocaleString()} for ${user?.firstName} for reason: ${args.reason}`,
+      metadata: {
+        amount: args.amount,
+        reason: args.reason,
+        user: user?.firstName,
+      },
       timestamp: Date.now(),
     });
     return account._id;
@@ -594,7 +604,11 @@ export const recordDue = mutation({
       user: `${authUser.firstName} ${authUser.lastName}`,
       action: "record_due",
       description: `recorded dues of EUR${args.amount.toLocaleString()} for ${user?.firstName}`,
-      metadata: { amount: args.amount, dueDate: args.dueDate },
+      metadata: {
+        amount: args.amount,
+        dueDate: args.dueDate,
+        user: user?.firstName,
+      },
       timestamp: Date.now(),
     });
 

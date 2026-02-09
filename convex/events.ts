@@ -296,8 +296,10 @@ export const updateEvent = mutation({
     await ctx.db.patch(id, {
       ...updateData,
       media: mediaWithUrl?.length
-        ? [...mediaWithUrl, ...((event?.media ?? []) as MediaWithUrl)]
-        : event.media,
+        ? [...mediaWithUrl, ...(Array.isArray(event?.media) ? event.media : [])]
+        : Array.isArray(event?.media)
+          ? event.media
+          : [],
       updatedAt: Date.now(),
       searchField:
         `${args.title ?? event.title} ${args.description ?? event.description} ${args.location ?? event.location}`.toLowerCase(),
@@ -360,7 +362,11 @@ export const deleteEvent = mutation({
       action: "eventDeleted",
       user: `${user.firstName} ${user.lastName}`,
       description: `deleted event "${event.title}"`,
-      metadata: { eventId: args.id, title: event.title },
+      metadata: {
+        eventId: args.id,
+        title: event.title,
+        user: `${user.firstName} ${user.lastName}`,
+      },
       timestamp: Date.now(),
     });
 
@@ -411,7 +417,12 @@ export const cancelEvent = mutation({
       user: `${user.firstName} ${user.lastName}`,
       action: "eventCancelled",
       description: `cancelled "${event.title}" ${args.reason ? `: ${args.reason}` : ""}`,
-      metadata: { eventId: args.id, reason: args.reason },
+      metadata: {
+        eventId: args.id,
+        reason: args.reason,
+        title: event.title,
+        user: `${user.firstName} ${user.lastName}`,
+      },
       timestamp: Date.now(),
     });
 
@@ -461,7 +472,11 @@ export const completeEvent = mutation({
       user: `${user.firstName} ${user.lastName}`,
       action: "eventCompleted",
       description: `marked event "${event.title}" as completed`,
-      metadata: { eventId: args.id },
+      metadata: {
+        eventId: args.id,
+        title: event.title,
+        user: `${user.firstName} ${user.lastName}`,
+      },
       timestamp: Date.now(),
     });
 

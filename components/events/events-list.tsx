@@ -71,7 +71,7 @@ export function EventsList() {
       </div>
 
       <Tabs defaultValue="upcoming" className="space-y-6">
-        <TabsList className="overflow-x-auto w-full md:pl-32">
+        <TabsList className="overflow-x-auto w-full">
           {Object.keys(EVENT_STATUSES).map((evt) => (
             <TabsTrigger
               key={evt}

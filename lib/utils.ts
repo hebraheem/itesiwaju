@@ -6,6 +6,7 @@ import {
   UserPlus,
   Wallet,
 } from "lucide-react";
+import { Id } from "@/convex/_generated/dataModel";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -215,3 +216,77 @@ export function extractErrorMessage(raw: any) {
 
   return cleaned.trim();
 }
+
+export const getMetadataDescription = (activity: ActivityType): any => {
+  const { metadata, action } = activity;
+  return {
+    eventUpdated: { title: metadata?.title },
+    eventCreated: { title: metadata?.title },
+    eventDeleted: { title: metadata?.title, user: metadata?.user },
+    eventCancelled: {
+      title: metadata?.title,
+      user: metadata?.user,
+      reason: metadata?.reason,
+    },
+    record_borrow: {
+      amount: metadata?.amount?.toLocaleString(),
+      dueDate: parseDate(metadata?.dueDate),
+      user: metadata?.user,
+    },
+    record_due: {
+      amount: metadata?.amount?.toLocaleString(),
+      dueDate: parseDate(metadata?.dueDate),
+      user: metadata?.user,
+    },
+    record_fine: {
+      amount: metadata?.amount?.toLocaleString(),
+      reason: metadata?.reason,
+      user: metadata?.user,
+    },
+    record_payment: {
+      amount: metadata?.amount?.toLocaleString(),
+      paymentType: metadata?.paymentType,
+      user: metadata?.user,
+    },
+    delete_account: {
+      user: metadata?.user,
+    },
+    passwordReset: {
+      user: metadata?.user,
+    },
+    passwordUpdate: {
+      user: metadata?.user,
+    },
+    userDeletion: {
+      user: metadata?.user,
+    },
+    statusRoleUpdate: {
+      user: metadata?.user,
+      newStatus: metadata?.newStatus,
+      newRole: metadata?.newRole,
+    },
+    profileUpdate: {
+      user: metadata?.user,
+    },
+    account_created: {
+      user: metadata?.user,
+    },
+    signUp: {
+      user: metadata?.user,
+      role: metadata?.role,
+    },
+  }[action || ""];
+};
+
+export type ActivityType = {
+  _id: Id<"activities">;
+  _creationTime: number;
+  action?: string | undefined;
+  user?: string | undefined;
+  receiver?: string | undefined;
+  metadata: Record<string, any>;
+  type: "member" | "payment" | "profile" | "event" | "system";
+  description: string;
+  userId: Id<"users">;
+  timestamp: number;
+};

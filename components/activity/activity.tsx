@@ -21,6 +21,7 @@ import { usePaginatedQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import {
   ACTIVITY_TYPES,
+  getMetadataDescription,
   parseDate,
   removeEmptyFields,
   USER_ROLES,
@@ -222,13 +223,11 @@ export function Activity() {
                                   </span>{" "}
                                   <span className="text-muted-foreground">
                                     {activity?.action
-                                      ? activity.metadata &&
-                                        Object.keys(activity.metadata).length >
-                                          0
-                                        ? t(activity.action, activity.metadata)
-                                        : activity.description ||
-                                          t(activity.action, {})
-                                      : activity.description}
+                                      ? t(
+                                          activity?.action,
+                                          getMetadataDescription(activity),
+                                        )
+                                      : activity?.description}
                                   </span>
                                 </p>
                               </div>
