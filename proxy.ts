@@ -10,20 +10,8 @@ export default auth((req) => {
   const isLoggedIn = !!token;
   const { pathname } = req.nextUrl;
 
-  // // Public routes
-  // const isPublicRoute =
-  //   pathname === "/" ||
-  //   pathname === "/en" ||
-  //   pathname === "/yo" ||
-  //   pathname === "/fr" ||
-  //   pathname === "/de" ||
-  //   pathname.match(/^\/(en|yo|fr|de)\/?$/) ||
-  //   pathname.match(/^\/(en|yo|fr|de)\/(login|register|forgot-password)/) ||
-  //   pathname.startsWith("/api/auth");
-
   // Dashboard routes
   const isDashboardRoute = pathname.match(/^\/(en|yo|fr|de)\/dashboard/);
-  console.log("isLoggedIn", isLoggedIn);
 
   if (!isLoggedIn && isDashboardRoute) {
     const locale = pathname.split("/")[1];
