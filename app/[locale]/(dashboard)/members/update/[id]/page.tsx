@@ -4,9 +4,9 @@ import { MemberForm } from "@/components/members/member-form";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { use } from "react";
-import { useSession } from "next-auth/react";
 import { UserModel } from "@/types/userModel";
 import Loader from "@/components/common/Loader";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export default function UpdateMemberPage({
   params,
@@ -14,12 +14,12 @@ export default function UpdateMemberPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const session = useSession();
+  const { user: u } = useAuth();
 
   const user = useQuery(api.users.getUserById, {
     // @ts-expect-error id type Id<User> not assignable to string
     id,
-    email: session.data?.user?.email ?? "",
+    email: u?.email ?? "",
   }) as UserModel;
 
   if (!user) {

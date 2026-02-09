@@ -17,7 +17,7 @@ export async function signIn(email: string, password: string) {
 
     revalidatePath("/dashboard", "layout");
 
-    return { success: true, error: null };
+    return { success: true, error: null, email };
   } catch (error) {
     if (error instanceof AuthError) {
       return {

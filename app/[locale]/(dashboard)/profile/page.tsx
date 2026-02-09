@@ -1,11 +1,11 @@
 "use client";
 
-import { Profile } from '@/components/profile/profile';
-import { useSession } from 'next-auth/react';
+import { Profile } from "@/components/profile/profile";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export default function ProfilePage() {
-  const { data: session } = useSession();
-  
+  const { user } = useAuth();
+
   // Force remount when session email changes
-  return <Profile key={session?.user?.email || 'no-user'} />;
+  return <Profile key={user?.email || "no-user"} />;
 }

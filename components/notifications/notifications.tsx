@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useSession } from "next-auth/react";
 import { useRouter } from "@/i18n/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -26,14 +25,15 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function Notifications() {
   const t = useTranslations("notifications");
-  const { data: session } = useSession();
+  const { user } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("all");
 
-  const userEmail = session?.user?.email || "";
+  const userEmail = user?.email || "";
 
   // Get current user
   const currentUser = useQuery(

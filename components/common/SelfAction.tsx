@@ -1,11 +1,11 @@
 "use client";
 
 import { ReactNode } from "react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 const SelfAction = ({ id, children }: { id: string; children: ReactNode }) => {
-  const session = useSession();
-  const userId = session.data?.user?.id ?? "";
+  const { user } = useAuth();
+  const userId = user?._id ?? "";
 
   if (id !== userId) {
     return null;

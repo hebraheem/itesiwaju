@@ -68,82 +68,6 @@ export const markAllAsRead = mutation({
   },
 });
 
-// Create notification
-export const createNotification = mutation({
-  args: {
-    userId: v.id("users"),
-    title: v.string(),
-    message: v.string(),
-    type: v.union(
-      v.literal("member"),
-      v.literal("event"),
-      v.literal("payment"),
-      v.literal("profile"),
-      v.literal("system"),
-    ),
-    relatedId: v.optional(v.string()),
-    actionUrl: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    return await ctx.db.insert("notifications", {
-      userId: args.userId,
-      title: args.title,
-      message: args.message,
-      type: args.type,
-      relatedId: args.relatedId,
-      actionUrl: args.actionUrl,
-      read: false,
-      createdAt: Date.now(),
-    });
-  },
-});
-
-// Bulk create notifications (for all members)
-export const createBulkNotifications = mutation({
-  args: {
-    title: v.string(),
-    message: v.string(),
-    type: v.union(
-      v.literal("member"),
-      v.literal("event"),
-      v.literal("payment"),
-      v.literal("profile"),
-      v.literal("system"),
-    ),
-    relatedId: v.optional(v.string()),
-    actionUrl: v.optional(v.string()),
-    excludeUserId: v.optional(v.id("users")),
-  },
-  handler: async (ctx, args) => {
-    // Get all active users
-    const users = await ctx.db
-      .query("users")
-      .withIndex("by_status", (q) => q.eq("status", "active"))
-      .collect();
-
-    const notifications = users
-      .filter((user) => !args.excludeUserId || user._id !== args.excludeUserId)
-      .map((user) => ({
-        userId: user._id,
-        title: args.title,
-        message: args.message,
-        type: args.type,
-        relatedId: args.relatedId,
-        actionUrl: args.actionUrl,
-        read: false,
-        createdAt: Date.now(),
-      }));
-
-    await Promise.all(
-      notifications.map((notification) =>
-        ctx.db.insert("notifications", notification),
-      ),
-    );
-
-    return notifications.length;
-  },
-});
-
 // Delete notification
 export const deleteNotification = mutation({
   args: {
@@ -172,5 +96,44 @@ export const deleteReadNotifications = mutation({
     );
 
     return notifications.length;
+  },
+});
+
+export const getUserSubscriptions = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("pushSubscriptions")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+  },
+});
+
+export const removeSubscription = mutation({
+  args: { endpoint: v.string() },
+  handler: async (ctx, args) => {
+    const subs = await ctx.db
+      .query("pushSubscriptions")
+      .withIndex("by_endpoint", (q) => q.eq("endpoint", args.endpoint))
+      .collect();
+
+    for (const s of subs) {
+      await ctx.db.delete(s._id);
+    }
+  },
+});
+
+export const addSubscription = mutation({
+  args: {
+    userId: v.id("users"),
+    subscription: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("pushSubscriptions", {
+      userId: args.userId,
+      subscription: args.subscription,
+      endpoint: JSON.parse(args.subscription).endpoint,
+      createdAt: Date.now(),
+    });
   },
 });

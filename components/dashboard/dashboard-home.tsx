@@ -17,15 +17,24 @@ import {
   USER_ROLES,
 } from "@/lib/utils";
 import { usePaginatedQuery } from "convex-helpers/react";
-import { useSession } from "next-auth/react";
 import { Id } from "@/convex/_generated/dataModel";
+import { useEffect } from "react";
+import { pushNotificationService } from "@/lib/push-notification-service";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function DashboardHome() {
-  const session = useSession();
+  const data = useAuth();
   const t = useTranslations("dashboard");
   const at = useTranslations("activity");
+  const user = { ...data.user, id: data.user?._id as Id<"users"> };
 
-  const user = session.data?.user;
+  useEffect(() => {
+    const subscribeToPushNotifications = async () => {
+      if (!user?.id) return;
+      await pushNotificationService.subscribe(user?.id);
+    };
+    subscribeToPushNotifications();
+  }, [user?.id]);
 
   const { results: upcomingEvents } = usePaginatedQuery(
     api.events.getEvents,
@@ -248,9 +257,12 @@ export function DashboardHome() {
                   <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center shrink-0">
                     <span className="text-sm font-semibold text-orange-600">
                       {(() => {
-                        const userName = typeof activity?.user === 'string' 
-                          ? activity.user 
-                          : (activity?.user as any)?.name || user?.name || 'Unknown';
+                        const userName =
+                          typeof activity?.user === "string"
+                            ? activity.user
+                            : (activity?.user as any)?.name ||
+                              user?.name ||
+                              "Unknown";
                         const parts = userName.split(" ");
                         return (
                           <>
@@ -264,7 +276,7 @@ export function DashboardHome() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">
                       <span className="font-semibold">
-                        {activity.user || 'Unknown User'}
+                        {activity.user || "Unknown User"}
                       </span>{" "}
                       <span className="text-muted-foreground">
                         {activity?.action

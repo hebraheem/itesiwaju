@@ -36,6 +36,7 @@ export function LoginForm() {
 
       if (state?.success) {
         toast.success(t("successMessage"));
+        localStorage.setItem("authEmail", state?.email ?? "");
         router.push("/dashboard");
       }
     },

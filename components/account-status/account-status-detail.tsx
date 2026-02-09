@@ -2,7 +2,6 @@
 
 import { useState, useActionState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { useSession } from "next-auth/react";
 import { useRouter } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,13 +47,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import * as React from "react";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function AccountStatusDetail({ memberId }: { memberId: string }) {
   const t = useTranslations("accountStatus");
-  const session = useSession();
+  const { user } = useAuth();
   const accountStand = useQuery(api.accounts.getAccountByUserId, {
     userId: memberId as Id<"users">,
-    authEmail: session.data?.user?.email || "",
+    authEmail: user?.email || "",
   });
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
@@ -295,7 +295,7 @@ function ActionDialog({
   memberName: string;
 }) {
   const t = useTranslations("accountStatus");
-  const { data: session } = useSession();
+  const { user } = useAuth();
 
   const [paymentState, paymentAction, isPendingPayment] = useActionState(
     recordPaymentAction,
@@ -418,7 +418,7 @@ function ActionDialog({
                 <input
                   type="hidden"
                   name="authEmail"
-                  value={session?.user?.email || ""}
+                  value={user?.email || ""}
                 />
 
                 <div className="space-y-2">

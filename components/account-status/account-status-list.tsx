@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useSession } from "next-auth/react";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,10 +20,11 @@ import {
   removeEmptyFields,
 } from "@/lib/utils";
 import { usePaginatedQuery } from "convex-helpers/react";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function AccountStatusList() {
   const t = useTranslations("accountStatus");
-  const { data: session } = useSession();
+  const { user } = useAuth();
 
   const [query, setQuery] = useState({
     search: "",
@@ -34,7 +34,7 @@ export function AccountStatusList() {
 
   const convexArgs = {
     ...removeEmptyFields(query),
-    authEmail: session?.user?.email || "",
+    authEmail: user?.email || "",
   };
 
   const copyConvexArgs = { ...convexArgs };
@@ -46,7 +46,7 @@ export function AccountStatusList() {
   );
 
   const accountSummary = useQuery(api.accounts.getAccountStats, {
-    authEmail: session?.user?.email || "",
+    authEmail: user?.email || "",
   });
 
   const getStatusBadgeVariant = (status: string) => {

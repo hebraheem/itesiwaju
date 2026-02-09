@@ -12,6 +12,7 @@ export type RegisterState = {
   message?: string;
   email?: string;
   password?: string;
+  id?: string;
 };
 
 export async function loginAction(
@@ -21,7 +22,6 @@ export async function loginAction(
   try {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-
     const data = { email, password };
     const parsed = loginSchema.safeParse(data);
     if (!parsed.success) {
@@ -32,6 +32,7 @@ export async function loginAction(
     }
     await convexServer.mutation(api.accounts.initTreasury);
     const user = await convexServer.query(api.users.getUserByEmail, { email });
+
     if (user && user.status === USER_STATUSES.suspended) {
       return {
         message: "accountSuspendedErrorMessage",

@@ -7,28 +7,27 @@ import { Badge } from "@/components/ui/badge";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/common/ThemeSwitcher";
 import { useRouter } from "@/i18n/navigation";
-import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
 import Image from "next/image";
 import logo from "@/public/images/logo.png";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function DashboardTopbar() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const userEmail = session?.user?.email || "";
+  const { user } = useAuth();
+  const userEmail = user?.email || "";
 
   // Get current user
   const currentUser = useQuery(
     api.users.getUserByEmail,
-    userEmail ? { email: userEmail } : "skip"
+    userEmail ? { email: userEmail } : "skip",
   );
 
   // Get unread notification count
   const unreadCount = useQuery(
     api.notifications.getUnreadCount,
-    currentUser?._id ? { userId: currentUser._id } : "skip"
+    currentUser?._id ? { userId: currentUser._id } : "skip",
   );
 
   return (

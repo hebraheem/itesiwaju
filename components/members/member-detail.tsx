@@ -10,22 +10,22 @@ import { ArrowLeft, Edit, Mail, Phone, Calendar, Locate } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useSession } from "next-auth/react";
 import Loader from "@/components/common/Loader";
 import Link from "next/link";
 import { buildAddress, parseDate } from "@/lib/utils";
 import { UserModel } from "@/types/userModel";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { Id } from "@/convex/_generated/dataModel";
 
 export function MemberDetail({ memberId }: { memberId: string }) {
   const t = useTranslations("members");
   const tc = useTranslations("common");
   const router = useRouter();
-  const session = useSession();
+  const { user } = useAuth();
 
   const member = useQuery(api.users.getUserById, {
-    // @ts-expect-error id type Id<User> not assignable to string
-    id: memberId,
-    email: session?.data?.user?.email ?? "",
+    id: memberId as Id<"users">,
+    email: user?.email ?? "",
   }) as UserModel;
 
   if (!member) {

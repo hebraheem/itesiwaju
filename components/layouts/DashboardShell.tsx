@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
+import { useAuth } from "@/lib/hooks/use-auth";
+import Image from "next/image";
+import logo from "@/public/apple-touch-icon.png";
 
 export function DashboardShell({
   children,
@@ -15,14 +16,34 @@ export function DashboardShell({
   sidebar: React.ReactNode;
   topbar: React.ReactNode;
 }) {
-  const session = useSession();
+  const data = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!session.data && session.status === "unauthenticated") {
-      router.push("/login");
-    }
-  }, [session.status, session.data, router]);
+  useEffect(
+    () => {
+      if (!data.isLoading && !data.isAuthenticated) {
+        router.push("/login");
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data.isLoading, data.isAuthenticated],
+  );
+
+  if (data.isLoading || !data.isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-orange-500">
+          <Image
+            src={logo}
+            alt="logo"
+            width={120}
+            height={120}
+            className="rounded-full"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

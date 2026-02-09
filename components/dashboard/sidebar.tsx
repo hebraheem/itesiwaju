@@ -20,6 +20,7 @@ import logo from "@/public/images/logo.png";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { signOut } from "@/lib/actions/auth";
+import { pushNotificationService } from "@/lib/push-notification-service";
 
 export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
   const t = useTranslations("sidebar");
@@ -142,6 +143,8 @@ export function DashboardSidebar({ onClose }: { onClose?: () => void }) {
           className="w-full"
           onClick={async () => {
             await signOut();
+            await pushNotificationService.unsubscribe();
+            localStorage.removeItem("authEmail");
           }}
         >
           <LogOut className="w-4 h-4 mr-2" />

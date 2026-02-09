@@ -20,6 +20,7 @@ import { useState } from "react";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { pushNotificationService } from "@/lib/push-notification-service";
 
 export function BottomNav() {
   const t = useTranslations("sidebar");
@@ -49,6 +50,8 @@ export function BottomNav() {
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/login" });
+    await pushNotificationService.unsubscribe();
+    localStorage.removeItem("authEmail");
   };
 
   return (

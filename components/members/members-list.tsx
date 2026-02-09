@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,15 +22,15 @@ import { usePaginatedQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import RoleAction from "@/components/common/RoleAction";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function MembersList() {
   const t = useTranslations("members");
-  const tc = useTranslations("common");
-  const { data: session } = useSession();
+  const { user } = useAuth();
   const [query, setQuery] = useState({ search: "", limit: 10 });
   const { results, loadMore, isLoading, status } = usePaginatedQuery(
     api.users.getUsers,
-    { userEmail: session?.user.email ?? "", ...query },
+    { userEmail: user?.email ?? "", ...query },
     {
       initialNumItems: 10,
     },
@@ -141,7 +140,7 @@ export function MembersList() {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold">
                     {member.firstName} {member.lastName}{" "}
-                    {session?.user?.id === member._id ? "(You)" : ""}
+                    {user?._id === member._id ? "(You)" : ""}
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     {member.email}

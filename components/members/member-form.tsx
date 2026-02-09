@@ -22,14 +22,14 @@ import {
 } from "@/app/actions/register.action";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslations } from "next-intl";
-import { useSession } from "next-auth/react";
 import { UserModel } from "@/types/userModel";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function MemberForm({ user }: { user?: UserModel | null }) {
   const router = useRouter();
   const t = useTranslations("auth.register");
   const tc = useTranslations("common");
-  const session = useSession();
+  const { user: authUser } = useAuth();
 
   const [state, action, isPending] = useActionState(
     user ? adminUpdateAction : registerAction,
@@ -198,7 +198,7 @@ export function MemberForm({ user }: { user?: UserModel | null }) {
             )}
             <input
               name="authEmail"
-              defaultValue={session.data?.user?.email ?? ""}
+              defaultValue={authUser?.email ?? ""}
               hidden
             />
             <input name="id" defaultValue={user?._id ?? ""} hidden />

@@ -28,14 +28,14 @@ import {
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { useSession } from "next-auth/react";
 import RoleAction from "@/components/common/RoleAction";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function Activity() {
   const t = useTranslations("activity");
-  const { data: session } = useSession();
+  const { user } = useAuth();
 
   const [query, setQuery] = useState({
     type: "" as keyof typeof ACTIVITY_TYPES,
@@ -45,7 +45,7 @@ export function Activity() {
 
   const convexArgs = {
     ...removeEmptyFields(query),
-    userId: (query.onlyMine ? session?.user?.id : undefined) as any,
+    userId: (query.onlyMine ? user?._id : undefined) as any,
   };
 
   const copyConvexArgs = { ...convexArgs };
