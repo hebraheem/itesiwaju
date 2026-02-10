@@ -275,7 +275,7 @@ export const getMetadataDescription = (activity: ActivityType): any => {
       user: metadata?.user,
       role: metadata?.role,
     },
-  }[action];
+  }[action || ""];
 };
 
 export type ActivityType = {
