@@ -3,6 +3,7 @@
 import { api } from "@/convex/_generated/api";
 import { convexServer } from "@/lib/convexServer";
 import { Id } from "@/convex/_generated/dataModel";
+import { getUserSubscriptions } from "@/convex/notifications";
 
 export class PushNotificationService {
   private static instance: PushNotificationService;
@@ -111,6 +112,19 @@ export class PushNotificationService {
     userId: Id<"users">,
   ) {
     try {
+      const sub = convexServer.query(api.notifications.getUserSubscriptions, {
+        userId,
+      });
+      const existing = (await sub).find(
+        (s) => s.endpoint === subscription.endpoint,
+      );
+      if (existing) {
+        console.log(
+          "Subscription already exists in backend:",
+          subscription.endpoint,
+        );
+        return;
+      }
       await convexServer.mutation(api.notifications.addSubscription, {
         subscription: JSON.stringify(subscription),
         userId,
