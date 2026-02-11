@@ -26,9 +26,9 @@ export function useAuth() {
           name: `${user.firstName ?? ""} ${user.lastName ?? ""}`,
         }
       : null,
-    isLoading:
-      status === "loading" ||
-      (status === "authenticated" && user === undefined),
+    isLoading: !session?.user,
+    //status === "loading" ||
+    //(status === "authenticated" && user === undefined),
     isAuthenticated: status === "authenticated" && !!user,
     isAdmin: session?.user?.role === "admin" || user?.role === "admin",
     isMember: session?.user?.role === "member" || user?.role === "member",
