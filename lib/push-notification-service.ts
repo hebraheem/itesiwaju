@@ -131,7 +131,7 @@ export class PushNotificationService {
       });
       console.log("Subscription saved to backend:", subscription.endpoint);
     } catch (error) {
-      console.error("Failed to save subscription:", error);
+      // console.error("Failed to save subscription:", error);
     }
   }
 
