@@ -119,10 +119,10 @@ export class PushNotificationService {
         (s) => s.endpoint === subscription.endpoint,
       );
       if (existing) {
-        console.log(
-          "Subscription already exists in backend:",
-          subscription.endpoint,
-        );
+        // console.log(
+        //   "Subscription already exists in backend:",
+        //   subscription.endpoint,
+        // );
         return;
       }
       await convexServer.mutation(api.notifications.addSubscription, {
