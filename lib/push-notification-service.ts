@@ -94,7 +94,7 @@ export class PushNotificationService {
     title: string,
     options?: NotificationOptions,
   ): Promise<void> {
-    if (!("Notification" in window)) return;
+    // if (!("Notification" in window)) return;
 
     if (Notification.permission === "granted") {
       const registration = await navigator.serviceWorker.ready;
