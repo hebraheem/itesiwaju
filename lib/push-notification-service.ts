@@ -99,8 +99,8 @@ export class PushNotificationService {
     if (Notification.permission === "granted") {
       const registration = await navigator.serviceWorker.ready;
       await registration.showNotification(title, {
-        // icon: "/icons/icon-192x192.png",
-        // badge: "/icons/icon-72x72.png",
+        icon: "/icons/icon-192x192.png",
+        badge: "/icons/icon-72x72.png",
         ...options,
       });
     }
