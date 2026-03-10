@@ -13,7 +13,7 @@ Itesiwaju (meaning "Progress" in Yoruba) is a comprehensive community club manag
 
 ## ✨ Features
 
-### 🌍 Multilingual Support
+### Multilingual Support
 - **4 Languages:** English, Yoruba, French, German
 - Dynamic language switching
 - Fully translated UI and content
