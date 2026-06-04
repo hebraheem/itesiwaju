@@ -12,7 +12,6 @@ export async function getCurrentUser(
     .unique();
 
   if (!user) throw new Error("User not logged in or does not exist");
-
   return user;
 }
 

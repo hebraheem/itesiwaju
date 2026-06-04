@@ -497,8 +497,11 @@ export const recordBorrow = mutation({
       args.amount,
     );
 
+    const borrowPlusInterest = args.amount * 1.1 // 10% INTEREST
+
     // Calculate new amounts
-    const newBorrowedAmount = account.currentBorrowedAmount + args.amount;
+    const newBorrowedAmount =
+      account.currentBorrowedAmount + borrowPlusInterest;
     const newStatus = calculateAccountStatus(
       newBorrowedAmount,
       account.currentFineAmount,
@@ -509,7 +512,8 @@ export const recordBorrow = mutation({
     // Update account with borrow record
     await ctx.db.patch(account._id, {
       currentBorrowedAmount: newBorrowedAmount,
-      borrowedAmountToBalance: account.borrowedAmountToBalance + args.amount,
+      borrowedAmountToBalance:
+        account.borrowedAmountToBalance + borrowPlusInterest,
       totalBorrowedAmount: account.totalBorrowedAmount + args.amount,
       dueDate: args.dueDate,
       status: newStatus,
@@ -517,9 +521,9 @@ export const recordBorrow = mutation({
         ...account.paymentHistory,
         {
           type: "borrow",
-          amount: args.amount,
+          amount: borrowPlusInterest,
           date: Date.now(),
-          description: args.description ?? "Borrowed amount",
+          description: args.description ?? "Borrowed amount and 10% interest",
           dueDate: args.dueDate,
         },
       ],
@@ -534,8 +538,9 @@ export const recordBorrow = mutation({
         : 0;
 
     await ctx.db.patch(treasury._id, {
-      totalBorrowed: treasury.totalBorrowed + args.amount,
-      totalOutStandingBorrow: treasury.totalOutStandingBorrow + args.amount,
+      totalBorrowed: treasury.totalBorrowed + borrowPlusInterest,
+      totalOutStandingBorrow:
+        treasury.totalOutStandingBorrow + borrowPlusInterest,
       noOfOwingMembers: treasury.noOfOwingMembers + owingMemberDelta,
       moneyAtHand: treasury.moneyAtHand - args.amount,
     });
@@ -598,8 +603,8 @@ export const recordPayment = mutation({
       account,
       userId: args.userId,
       amount: args.amount,
-      paymentType: PAYMENT_TYPE.FINE_PAYMENT,
-      description: `Immediate fine payment`,
+      paymentType: args.paymentType,
+      description: args.description,
       authUser,
       userDetails: user,
     });

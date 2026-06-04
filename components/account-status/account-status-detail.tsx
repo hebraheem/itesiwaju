@@ -50,6 +50,13 @@ import { useAuth } from "@/lib/hooks/use-auth";
 import { Checkbox } from "../ui/checkbox";
 
 let logged = false;
+type Payment = {
+  amount: number;
+  date: number;
+  description: string;
+  dueDate: number;
+  type: string;
+};
 export function AccountStatusDetail({ memberId }: { memberId: string }) {
   const t = useTranslations("accountStatus");
   const { user } = useAuth();
@@ -69,11 +76,15 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
     setIsActionDialogOpen(true);
   };
 
-  const filteredPayments = (accountStand?.paymentHistory || []).filter(
-    (payment) =>
-      payment.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.amount?.toString().includes(searchQuery),
-  );
+  const filteredPayments: Payment[] = (accountStand?.paymentHistory || [])
+    .filter(
+      (payment: Payment) =>
+        payment.description
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        payment.amount?.toString().includes(searchQuery),
+    )
+    .sort((a: Payment, b: Payment) => a.date < b.date);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {

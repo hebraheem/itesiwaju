@@ -10,7 +10,6 @@ import MotionDiv from "@/components/animations/MotionDiv";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
-  ActivityType,
   EVENT_STATUSES,
   getMetadataDescription,
   getMonth,
@@ -28,6 +27,7 @@ export function DashboardHome() {
   const data = useAuth();
   const t = useTranslations("dashboard");
   const at = useTranslations("activity");
+  const acs = useTranslations("accountStatus");
   const user = { ...data.user, id: data.user?._id as Id<"users"> };
 
   useEffect(() => {
@@ -89,9 +89,15 @@ export function DashboardHome() {
     },
     {
       icon: DollarSign,
+      label: "stats.moneyAtHand",
+      value: `€${accountStat?.moneyAtHand?.toLocaleString()}`,
+      color: "from-green-500 to-green-600",
+    },
+    {
+      icon: DollarSign,
       label: "stats.totalOutstanding",
       value: `€${totalOutstanding.toLocaleString()}`,
-      color: "from-green-500 to-green-600",
+      color: "from-red-500 to-green-600",
     },
     {
       icon: AlertCircle,
@@ -134,14 +140,16 @@ export function DashboardHome() {
         animate="show"
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
       >
-        {stats.map((stat, index) => (
-          <MotionDiv key={index} variants={item}>
+        {stats.map((stat) => (
+          <MotionDiv key={stat.label} variants={item}>
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-2">
-                      {t(stat.label)}
+                      {stat.label === "stats.moneyAtHand"
+                        ? acs(stat.label)
+                        : t(stat.label)}
                     </p>
                     <p className="text-3xl font-bold">{stat.value}</p>
                   </div>
