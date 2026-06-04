@@ -61,7 +61,14 @@ export async function createEventAction(
       };
     }
 
-    const uploadedMedia = [];
+    const uploadedMedia: {
+      storageId: string;
+      type: "image" | "video";
+      mimeType: string;
+      size: number;
+      name: string;
+      url?: string;
+    }[] = [];
     const service = id ? api.events.updateEvent : api.events.createEvent;
     const uploadUrl = await convexServer.mutation(api.files.generateUploadUrl);
     for (const file of files) {
@@ -73,7 +80,7 @@ export async function createEventAction(
       const { storageId } = await res.json();
       uploadedMedia.push({
         storageId,
-        type: "image" as "image" | "video",
+        type: "image",
         mimeType: file.type,
         size: file.size,
         url: "",
@@ -97,7 +104,7 @@ export async function createEventAction(
     if (id) {
       (dataToSave as any).id = id;
     }
-    await convexServer.mutation(service, dataToSave);
+    await convexServer.mutation(service, dataToSave as any);
     await convexServer.action(api.actionNode.notifications.sendPush, {
       title: id ? "Event Updated" : "New Event Created",
       message: `The event "${parsed.data.title}" has been ${
