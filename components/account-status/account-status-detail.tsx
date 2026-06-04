@@ -46,9 +46,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import * as React from "react";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { Checkbox } from "../ui/checkbox";
 
+let logged = false;
 export function AccountStatusDetail({ memberId }: { memberId: string }) {
   const t = useTranslations("accountStatus");
   const { user } = useAuth();
@@ -195,8 +196,8 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
               : t("details.goodStanding"),
             color: "bg-purple-500",
           },
-        ].map((stat, i) => (
-          <Card key={i}>
+        ].map((stat) => (
+          <Card key={stat.label}>
             <CardContent className="p-4 md:p-6">
               <div className={`p-2 md:p-3 ${stat.color} rounded-xl w-fit mb-3`}>
                 <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
@@ -234,9 +235,9 @@ export function AccountStatusDetail({ memberId }: { memberId: string }) {
                 {t("noRecords")}
               </p>
             ) : (
-              filteredPayments.map((payment, i) => (
+              filteredPayments.map((payment) => (
                 <div
-                  key={i}
+                  key={payment.type}
                   className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-3 md:p-4 border rounded-lg"
                 >
                   <div className="flex-1">
@@ -349,15 +350,21 @@ function ActionDialog({
   const state = getState();
   const action = getAction();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.message || t("actionSuccess"));
-      onClose();
-    }
-    if (state.success === false && state.message) {
-      toast.error(extractErrorMessage(state.message));
-    }
-  }, [state.success, state.message, onClose, t]);
+  useEffect(
+    () => {
+      if (state.success) {
+        toast.success(state.message || t("actionSuccess"));
+        onClose();
+      }
+      if (state.success === false && state.message && !logged) {
+        // Hack to not show the error more than once
+        logged = true;
+        toast.error(extractErrorMessage(state.message));
+      }
+    },
+    // @eslint-disable-next-line
+    [state.success, state.message, onClose, t],
+  );
 
   if (!actionType || !isOpen) return null;
 
@@ -458,7 +465,6 @@ function ActionDialog({
                     )}
                   </div>
                 )}
-
                 {actionType === "fine" && (
                   <div className="space-y-2">
                     <Label htmlFor="reason">{t("form.reason")}</Label>
@@ -475,6 +481,17 @@ function ActionDialog({
                         {state.errors.reason[0]}
                       </p>
                     )}
+                  </div>
+                )}
+                {(actionType === "fine" || actionType === "due") && (
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="payNow" name="payNow" disabled={isPending} />
+                    <Label
+                      htmlFor="payNow"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {t("form.payNow")}
+                    </Label>
                   </div>
                 )}
 

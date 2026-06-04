@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser, hasPermission } from "@/convex/utils";
 import { paginationOptsValidator } from "convex/server";
-import { ar } from "zod/v4/locales";
+import { Id } from "./_generated/dataModel";
 
 // ============================================================================
 // CONSTANTS & TYPES
@@ -30,8 +30,8 @@ export const BUSINESS_RULES = {
   CURRENCY: "EUR",
 } as const;
 
-type AccountStatus = typeof ACCOUNT_STATUS[keyof typeof ACCOUNT_STATUS];
-type PaymentType = typeof PAYMENT_TYPE[keyof typeof PAYMENT_TYPE];
+type AccountStatus = (typeof ACCOUNT_STATUS)[keyof typeof ACCOUNT_STATUS];
+type PaymentType = (typeof PAYMENT_TYPE)[keyof typeof PAYMENT_TYPE];
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -47,7 +47,8 @@ function calculateAccountStatus(
   outstandingDues: number,
   dueDate: number | undefined,
 ): AccountStatus {
-  const totalOutstanding = outstandingBorrowed + outstandingFine + outstandingDues;
+  const totalOutstanding =
+    outstandingBorrowed + outstandingFine + outstandingDues;
 
   if (totalOutstanding === 0) {
     return ACCOUNT_STATUS.GOOD_STANDING;
@@ -191,6 +192,151 @@ function validateOutstandingBalance(
   }
 }
 
+async function applyPayment(
+  ctx: any,
+  args: {
+    account: any;
+    userId: Id<"users">;
+    amount: number;
+    paymentType: (typeof PAYMENT_TYPE)[keyof typeof PAYMENT_TYPE];
+    description?: string;
+    authUser: any;
+    userDetails: any;
+  },
+  isInstant = false,
+) {
+  const {
+    account,
+    userId,
+    amount,
+    paymentType,
+    description,
+    authUser,
+    userDetails,
+  } = args;
+
+  const updatedAccount = await getAccountByUserIdOrThrow(ctx, userId);
+
+  const outstandingByType = {
+    [PAYMENT_TYPE.FINE_PAYMENT]: updatedAccount.fineToBalance,
+    [PAYMENT_TYPE.BORROW_PAYMENT]: updatedAccount.borrowedAmountToBalance,
+    [PAYMENT_TYPE.DUE_PAYMENT]: updatedAccount.duesToBalance,
+  };
+
+  validateOutstandingBalance(
+    paymentType,
+    outstandingByType[paymentType],
+    `${userDetails?.firstName} ${userDetails?.lastName}`,
+  );
+
+  validatePaymentAmount(
+    paymentType,
+    amount,
+    outstandingByType[paymentType],
+    `${userDetails?.firstName} ${userDetails?.lastName}`,
+  );
+
+  let newBorrowed = updatedAccount.currentBorrowedAmount;
+  let newFine = updatedAccount.currentFineAmount;
+  let newDues = updatedAccount.currentDuesAmount;
+
+  let newBorrowedToBalance = updatedAccount.borrowedAmountToBalance;
+  let newFineToBalance = updatedAccount.fineToBalance;
+  let newDuesToBalance = updatedAccount.duesToBalance;
+
+  switch (paymentType) {
+    case PAYMENT_TYPE.BORROW_PAYMENT:
+      newBorrowed = Math.max(0, updatedAccount.currentBorrowedAmount - amount);
+      newBorrowedToBalance = Math.max(
+        0,
+        updatedAccount.borrowedAmountToBalance - amount,
+      );
+      break;
+
+    case PAYMENT_TYPE.FINE_PAYMENT:
+      newFine = Math.max(0, updatedAccount.currentFineAmount - amount);
+      newFineToBalance = Math.max(0, updatedAccount.fineToBalance - amount);
+      break;
+
+    case PAYMENT_TYPE.DUE_PAYMENT:
+      newDues = Math.max(0, updatedAccount.currentDuesAmount - amount);
+      newDuesToBalance = Math.max(0, updatedAccount.duesToBalance - amount);
+      break;
+  }
+
+  const newStatus = calculateAccountStatus(
+    newBorrowed,
+    newFine,
+    newDues,
+    updatedAccount.dueDate,
+  );
+
+  await ctx.db.patch(updatedAccount._id, {
+    currentBorrowedAmount: newBorrowed,
+    currentFineAmount: newFine,
+    currentDuesAmount: newDues,
+    borrowedAmountToBalance: newBorrowedToBalance,
+    fineToBalance: newFineToBalance,
+    duesToBalance: newDuesToBalance,
+    status: newStatus,
+    paymentHistory: [
+      ...updatedAccount.paymentHistory,
+      {
+        type: paymentType,
+        amount,
+        date: Date.now(),
+        description: description ?? `${paymentType} payment`,
+      },
+    ],
+  });
+
+  const treasury = await getTreasury(ctx);
+  let outstandingBorrow = treasury.totalOutStandingBorrow;
+  let outstandingFine = treasury.totalOutStandingFine;
+  let outstandingDues = treasury.totalOutStandingDues;
+
+  switch (paymentType) {
+    case PAYMENT_TYPE.BORROW_PAYMENT:
+      outstandingBorrow = Math.max(0, outstandingBorrow - amount);
+      break;
+    case PAYMENT_TYPE.FINE_PAYMENT:
+      outstandingFine = Math.max(0, outstandingFine - amount);
+      break;
+    case PAYMENT_TYPE.DUE_PAYMENT:
+      outstandingDues = Math.max(0, outstandingDues - amount);
+      break;
+  }
+
+  const prevStatus = account.status;
+  const owingMemberDelta =
+    !isInstant &&
+    prevStatus !== ACCOUNT_STATUS.GOOD_STANDING &&
+    newStatus === ACCOUNT_STATUS.GOOD_STANDING
+      ? -1
+      : 0;
+
+  await ctx.db.patch(treasury._id, {
+    moneyAtHand: treasury.moneyAtHand + amount,
+    totalOutStandingBorrow: outstandingBorrow,
+    totalOutStandingFine: outstandingFine,
+    totalOutStandingDues: outstandingDues,
+    noOfOwingMembers: Math.max(0, treasury.noOfOwingMembers + owingMemberDelta),
+  });
+
+  await logActivity(
+    ctx,
+    userId,
+    authUser,
+    "record_payment",
+    `Auto payment of ${formatCurrency(amount)} (${paymentType}) for ${userDetails?.firstName}`,
+    {
+      paymentType,
+      amount,
+      user: userDetails?.firstName,
+    },
+  );
+}
+
 // ============================================================================
 // QUERIES
 // ============================================================================
@@ -244,7 +390,10 @@ export const getAllAccounts = query({
       ["admin", "treasurer"],
       args.authEmail,
     );
-    if (!hasAccess) throw new Error("Unauthorized: Only admin and treasurer can view all accounts");
+    if (!hasAccess)
+      throw new Error(
+        "Unauthorized: Only admin and treasurer can view all accounts",
+      );
 
     // Build query based on filter type
     let query;
@@ -295,7 +444,7 @@ export const getAllAccounts = query({
 export const getAccountStats = query({
   args: { authEmail: v.string() },
   handler: async (ctx, args) => {
-    await getCurrentUser(args.authEmail, ctx);   
+    await getCurrentUser(args.authEmail, ctx);
     return await getTreasury(ctx);
   },
 });
@@ -306,7 +455,7 @@ export const getAccountStats = query({
 
 /**
  * Records a borrow transaction for a member
- * 
+ *
  * Business Rules:
  * - Only admin/treasurer can record borrows
  * - Treasury must have sufficient funds
@@ -329,7 +478,9 @@ export const recordBorrow = mutation({
       args.authEmail,
     );
     if (!hasAccess) {
-      throw new Error("Unauthorized: Only admin and treasurer can record borrows");
+      throw new Error(
+        "Unauthorized: Only admin and treasurer can record borrows",
+      );
     }
 
     const account = await getAccountByUserIdOrThrow(ctx, args.userId);
@@ -409,7 +560,7 @@ export const recordBorrow = mutation({
 
 /**
  * Records a payment for an outstanding balance (fine, borrowed amount, or dues)
- * 
+ *
  * Business Rules:
  * - Payment amount cannot exceed outstanding balance
  * - Account status is recalculated after payment
@@ -436,140 +587,29 @@ export const recordPayment = mutation({
       args.authEmail,
     );
     if (!hasAccess) {
-      throw new Error("Unauthorized: Only admin and treasurer can record payments");
+      throw new Error(
+        "Unauthorized: Only admin and treasurer can record payments",
+      );
     }
 
     const account = await getAccountByUserIdOrThrow(ctx, args.userId);
     const user = await ctx.db.get(args.userId);
-    const userDetails = user as any;
-
-    // Validate outstanding balance exists
-    const outstandingByType = {
-      [PAYMENT_TYPE.FINE_PAYMENT]: account.fineToBalance,
-      [PAYMENT_TYPE.BORROW_PAYMENT]: account.borrowedAmountToBalance,
-      [PAYMENT_TYPE.DUE_PAYMENT]: account.duesToBalance,
-    };
-
-    validateOutstandingBalance(
-      args.paymentType,
-      outstandingByType[args.paymentType],
-      `${userDetails?.firstName} ${userDetails?.lastName}`,
-    );
-
-    // Validate payment amount doesn't exceed outstanding
-    validatePaymentAmount(
-      args.paymentType,
-      args.amount,
-      outstandingByType[args.paymentType],
-      `${userDetails?.firstName} ${userDetails?.lastName}`,
-    );
-
-    // Calculate new amounts based on payment type
-    let newBorrowed = account.currentBorrowedAmount;
-    let newFine = account.currentFineAmount;
-    let newDues = account.currentDuesAmount;
-    let newBorrowedToBalance = account.borrowedAmountToBalance;
-    let newFineToBalance = account.fineToBalance;
-    let newDuesToBalance = account.duesToBalance;
-
-    switch (args.paymentType) {
-      case PAYMENT_TYPE.BORROW_PAYMENT:
-        newBorrowed = Math.max(0, account.currentBorrowedAmount - args.amount);
-        newBorrowedToBalance = Math.max(0, account.borrowedAmountToBalance - args.amount);
-        break;
-      case PAYMENT_TYPE.FINE_PAYMENT:
-        newFine = Math.max(0, account.currentFineAmount - args.amount);
-        newFineToBalance = Math.max(0, account.fineToBalance - args.amount);
-        break;
-      case PAYMENT_TYPE.DUE_PAYMENT:
-        newDues = Math.max(0, account.currentDuesAmount - args.amount);
-        newDuesToBalance = Math.max(0, account.duesToBalance - args.amount);
-        break;
-    }
-
-    // Calculate new status based on remaining outstanding
-    const newStatus = calculateAccountStatus(
-      newBorrowed,
-      newFine,
-      newDues,
-      account.dueDate,
-    );
-
-    // Update account
-    await ctx.db.patch(account._id, {
-      currentBorrowedAmount: newBorrowed,
-      currentFineAmount: newFine,
-      currentDuesAmount: newDues,
-      borrowedAmountToBalance: newBorrowedToBalance,
-      fineToBalance: newFineToBalance,
-      duesToBalance: newDuesToBalance,
-      dueDate: newStatus === ACCOUNT_STATUS.GOOD_STANDING ? undefined : account.dueDate,
-      status: newStatus,
-      paymentHistory: [
-        ...account.paymentHistory,
-        {
-          type: args.paymentType,
-          amount: args.amount,
-          date: Date.now(),
-          description: args.description ?? `${args.paymentType} payment`,
-        },
-      ],
-    });
-
-    // Update treasury
-    const treasury = await getTreasury(ctx);
-    let outstandingBorrow = treasury.totalOutStandingBorrow;
-    let outstandingFine = treasury.totalOutStandingFine;
-    let outstandingDues = treasury.totalOutStandingDues;
-
-    switch (args.paymentType) {
-      case PAYMENT_TYPE.BORROW_PAYMENT:
-        outstandingBorrow = Math.max(0, outstandingBorrow - args.amount);
-        break;
-      case PAYMENT_TYPE.FINE_PAYMENT:
-        outstandingFine = Math.max(0, outstandingFine - args.amount);
-        break;
-      case PAYMENT_TYPE.DUE_PAYMENT:
-        outstandingDues = Math.max(0, outstandingDues - args.amount);
-        break;
-    }
-
-    const prevStatus = account.status;
-    const owingMemberDelta =
-      prevStatus !== ACCOUNT_STATUS.GOOD_STANDING &&
-      newStatus === ACCOUNT_STATUS.GOOD_STANDING
-        ? -1
-        : 0;
-
-    await ctx.db.patch(treasury._id, {
-      moneyAtHand: treasury.moneyAtHand + args.amount,
-      totalOutStandingBorrow: outstandingBorrow,
-      totalOutStandingFine: outstandingFine,
-      totalOutStandingDues: outstandingDues,
-      noOfOwingMembers: Math.max(0, treasury.noOfOwingMembers + owingMemberDelta),
-    });
-
-    // Log activity
-    await logActivity(
-      ctx,
-      args.userId,
+    await applyPayment(ctx, {
+      account,
+      userId: args.userId,
+      amount: args.amount,
+      paymentType: PAYMENT_TYPE.FINE_PAYMENT,
+      description: `Immediate fine payment`,
       authUser,
-      "record_payment",
-      `Recorded ${args.paymentType} payment of ${formatCurrency(args.amount)} for ${userDetails?.firstName}`,
-      {
-        paymentType: args.paymentType,
-        amount: args.amount,
-        user: userDetails?.firstName,
-      },
-    );
-
+      userDetails: user,
+    });
     return account._id;
   },
 });
 
 /**
  * Records a fine (penalty) against a member's account
- * 
+ *
  * Business Rules:
  * - Only admin/treasurer can record fines
  * - Automatically sets account status to OWING
@@ -581,6 +621,7 @@ export const recordFine = mutation({
     amount: v.number(),
     reason: v.string(),
     authEmail: v.string(),
+    payNow: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const authUser = await getCurrentUser(args.authEmail, ctx);
@@ -590,7 +631,9 @@ export const recordFine = mutation({
       args.authEmail,
     );
     if (!hasAccess) {
-      throw new Error("Unauthorized: Only admin and treasurer can record fines");
+      throw new Error(
+        "Unauthorized: Only admin and treasurer can record fines",
+      );
     }
 
     const account = await getAccountByUserIdOrThrow(ctx, args.userId);
@@ -618,7 +661,7 @@ export const recordFine = mutation({
     // Update treasury
     const treasury = await getTreasury(ctx);
     const owingMemberDelta =
-      prevStatus === ACCOUNT_STATUS.GOOD_STANDING ? 1 : 0;
+      !args?.payNow && prevStatus === ACCOUNT_STATUS.GOOD_STANDING ? 1 : 0;
 
     await ctx.db.patch(treasury._id, {
       totalFines: treasury.totalFines + args.amount,
@@ -640,13 +683,29 @@ export const recordFine = mutation({
       },
     );
 
+    if (args.payNow) {
+      await applyPayment(
+        ctx,
+        {
+          account,
+          userId: args.userId,
+          amount: args.amount,
+          paymentType: PAYMENT_TYPE.FINE_PAYMENT,
+          description: `Immediate fine payment`,
+          authUser,
+          userDetails,
+        },
+        true,
+      );
+    }
+
     return account._id;
   },
 });
 
 /**
  * Records membership dues for a member
- * 
+ *
  * Business Rules:
  * - Only admin/treasurer can record dues
  * - Due date in past automatically sets status to OVERDUE
@@ -659,7 +718,7 @@ export const recordDue = mutation({
     dueDate: v.number(),
     description: v.optional(v.string()),
     authEmail: v.string(),
-    payNow: v.optional(v.boolean())
+    payNow: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const authUser = await getCurrentUser(args.authEmail, ctx);
@@ -708,7 +767,8 @@ export const recordDue = mutation({
     const treasury = await getTreasury(ctx);
     const owingMemberDelta =
       prevStatus === ACCOUNT_STATUS.GOOD_STANDING &&
-      newStatus !== ACCOUNT_STATUS.GOOD_STANDING
+      newStatus !== ACCOUNT_STATUS.GOOD_STANDING &&
+      !args?.payNow
         ? 1
         : 0;
 
@@ -732,8 +792,20 @@ export const recordDue = mutation({
       },
     );
 
-    if(args?.payNow){
-      
+    if (args?.payNow) {
+      await applyPayment(
+        ctx,
+        {
+          account,
+          userId: args.userId,
+          amount: args.amount,
+          paymentType: PAYMENT_TYPE.DUE_PAYMENT,
+          description: args.description ?? "Immediate due payment",
+          authUser,
+          userDetails,
+        },
+        true,
+      );
     }
 
     return account._id;
@@ -742,7 +814,7 @@ export const recordDue = mutation({
 
 /**
  * Manually updates account status to a specific state
- * 
+ *
  * Use Cases:
  * - Manual corrections for system state issues
  * - Admin overrides for specific situations
@@ -765,7 +837,9 @@ export const updateAccountStatus = mutation({
       args.authEmail,
     );
     if (!hasAccess) {
-      throw new Error("Unauthorized: Only admin and treasurer can update account status");
+      throw new Error(
+        "Unauthorized: Only admin and treasurer can update account status",
+      );
     }
 
     const account = await ctx.db.get(args.accountId);
@@ -800,7 +874,7 @@ export const updateAccountStatus = mutation({
 
 /**
  * Deletes an account and its associated data
- * 
+ *
  * Warning: This is a destructive operation that removes all financial records
  */
 export const deleteAccount = mutation({
@@ -813,7 +887,9 @@ export const deleteAccount = mutation({
       args.authEmail,
     );
     if (!hasAccess) {
-      throw new Error("Unauthorized: Only admin and treasurer can delete accounts");
+      throw new Error(
+        "Unauthorized: Only admin and treasurer can delete accounts",
+      );
     }
 
     const account = await ctx.db.get(args.accountId);
@@ -845,7 +921,7 @@ export const deleteAccount = mutation({
 
 /**
  * Checks and updates all overdue accounts
- * 
+ *
  * Scheduled Operation:
  * - Run periodically (e.g., daily cron job)
  * - Converts OWING accounts to OVERDUE if due date has passed
@@ -886,7 +962,7 @@ export const updateOverdueAccounts = mutation({
 
 /**
  * Initializes the treasury record (called once during system setup)
- * 
+ *
  * Treasury tracks aggregate financial metrics:
  * - Total money in hand vs. outstanding obligations
  * - Member financial standing distribution

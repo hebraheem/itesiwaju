@@ -107,6 +107,7 @@ export async function recordFineAction(
   const userId = formData.get("userId") as string;
   const amount = formData.get("amount") as string;
   const reason = formData.get("reason") as string;
+  const payNow = formData.get("payNow") as string;
   const authEmail = formData.get("authEmail") as string;
 
   try {
@@ -125,6 +126,7 @@ export async function recordFineAction(
       amount: parsed.data.amount,
       reason: parsed.data.reason,
       authEmail,
+      payNow: Boolean(payNow),
     });
 
     return {
@@ -149,6 +151,7 @@ export async function recordDueAction(
   const amount = formData.get("amount") as string;
   const description = formData.get("description") as string;
   const authEmail = formData.get("authEmail") as string;
+  const payNow = formData.get("payNow") as string;
 
   try {
     const data = { amount, description };
@@ -165,6 +168,7 @@ export async function recordDueAction(
       userId: userId as Id<"users">,
       ...parsed.data,
       authEmail,
+      payNow: Boolean(payNow),
       dueDate: Date.now() + 30 * 24 * 60 * 60 * 1000, // Set the due date to 30 days from now
     });
 
