@@ -343,9 +343,9 @@
     "actions": {
       "recordAction": "Enregistrer une Action",
       "recordPayment": "Enregistrer un Paiement",
-      "recordBorrow": "Enregistrer un Emprunt",
-      "recordFine": "Enregistrer une Amende",
-      "recordDue": "Enregistrer Cotisations"
+      "recordBorrow": "Emprunter de l'argent",
+      "recordFine": "Infliger une amende",
+      "recordDue": "Cotisations mensuelles"
     },
     "paymentTypes": {
       "payment": "Paiement",

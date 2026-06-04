@@ -343,9 +343,9 @@
     "actions": {
       "recordAction": "Ṣe Igbasilẹ Iṣe",
       "recordPayment": "Ṣe Igbasilẹ Isanwo",
-      "recordBorrow": "Ṣe Igbasilẹ Awin",
-      "recordFine": "Ṣe Igbasilẹ Itanran",
-      "recordDue": "Ṣe Igbasilẹ Owo Iṣowo"
+      "recordBorrow": "Yá owó",
+      "recordFine": "Fúnni ní Ore",
+      "recordDue": "Owo oṣooṣu"
     },
     "paymentTypes": {
       "payment": "Isanwo",

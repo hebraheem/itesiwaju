@@ -334,9 +334,9 @@
     "actions": {
       "recordAction": "Record Action",
       "recordPayment": "Record Payment",
-      "recordBorrow": "Record Borrow",
-      "recordFine": "Record Fine",
-      "recordDue": "Record Dues"
+      "recordBorrow": "Borrow money",
+      "recordFine": "Give Fine",
+      "recordDue": "Monthly Dues"
     },
     "paymentTypes": {
       "payment": "Payment",

@@ -343,9 +343,9 @@
     "actions": {
       "recordAction": "Aktion Erfassen",
       "recordPayment": "Zahlung Erfassen",
-      "recordBorrow": "Ausleihe Erfassen",
-      "recordFine": "Bußgeld Erfassen",
-      "recordDue": "Beiträge Erfassen"
+      "recordBorrow": "Geld leihen",
+      "recordFine": "Geldstrafe verhängen",
+      "recordDue": "Monatliche Beiträge"
     },
     "paymentTypes": {
       "payment": "Zahlung",
