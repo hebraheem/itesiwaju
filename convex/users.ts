@@ -4,19 +4,162 @@ import bcrypt from "bcryptjs";
 import { buildSearchText, getCurrentUser, hasPermission } from "@/convex/utils";
 import { paginationOptsValidator } from "convex/server";
 
-// Get user by email
+// ============================================================================
+// TYPES & CONSTANTS
+// ============================================================================
+
+export const USER_ROLE = {
+  ADMIN: "admin",
+  MEMBER: "member",
+  TREASURER: "treasurer",
+  PRO: "pro",
+} as const;
+
+export const USER_STATUS = {
+  ACTIVE: "active",
+  SUSPENDED: "suspended",
+  INACTIVE: "inactive",
+} as const;
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Validates user is authenticated
+ * @param user - User object to validate
+ * @throws Error if user not found
+ */
+function validateUserExists(user: any): void {
+  if (!user) {
+    throw new Error("Unauthorized: User not found");
+  }
+}
+
+/**
+ * Validates user has admin permission
+ * @param hasRole - Permission check result
+ * @throws Error if not admin
+ */
+function validateIsAdmin(hasRole: boolean): void {
+  if (!hasRole) {
+    throw new Error("Unauthorized: Only admins can perform this action");
+  }
+}
+
+/**
+ * Validates email is not already registered
+ * @param ctx - Convex context
+ * @param email - Email to check
+ * @throws Error if email already exists
+ */
+async function validateEmailNotRegistered(ctx: any, email: string): Promise<void> {
+  const existingUser = await ctx.db
+    .query("users")
+    .withIndex("by_email", (q: any) => q.eq("email", email))
+    .unique();
+
+  if (existingUser) {
+    throw new Error("Unauthorized: User with this email already exists");
+  }
+}
+
+/**
+ * Logs user activity for audit trail
+ * @param ctx - Convex context
+ * @param userId - User performing action
+ * @param action - Action type
+ * @param description - Human-readable description
+ * @param type - Activity type (profile, member, etc)
+ * @param metadata - Additional context
+ */
+async function logUserActivity(
+  ctx: any,
+  userId: any,
+  action: string,
+  description: string,
+  type: string = "profile",
+  metadata: any = {},
+) {
+  const user = await ctx.db.get(userId);
+  await ctx.db.insert("activities", {
+    userId,
+    type,
+    user: user ? `${user.firstName} ${user.lastName}` : "System",
+    action,
+    description,
+    metadata,
+    timestamp: Date.now(),
+  });
+}
+
+/**
+ * Creates initial account for new user
+ * @param ctx - Convex context
+ * @param userId - User ID to create account for
+ * @param user - User object with name and email
+ * @returns Account ID
+ */
+async function createInitialAccount(ctx: any, userId: any, user: any) {
+  const accountId = await ctx.db.insert("accounts", {
+    userId,
+    fineToBalance: 0,
+    currentFineAmount: 0,
+    totalFineAmount: 0,
+    currentBorrowedAmount: 0,
+    totalBorrowedAmount: 0,
+    borrowedAmountToBalance: 0,
+    duesToBalance: 0,
+    currentDuesAmount: 0,
+    totalDuesAmount: 0,
+    status: "good_standing",
+    paymentHistory: [],
+    searchField: buildSearchText([
+      user.firstName,
+      user.lastName,
+      user.email,
+      user.otherName || "",
+    ]),
+  });
+
+  await logUserActivity(
+    ctx,
+    userId,
+    "account_created",
+    `created payment account`,
+    "member",
+    { user: user.firstName },
+  );
+
+  return accountId;
+}
+
+// ============================================================================
+// QUERIES
+// ============================================================================
+
+/**
+ * Retrieves user by email address
+ * @param email - User email
+ * @returns User object or null
+ */
 export const getUserByEmail = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
     await getCurrentUser(args.email, ctx);
     return await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .withIndex("by_email", (q: any) => q.eq("email", args.email))
       .unique();
   },
 });
 
-// Get user by ID
+/**
+ * Retrieves user by ID
+ * @param id - User ID
+ * @param email - Email for authentication
+ * @returns User object or empty object if not found
+ */
 export const getUserById = query({
   args: { id: v.id("users"), email: v.string() },
   handler: async (ctx, args) => {
@@ -26,88 +169,94 @@ export const getUserById = query({
   },
 });
 
-// Get all users (with pagination and filters)
+/**
+ * Retrieves all users with optional filtering and search
+ * @param limit - Optional limit per page
+ * @param role - Optional filter by role
+ * @param status - Optional filter by status
+ * @param search - Optional search by name/email
+ * @param paginationOpts - Pagination configuration
+ * @param userEmail - Email of authenticated user (for auth check)
+ * @returns Paginated users list
+ * @throws Error if unauthorized or user not found
+ */
 export const getUsers = query({
   args: {
     limit: v.optional(v.number()),
-    role: v.optional(v.union(v.literal("admin"), v.literal("member"))),
+    role: v.optional(v.union(v.literal(USER_ROLE.ADMIN), v.literal(USER_ROLE.MEMBER))),
     status: v.optional(
       v.union(
-        v.literal("active"),
-        v.literal("suspended"),
-        v.literal("inactive"),
+        v.literal(USER_STATUS.ACTIVE),
+        v.literal(USER_STATUS.SUSPENDED),
+        v.literal(USER_STATUS.INACTIVE),
       ),
     ),
     search: v.optional(v.string()),
     paginationOpts: paginationOptsValidator,
-    userEmail: v.string(), // Pass from client to validate user
+    userEmail: v.string(),
   },
   handler: async (ctx, args) => {
-    // Validate user is authenticated by checking if the userEmail is provided
     await getCurrentUser(args.userEmail, ctx);
     if (!args.userEmail) {
       throw new Error("Unauthorized - No user email provided");
     }
 
-    // Verify user exists
     const currentUser = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+      .withIndex("by_email", (q: any) => q.eq("email", args.userEmail))
       .unique();
 
-    if (!currentUser) {
-      throw new Error("Unauthorized - User not found");
-    }
+    validateUserExists(currentUser);
 
-    // --- BASE QUERY ---
     let q;
 
     if (args.role && args.status) {
       q = ctx.db
         .query("users")
-        .withIndex("by_role_status", (q) =>
+        .withIndex("by_role_status", (q: any) =>
           q.eq("role", args.role!).eq("status", args.status!),
         )
         .order("desc");
     } else if (args.role) {
       q = ctx.db
         .query("users")
-        .withIndex("by_role", (q) => q.eq("role", args.role!))
+        .withIndex("by_role", (q: any) => q.eq("role", args.role!))
         .order("desc");
     } else if (args.status) {
       q = ctx.db
         .query("users")
-        .withIndex("by_status", (q) => q.eq("status", args.status!))
+        .withIndex("by_status", (q: any) => q.eq("status", args.status!))
         .order("desc");
     } else {
       q = ctx.db.query("users").withIndex("by_email").order("desc");
     }
 
-    // --- SEARCH (secondary filter) ---
     if (args.search) {
       q = ctx.db
         .query("users")
-        .withSearchIndex("search_name", (q) =>
+        .withSearchIndex("search_name", (q: any) =>
           q.search("searchField", args.search!),
         );
     }
 
-    // --- PAGINATE ---
     return await q.paginate(args.paginationOpts);
   },
 });
 
-// Get member statistics
+/**
+ * Retrieves member statistics
+ * @returns Object with counts by status and role
+ */
 export const getMemberStats = query({
   handler: async (ctx) => {
     const users = await ctx.db.query("users").collect();
     const totalMembers = users.length;
-    const activeMembers = users.filter((u) => u.status === "active").length;
-    const inactiveMembers = users.filter((u) => u.status === "inactive").length;
+    const activeMembers = users.filter((u: any) => u.status === USER_STATUS.ACTIVE).length;
+    const inactiveMembers = users.filter((u: any) => u.status === USER_STATUS.INACTIVE).length;
     const suspendedMembers = users.filter(
-      (u) => u.status === "suspended",
+      (u: any) => u.status === USER_STATUS.SUSPENDED,
     ).length;
-    const admins = users.filter((u) => u.role === "admin").length;
+    const admins = users.filter((u: any) => u.role === USER_ROLE.ADMIN).length;
 
     return {
       totalMembers,
@@ -119,7 +268,23 @@ export const getMemberStats = query({
   },
 });
 
-// Create a user (registration)
+// ============================================================================
+// MUTATIONS
+// ============================================================================
+
+/**
+ * Creates a new user (registration)
+ * @param email - User email (must be unique)
+ * @param password - User password
+ * @param firstName - User first name
+ * @param lastName - User last name
+ * @param otherName - Optional middle/other name
+ * @param phone - Optional phone number
+ * @param role - Optional role (defaults to member)
+ * @returns Object with userId and accountId
+ * @throws Error if email already exists
+ * @side-effect Creates user, creates account, logs activities
+ */
 export const createUser = mutation({
   args: {
     email: v.string(),
@@ -130,25 +295,16 @@ export const createUser = mutation({
     phone: v.optional(v.string()),
     role: v.optional(
       v.union(
-        v.literal("admin"),
-        v.literal("member"),
-        v.literal("treasurer"),
-        v.literal("pro"),
+        v.literal(USER_ROLE.ADMIN),
+        v.literal(USER_ROLE.MEMBER),
+        v.literal(USER_ROLE.TREASURER),
+        v.literal(USER_ROLE.PRO),
       ),
     ),
   },
   handler: async (ctx, args) => {
-    // Check if a user already exists
-    const existingUser = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .unique();
+    await validateEmailNotRegistered(ctx, args.email);
 
-    if (existingUser) {
-      throw new Error("User with this email already exists");
-    }
-
-    // Create user
     const userId = await ctx.db.insert("users", {
       email: args.email,
       password: args.password,
@@ -156,8 +312,8 @@ export const createUser = mutation({
       lastName: args.lastName,
       otherName: args.otherName,
       phone: args.phone,
-      role: args.role || "member",
-      status: "active",
+      role: args.role || USER_ROLE.MEMBER,
+      status: USER_STATUS.ACTIVE,
       joinedAt: Date.now(),
       searchField: buildSearchText([
         args.firstName,
@@ -167,60 +323,36 @@ export const createUser = mutation({
       ]),
     });
 
-    // Create an activity log
-    await ctx.db.insert("activities", {
+    await logUserActivity(
+      ctx,
       userId,
-      type: "member",
-      user: `${args.firstName} ${args.lastName}`,
-      action: "signUp",
-      description: `registered on the platform`,
-      metadata: {
-        email: args.email,
-        role: args.role || "member",
-        user: args.firstName,
-      },
-      timestamp: Date.now(),
-    });
+      "signUp",
+      `registered on the platform`,
+      "member",
+      { email: args.email, role: args.role || USER_ROLE.MEMBER, user: args.firstName },
+    );
 
-    const accountId = await ctx.db.insert("accounts", {
-      userId: userId,
-      fineToBalance: 0,
-      currentFineAmount: 0,
-      totalFineAmount: 0,
-      currentBorrowedAmount: 0,
-      totalBorrowedAmount: 0,
-      borrowedAmountToBalance: 0,
-      duesToBalance: 0,
-      currentDuesAmount: 0,
-      totalDuesAmount: 0,
-      status: "good_standing",
-      paymentHistory: [],
-      searchField: buildSearchText([
-        args.firstName,
-        args.lastName,
-        args.email,
-        args.otherName || "",
-      ]),
-    });
-
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: userId,
-      type: "member",
-      action: "account_created",
-      user: `${args.firstName} ${args.lastName}`,
-      description: `created payment account`,
-      metadata: {
-        user: args.firstName,
-      },
-      timestamp: Date.now(),
-    });
-
+    const accountId = await createInitialAccount(ctx, userId, args);
     return { userId, accountId };
   },
 });
 
-// Update user
+/**
+ * Updates user profile information
+ * @param id - User ID to update
+ * @param firstName - Optional new first name
+ * @param lastName - Optional new last name
+ * @param otherName - Optional new middle name
+ * @param phone - Optional new phone
+ * @param address - Optional new address object
+ * @param email - Optional new email
+ * @param role - Optional new role (admin only)
+ * @param status - Optional new status (admin only)
+ * @param authEmail - Email of updating user
+ * @returns User ID
+ * @throws Error if unauthorized or user not found
+ * @side-effect Updates user record, logs activity
+ */
 export const updateUser = mutation({
   args: {
     id: v.id("users"),
@@ -241,17 +373,17 @@ export const updateUser = mutation({
     email: v.optional(v.string()),
     role: v.optional(
       v.union(
-        v.literal("admin"),
-        v.literal("member"),
-        v.literal("treasurer"),
-        v.literal("pro"),
+        v.literal(USER_ROLE.ADMIN),
+        v.literal(USER_ROLE.MEMBER),
+        v.literal(USER_ROLE.TREASURER),
+        v.literal(USER_ROLE.PRO),
       ),
     ),
     status: v.optional(
       v.union(
-        v.literal("active"),
-        v.literal("suspended"),
-        v.literal("inactive"),
+        v.literal(USER_STATUS.ACTIVE),
+        v.literal(USER_STATUS.SUSPENDED),
+        v.literal(USER_STATUS.INACTIVE),
       ),
     ),
     authEmail: v.string(),
@@ -268,131 +400,151 @@ export const updateUser = mutation({
     }
 
     if (args.role || args.status) {
-      const hasRole = hasPermission(ctx, "admin", args.authEmail);
-      if (!hasRole) {
-        throw new Error("Unauthorized to update role or status");
-      }
+      const hasRole = await hasPermission(ctx, USER_ROLE.ADMIN, args.authEmail);
+      validateIsAdmin(hasRole);
     }
 
     const user = await ctx.db.get(id);
-    if (!user) {
-      throw new Error("User not found");
-    }
+    validateUserExists(user);
+    if (!user) return id;
 
     await ctx.db.patch(id, updates);
 
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: id,
-      type: "profile",
-      user: `${user.firstName} ${user.lastName}`,
-      action: "profileUpdate",
-      description: `updated their profile`,
-      metadata: {
-        ...updates,
-        user: user.firstName,
-      },
-      timestamp: Date.now(),
-    });
+    await logUserActivity(
+      ctx,
+      id,
+      "profileUpdate",
+      `updated their profile`,
+      "profile",
+      { ...updates, user: user.firstName },
+    );
 
     return id;
   },
 });
 
-// Update user status (suspend/activate)
+/**
+ * Updates user status and role (admin only)
+ * @param id - User ID to update
+ * @param status - Optional new status
+ * @param role - Optional new role
+ * @param authEmail - Email of admin performing update
+ * @returns User ID
+ * @throws Error if unauthorized or user not found
+ * @side-effect Updates user, logs activity
+ */
 export const updateUserStatusAndRole = mutation({
   args: {
     id: v.id("users"),
     status: v.optional(
       v.union(
-        v.literal("active"),
-        v.literal("suspended"),
-        v.literal("inactive"),
+        v.literal(USER_STATUS.ACTIVE),
+        v.literal(USER_STATUS.SUSPENDED),
+        v.literal(USER_STATUS.INACTIVE),
       ),
     ),
     role: v.optional(
       v.union(
-        v.literal("admin"),
-        v.literal("member"),
-        v.literal("treasurer"),
-        v.literal("pro"),
+        v.literal(USER_ROLE.ADMIN),
+        v.literal(USER_ROLE.MEMBER),
+        v.literal(USER_ROLE.TREASURER),
+        v.literal(USER_ROLE.PRO),
       ),
     ),
     authEmail: v.string(),
   },
   handler: async (ctx, args) => {
     const authUser = await getCurrentUser(args.authEmail, ctx);
-    const hasRole = await hasPermission(ctx, "admin", args.authEmail);
-    if (!hasRole) {
-      throw new Error("Unauthorized to update user status");
-    }
+    const hasRole = await hasPermission(ctx, USER_ROLE.ADMIN, args.authEmail);
+    validateIsAdmin(hasRole);
+
     const user = await ctx.db.get(args.id);
-    if (!user) {
-      throw new Error("User not found");
-    }
+    validateUserExists(user);
+    if (!user) return args.id;
 
-    await ctx.db.patch(args.id, { status: args.status });
+    await ctx.db.patch(args.id, {
+      status: args.status,
+      role: args.role,
+    });
 
-    let description = args.status
-      ? `updates ${user.firstName} status to ${args.status}`
-      : `updates ${user.firstName} role to ${args.role}`;
+    let description: string;
     if (args.role && args.status) {
       description = `updates ${user.firstName} role to ${args.role} and status to ${args.status}`;
     } else if (args.role) {
       description = `updates ${user.firstName} role to ${args.role}`;
+    } else {
+      description = `updates ${user.firstName} status to ${args.status}`;
     }
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: args.id,
-      type: "member",
-      user: `${authUser.firstName} ${authUser.lastName}`,
-      action: "statusRoleUpdate",
-      description: description,
-      metadata: {
+
+    await logUserActivity(
+      ctx,
+      args.id,
+      "statusRoleUpdate",
+      description,
+      "member",
+      {
         oldStatus: user.status,
         newStatus: args.status,
         user: user.firstName,
         newRole: args.role,
         oldRole: user.role,
+        updatedBy: `${authUser.firstName} ${authUser.lastName}`,
       },
-      timestamp: Date.now(),
-    });
+    );
+
     return args.id;
   },
 });
 
-// Delete user
+/**
+ * Deletes a user from the system (admin only)
+ * @param id - User ID to delete
+ * @param authEmail - Email of admin performing deletion
+ * @returns User ID
+ * @throws Error if unauthorized or user not found
+ * @side-effect Deletes user, logs activity
+ */
 export const deleteUser = mutation({
   args: { id: v.id("users"), authEmail: v.string() },
   handler: async (ctx, args) => {
     const authUser = await getCurrentUser(args.authEmail, ctx);
-    const hasRole = await hasPermission(ctx, "admin", args.authEmail);
-    if (!hasRole) {
-      throw new Error("Unauthorized to delete user");
-    }
+    const hasRole = await hasPermission(ctx, USER_ROLE.ADMIN, args.authEmail);
+    validateIsAdmin(hasRole);
+
     const user = await ctx.db.get(args.id);
-    if (!user) {
-      throw new Error("User not found");
-    }
+    validateUserExists(user);
+    if (!user) return args.id;
 
     await ctx.db.delete(args.id);
 
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: args.id,
-      type: "member",
-      user: `${authUser.firstName} ${authUser.lastName}`,
-      action: "userDeletion",
-      description: `removed ${user.firstName} from the system`,
-      metadata: { email: user.email, user: user.firstName },
-      timestamp: Date.now(),
-    });
+    await logUserActivity(
+      ctx,
+      args.id,
+      "userDeletion",
+      `removed ${user.firstName} from the system`,
+      "member",
+      {
+        email: user.email,
+        user: user.firstName,
+        deletedBy: `${authUser.firstName} ${authUser.lastName}`,
+      },
+    );
 
     return args.id;
   },
 });
 
-// Update password
+/**
+ * Updates user password (self-service)
+ * @param userId - User ID changing password
+ * @param currentPassword - Current password (for verification)
+ * @param newPassword - New password
+ * @param authEmail - Email of authenticated user
+ * @returns User ID
+ * @throws Error if user not found or unauthorized
+ * @side-effect Updates password, logs activity
+ * @note Current password verification not fully implemented
+ */
 export const updatePassword = mutation({
   args: {
     userId: v.id("users"),
@@ -403,30 +555,34 @@ export const updatePassword = mutation({
   handler: async (ctx, args) => {
     await getCurrentUser(args.authEmail, ctx);
     const user = await ctx.db.get(args.userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
+    validateUserExists(user);
+    if (!user) return args.userId;
 
     await ctx.db.patch(args.userId, { password: args.newPassword });
 
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: args.userId,
-      type: "profile",
-      user: `${user.firstName} ${user.lastName}`,
-      action: "passwordUpdate",
-      description: `updated their password`,
-      metadata: {
-        user: user.firstName,
-      },
-      timestamp: Date.now(),
-    });
+    await logUserActivity(
+      ctx,
+      args.userId,
+      "passwordUpdate",
+      `updated their password`,
+      "profile",
+      { user: user.firstName },
+    );
 
     return args.userId;
   },
 });
 
-// Reset password (for forgot password flow)
+/**
+ * Resets user password (forgot password flow)
+ * @param email - User email
+ * @param newPassword - New password
+ * @param resetToken - Password reset token (for verification)
+ * @returns User ID
+ * @throws Error if user not found
+ * @side-effect Updates password (hashed), logs activity
+ * @note Token verification not implemented - should be added for production
+ */
 export const resetPassword = mutation({
   args: {
     email: v.string(),
@@ -436,37 +592,35 @@ export const resetPassword = mutation({
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .withIndex("by_email", (q: any) => q.eq("email", args.email))
       .unique();
 
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    // In production, verify resetToken here
-    // For now, we'll just update the password
+    validateUserExists(user);
+    if (!user) throw new Error("User not found");
 
     const hashedPassword = await bcrypt.hash(args.newPassword, 10);
     await ctx.db.patch(user._id, { password: hashedPassword });
 
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: user._id,
-      user: `${user.firstName} ${user.lastName}`,
-      action: "passwordReset",
-      type: "profile",
-      description: `reset their password using the forgot password flow`,
-      metadata: {
-        user: user.firstName,
-      },
-      timestamp: Date.now(),
-    });
+    await logUserActivity(
+      ctx,
+      user._id,
+      "passwordReset",
+      `reset their password using the forgot password flow`,
+      "profile",
+      { user: user.firstName },
+    );
 
     return user._id;
   },
 });
 
-// Verify login credentials
+/**
+ * Verifies login credentials
+ * @param email - User email
+ * @param password - User password
+ * @returns User object if found, null otherwise
+ * @note Password verification should be added for production
+ */
 export const verifyCredentials = query({
   args: {
     email: v.string(),
@@ -475,7 +629,7 @@ export const verifyCredentials = query({
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .withIndex("by_email", (q: any) => q.eq("email", args.email))
       .unique();
 
     if (!user) {
@@ -486,6 +640,10 @@ export const verifyCredentials = query({
   },
 });
 
+/**
+ * Retrieves all users in the system
+ * @returns Array of all users
+ */
 export const getAllUser = query({
   handler: async (ctx) => {
     return await ctx.db.query("users").collect();

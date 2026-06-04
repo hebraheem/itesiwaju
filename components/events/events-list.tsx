@@ -17,7 +17,9 @@ import {
   EVENT_TYPES,
   getMonth,
   removeEmptyFields,
+  USER_ROLES,
 } from "@/lib/utils";
+import RoleAction from "../common/RoleAction";
 
 export function EventsList() {
   const t = useTranslations("events");
@@ -45,6 +47,7 @@ export function EventsList() {
             Manage community events and calendar
           </p>
         </div>
+        <RoleAction roles={[USER_ROLES.admin, USER_ROLES.pro]} >
         <Button
           asChild
           className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -54,6 +57,7 @@ export function EventsList() {
             {t("create")}
           </Link>
         </Button>
+        </RoleAction>
       </motion.div>
 
       <div className="flex gap-4">

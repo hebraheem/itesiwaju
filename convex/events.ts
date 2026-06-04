@@ -8,6 +8,10 @@ import {
 import { Id } from "@/convex/_generated/dataModel";
 import { paginationOptsValidator } from "convex/server";
 
+// ============================================================================
+// TYPES & CONSTANTS
+// ============================================================================
+
 type MediaWithUrl = {
   storageId: Id<"_storage">;
   url: string | null;
@@ -16,24 +20,162 @@ type MediaWithUrl = {
   size: number;
 }[];
 
-// Get all events
+export const EVENT_STATUS = {
+  UPCOMING: "upcoming",
+  ONGOING: "ongoing",
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+} as const;
+
+export const EVENT_TYPE = {
+  MEETING: "meeting",
+  SOCIAL: "social",
+  FUNDRAISER: "fundraiser",
+  WORKSHOP: "workshop",
+  OTHERS: "others",
+} as const;
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Gets current date range for this month
+ * @returns Object with start and end timestamps for the current month
+ */
+function getCurrentMonthRange() {
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const endOfMonth = new Date();
+  endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+  endOfMonth.setDate(0);
+  endOfMonth.setHours(23, 59, 59, 999);
+
+  return { startOfMonth: startOfMonth.getTime(), endOfMonth: endOfMonth.getTime() };
+}
+
+/**
+ * Validates user has permission to manage events
+ * @param isPermitted - Permission check result
+ * @throws Error if not permitted
+ */
+function validateEventPermission(isPermitted: boolean): void {
+  if (!isPermitted) {
+    throw new Error("Unauthorized: Only admins and pro members can manage events");
+  }
+}
+
+/**
+ * Validates event exists and throws detailed error
+ * @param event - Event object to validate
+ * @throws Error if event not found
+ */
+function validateEventExists(event: any): void {
+  if (!event) {
+    throw new Error("Unauthorized: Event not found");
+  }
+}
+
+/**
+ * Builds search field from event details
+ * @param title - Event title
+ * @param description - Event description
+ * @param location - Event location
+ * @returns Lowercase search field
+ */
+function buildEventSearchField(title: string, description: string, location: string): string {
+  return `${title} ${description} ${location}`.toLowerCase();
+}
+
+/**
+ * Logs event activity for audit trail
+ * @param ctx - Convex context
+ * @param userId - User performing action
+ * @param user - User full name
+ * @param action - Action type (created, updated, deleted, etc.)
+ * @param description - Human-readable description
+ * @param metadata - Additional context
+ */
+async function logEventActivity(
+  ctx: any,
+  userId: any,
+  user: string,
+  action: string,
+  description: string,
+  metadata: any = {},
+) {
+  await ctx.db.insert("activities", {
+    userId,
+    type: "event",
+    user,
+    action,
+    description,
+    metadata,
+    timestamp: Date.now(),
+  });
+}
+
+/**
+ * Processes media files and gets their URLs
+ * @param ctx - Convex context
+ * @param media - Array of media objects with storage IDs
+ * @returns Media array with generated URLs
+ */
+async function processMediaWithUrls(ctx: any, media: any[]): Promise<MediaWithUrl | undefined> {
+  if (!media || media.length === 0) return undefined;
+  
+  return Promise.all(
+    media.map(async (m: any) => ({
+      ...m,
+      url: await ctx.storage.getUrl(m.storageId),
+    })),
+  );
+}
+
+/**
+ * Merges new media with existing media, preventing duplicates
+ * @param newMedia - New media to add
+ * @param existingMedia - Existing media in event
+ * @returns Merged media array
+ */
+function mergeMediaArrays(newMedia: MediaWithUrl | undefined, existingMedia: any): any {
+  if (newMedia?.length) {
+    return [...newMedia, ...(Array.isArray(existingMedia) ? existingMedia : [])];
+  }
+  return Array.isArray(existingMedia) ? existingMedia : [];
+}
+
+// ============================================================================
+// QUERIES
+// ============================================================================
+
+/**
+ * Retrieves all events with optional filtering and search
+ * @param status - Filter by event status
+ * @param type - Filter by event type
+ * @param search - Search in title, description, location
+ * @param paginationOpts - Pagination options
+ * @returns Paginated events
+ */
 export const getEvents = query({
   args: {
     status: v.optional(
       v.union(
-        v.literal("upcoming"),
-        v.literal("ongoing"),
-        v.literal("completed"),
-        v.literal("cancelled"),
+        v.literal(EVENT_STATUS.UPCOMING),
+        v.literal(EVENT_STATUS.ONGOING),
+        v.literal(EVENT_STATUS.COMPLETED),
+        v.literal(EVENT_STATUS.CANCELLED),
       ),
     ),
     type: v.optional(
       v.union(
-        v.literal("meeting"),
-        v.literal("social"),
-        v.literal("fundraiser"),
-        v.literal("workshop"),
-        v.literal("others"),
+        v.literal(EVENT_TYPE.MEETING),
+        v.literal(EVENT_TYPE.SOCIAL),
+        v.literal(EVENT_TYPE.FUNDRAISER),
+        v.literal(EVENT_TYPE.WORKSHOP),
+        v.literal(EVENT_TYPE.OTHERS),
       ),
     ),
     search: v.optional(v.string()),
@@ -46,25 +188,25 @@ export const getEvents = query({
     if (args.search) {
       q = ctx.db
         .query("events")
-        .withSearchIndex("search_title_description_location", (q) =>
+        .withSearchIndex("search_title_description_location", (q: any) =>
           q.search("searchField", args.search!),
         );
     } else if (args.status && args.type) {
       q = ctx.db
         .query("events")
-        .withIndex("by_status_type", (q) =>
+        .withIndex("by_status_type", (q: any) =>
           q.eq("status", args.status!).eq("type", args.type!),
         )
         .order("desc");
     } else if (args.status) {
       q = ctx.db
         .query("events")
-        .withIndex("by_status", (q) => q.eq("status", args.status!))
+        .withIndex("by_status", (q: any) => q.eq("status", args.status!))
         .order("desc");
     } else if (args.type) {
       q = ctx.db
         .query("events")
-        .withIndex("by_type", (q) => q.eq("type", args.type!))
+        .withIndex("by_type", (q: any) => q.eq("type", args.type!))
         .order("desc");
     } else {
       q = ctx.db.query("events").withIndex("by_startDate").order("desc");
@@ -74,7 +216,11 @@ export const getEvents = query({
   },
 });
 
-// Get event by ID
+/**
+ * Retrieves a single event by ID with creator details
+ * @param id - Event ID
+ * @returns Event object with creator information or null if not found
+ */
 export const getEventById = query({
   args: { id: v.id("events") },
   handler: async (ctx, args) => {
@@ -95,7 +241,10 @@ export const getEventById = query({
   },
 });
 
-// Get event statistics
+/**
+ * Retrieves statistics about all events
+ * @returns Object containing total, status counts, and events this month
+ */
 export const getEventStats = query({
   handler: async (ctx) => {
     const now = Date.now();
@@ -103,28 +252,21 @@ export const getEventStats = query({
 
     const totalEvents = events.length;
     const upcomingEvents = events.filter(
-      (e) => new Date(e.startDate).getTime() >= now && e.status !== "cancelled",
+      (e: any) => new Date(e.startDate).getTime() >= now && e.status !== EVENT_STATUS.CANCELLED,
     ).length;
     const completedEvents = events.filter(
-      (e) => e.status === "completed",
+      (e: any) => e.status === EVENT_STATUS.COMPLETED,
     ).length;
     const cancelledEvents = events.filter(
-      (e) => e.status === "cancelled",
+      (e: any) => e.status === EVENT_STATUS.CANCELLED,
     ).length;
 
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const endOfMonth = new Date();
-    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
-    endOfMonth.setDate(0);
-    endOfMonth.setHours(23, 59, 59, 999);
+    const { startOfMonth, endOfMonth } = getCurrentMonthRange();
 
     const eventsThisMonth = events.filter(
-      (e) =>
-        new Date(e.startDate).getTime() >= startOfMonth.getTime() &&
-        new Date(e.startDate).getTime() <= endOfMonth.getTime(),
+      (e: any) =>
+        new Date(e.startDate).getTime() >= startOfMonth &&
+        new Date(e.startDate).getTime() <= endOfMonth,
     ).length;
 
     return {
@@ -137,17 +279,38 @@ export const getEventStats = query({
   },
 });
 
-// Create event
+// ============================================================================
+// MUTATIONS
+// ============================================================================
+
+/**
+ * Creates a new event
+ * @param title - Event title
+ * @param description - Event description
+ * @param location - Event location
+ * @param status - Initial status (upcoming, ongoing, completed, cancelled)
+ * @param startDate - Event start date (ISO string)
+ * @param startTime - Event start time
+ * @param endDate - Optional end date
+ * @param endTime - Optional end time
+ * @param minutes - Optional meeting minutes/notes
+ * @param type - Event type (meeting, social, fundraiser, workshop, others)
+ * @param authEmail - Email of creating user
+ * @param media - Optional media files (images/videos)
+ * @returns Event ID
+ * @throws Error if user not authorized
+ * @side-effect Creates activity log, sends notification to all members
+ */
 export const createEvent = mutation({
   args: {
     title: v.string(),
     description: v.string(),
     location: v.string(),
     status: v.union(
-      v.literal("upcoming"),
-      v.literal("ongoing"),
-      v.literal("completed"),
-      v.literal("cancelled"),
+      v.literal(EVENT_STATUS.UPCOMING),
+      v.literal(EVENT_STATUS.ONGOING),
+      v.literal(EVENT_STATUS.COMPLETED),
+      v.literal(EVENT_STATUS.CANCELLED),
     ),
     startDate: v.string(),
     startTime: v.string(),
@@ -155,11 +318,11 @@ export const createEvent = mutation({
     endTime: v.optional(v.string()),
     minutes: v.optional(v.string()),
     type: v.union(
-      v.literal("meeting"),
-      v.literal("social"),
-      v.literal("fundraiser"),
-      v.literal("workshop"),
-      v.literal("others"),
+      v.literal(EVENT_TYPE.MEETING),
+      v.literal(EVENT_TYPE.SOCIAL),
+      v.literal(EVENT_TYPE.FUNDRAISER),
+      v.literal(EVENT_TYPE.WORKSHOP),
+      v.literal(EVENT_TYPE.OTHERS),
     ),
     authEmail: v.string(),
     media: v.optional(
@@ -184,16 +347,9 @@ export const createEvent = mutation({
       ["admin", "pro"],
       args.authEmail,
     );
-    if (!isPermitted) throw new Error("Unauthorized");
+    validateEventPermission(isPermitted);
 
-    const mediaWithUrl: MediaWithUrl | undefined =
-      media &&
-      (await Promise.all(
-        media.map(async (m) => ({
-          ...m,
-          url: await ctx.storage.getUrl(m.storageId),
-        })),
-      ));
+    const mediaWithUrl = await processMediaWithUrls(ctx, media || []);
 
     const event = await ctx.db.insert("events", {
       ...eventData,
@@ -201,31 +357,49 @@ export const createEvent = mutation({
       createdBy: user._id,
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      searchField:
-        `${args.title} ${args.description} ${args.location}`.toLowerCase(),
+      searchField: buildEventSearchField(args.title, args.description, args.location),
     });
 
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: user._id,
-      type: "event",
-      user: `${user.firstName} ${user.lastName}`,
-      action: "eventCreated",
-      description: `created event "${args.title}"`,
-      metadata: { eventId: event },
-      timestamp: Date.now(),
-    });
+    await logEventActivity(
+      ctx,
+      user._id,
+      `${user.firstName} ${user.lastName}`,
+      "eventCreated",
+      `created event "${args.title}"`,
+      { eventId: event },
+    );
+
     await notifyAllMembers(ctx, {
       title: "New Event",
-      message: "new event has been created: " + args.title,
+      message: `new event has been created: ${args.title}`,
       type: "event",
       actionUrl: `/events/${event}`,
       excludeUserId: user._id,
     });
+
+    return event;
   },
 });
 
-// Update event
+/**
+ * Updates an existing event
+ * @param id - Event ID to update
+ * @param title - Optional new title
+ * @param description - Optional new description
+ * @param startDate - Optional new start date
+ * @param endDate - Optional new end date
+ * @param startTime - Optional new start time
+ * @param endTime - Optional new end time
+ * @param location - Optional new location
+ * @param minutes - Optional meeting minutes
+ * @param type - Optional new type
+ * @param status - Optional new status
+ * @param media - Optional new media files
+ * @param authEmail - Email of updating user
+ * @returns Event ID
+ * @throws Error if unauthorized or event not found
+ * @side-effect Updates event, merges media, sends notification, logs activity
+ */
 export const updateEvent = mutation({
   args: {
     id: v.id("events"),
@@ -239,19 +413,19 @@ export const updateEvent = mutation({
     minutes: v.optional(v.string()),
     type: v.optional(
       v.union(
-        v.literal("meeting"),
-        v.literal("social"),
-        v.literal("fundraiser"),
-        v.literal("workshop"),
-        v.literal("others"),
+        v.literal(EVENT_TYPE.MEETING),
+        v.literal(EVENT_TYPE.SOCIAL),
+        v.literal(EVENT_TYPE.FUNDRAISER),
+        v.literal(EVENT_TYPE.WORKSHOP),
+        v.literal(EVENT_TYPE.OTHERS),
       ),
     ),
     status: v.optional(
       v.union(
-        v.literal("upcoming"),
-        v.literal("ongoing"),
-        v.literal("completed"),
-        v.literal("cancelled"),
+        v.literal(EVENT_STATUS.UPCOMING),
+        v.literal(EVENT_STATUS.ONGOING),
+        v.literal(EVENT_STATUS.COMPLETED),
+        v.literal(EVENT_STATUS.CANCELLED),
       ),
     ),
     media: v.optional(
@@ -276,62 +450,54 @@ export const updateEvent = mutation({
       ["admin", "pro"],
       args.authEmail,
     );
-    if (!isPermitted) {
-      throw new Error("Only admins and pro can update events");
-    }
+    validateEventPermission(isPermitted);
 
     const event = await ctx.db.get(args.id);
-    if (!event) {
-      throw new Error("Event not found");
-    }
+    validateEventExists(event);
 
-    const mediaWithUrl: MediaWithUrl | undefined =
-      media &&
-      (await Promise.all(
-        media.map(async (m) => ({
-          ...m,
-          url: await ctx.storage.getUrl(m.storageId),
-        })),
-      ));
+    const mediaWithUrl = await processMediaWithUrls(ctx, media || []);
+    const mergedMedia = mergeMediaArrays(mediaWithUrl, event?.media);
+
+    const newTitle = updateData.title ?? event!.title;
+    const newDescription = updateData.description ?? event!.description;
+    const newLocation = updateData.location ?? event!.location;
+
     await ctx.db.patch(id, {
       ...updateData,
-      media: mediaWithUrl?.length
-        ? [...mediaWithUrl, ...(Array.isArray(event?.media) ? event.media : [])]
-        : Array.isArray(event?.media)
-          ? event.media
-          : [],
+      media: mergedMedia,
       updatedAt: Date.now(),
-      searchField:
-        `${args.title ?? event.title} ${args.description ?? event.description} ${args.location ?? event.location}`.toLowerCase(),
+      searchField: buildEventSearchField(newTitle, newDescription, newLocation),
     });
 
     await notifyAllMembers(ctx, {
       title: "Event Updated",
-      message: "Event has been updated: " + (args.title ?? event.title),
+      message: `Event has been updated: ${newTitle}`,
       type: "event",
-      actionUrl: `/events/${event._id}`,
+      actionUrl: `/events/${event!._id}`,
       excludeUserId: user._id,
     });
 
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: user._id,
-      type: "event",
-      user: `${user.firstName} ${user.lastName}`,
-      action: "eventUpdated",
-      description: `Updated event "${event.title}"`,
-      metadata: {
-        eventId: id,
-        updateData,
-        title: updateData.title || event.title,
-      },
-      timestamp: Date.now(),
-    });
+    await logEventActivity(
+      ctx,
+      user._id,
+      `${user.firstName} ${user.lastName}`,
+      "eventUpdated",
+      `Updated event "${event!.title}"`,
+      { eventId: id, updateData, title: newTitle },
+    );
+
     return id;
   },
 });
 
-// Delete event
+/**
+ * Deletes an event from the system
+ * @param id - Event ID to delete
+ * @param authEmail - Email of deleting user
+ * @returns Event ID
+ * @throws Error if unauthorized or event not found
+ * @side-effect Deletes event, sends notification, logs activity
+ */
 export const deleteEvent = mutation({
   args: {
     id: v.id("events"),
@@ -344,37 +510,27 @@ export const deleteEvent = mutation({
       ["admin", "pro"],
       args.authEmail,
     );
-    if (!isPermitted) {
-      throw new Error("Only admins and pro can delete events");
-    }
+    validateEventPermission(isPermitted);
 
     const event = await ctx.db.get(args.id);
-    if (!event) {
-      throw new Error("Event not found");
-    }
+    validateEventExists(event);
 
     await ctx.db.delete(args.id);
 
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: user._id,
-      type: "event",
-      action: "eventDeleted",
-      user: `${user.firstName} ${user.lastName}`,
-      description: `deleted event "${event.title}"`,
-      metadata: {
-        eventId: args.id,
-        title: event.title,
-        user: `${user.firstName} ${user.lastName}`,
-      },
-      timestamp: Date.now(),
-    });
+    await logEventActivity(
+      ctx,
+      user._id,
+      `${user.firstName} ${user.lastName}`,
+      "eventDeleted",
+      `deleted event "${event!.title}"`,
+      { eventId: args.id, title: event!.title },
+    );
 
     await notifyAllMembers(ctx, {
       title: "Event Deleted",
-      message: "Event has been deleted: " + event.title,
+      message: `Event has been deleted: ${event!.title}`,
       type: "event",
-      actionUrl: `/events/${event._id}`,
+      actionUrl: `/events/${event!._id}`,
       excludeUserId: user._id,
     });
 
@@ -382,7 +538,15 @@ export const deleteEvent = mutation({
   },
 });
 
-// Cancel event
+/**
+ * Cancels an event (marks as cancelled)
+ * @param id - Event ID to cancel
+ * @param reason - Optional cancellation reason
+ * @param authEmail - Email of cancelling user
+ * @returns Event ID
+ * @throws Error if unauthorized or event not found
+ * @side-effect Updates event status, sends notification, logs activity
+ */
 export const cancelEvent = mutation({
   args: {
     id: v.id("events"),
@@ -396,41 +560,33 @@ export const cancelEvent = mutation({
       ["admin", "pro"],
       args.authEmail,
     );
-    if (!isPermitted) {
-      throw new Error("Only admins and pro can cancel events");
-    }
+    validateEventPermission(isPermitted);
 
     const event = await ctx.db.get(args.id);
-    if (!event) {
-      throw new Error("Event not found");
-    }
+    validateEventExists(event);
 
     await ctx.db.patch(args.id, {
-      status: "cancelled",
+      status: EVENT_STATUS.CANCELLED,
       updatedAt: Date.now(),
     });
 
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: user._id,
-      type: "event",
-      user: `${user.firstName} ${user.lastName}`,
-      action: "eventCancelled",
-      description: `cancelled "${event.title}" ${args.reason ? `: ${args.reason}` : ""}`,
-      metadata: {
-        eventId: args.id,
-        reason: args.reason,
-        title: event.title,
-        user: `${user.firstName} ${user.lastName}`,
-      },
-      timestamp: Date.now(),
-    });
+    const reasonSuffix = args.reason ? `: ${args.reason}` : "";
+    const description = `cancelled "${event!.title}"${reasonSuffix}`;
+
+    await logEventActivity(
+      ctx,
+      user._id,
+      `${user.firstName} ${user.lastName}`,
+      "eventCancelled",
+      description,
+      { eventId: args.id, reason: args.reason, title: event!.title },
+    );
 
     await notifyAllMembers(ctx, {
       title: "Event Canceled",
-      message: "Event has been canceled: " + event.title,
+      message: `Event has been canceled: ${event!.title}`,
       type: "event",
-      actionUrl: `/events/${event._id}`,
+      actionUrl: `/events/${event!._id}`,
       excludeUserId: user._id,
     });
 
@@ -438,7 +594,14 @@ export const cancelEvent = mutation({
   },
 });
 
-// Mark the event as completed
+/**
+ * Marks an event as completed
+ * @param id - Event ID to complete
+ * @param authEmail - Email of user marking event as completed
+ * @returns Event ID
+ * @throws Error if unauthorized or event not found
+ * @side-effect Updates event status, sends notification, logs activity
+ */
 export const completeEvent = mutation({
   args: {
     id: v.id("events"),
@@ -451,40 +614,30 @@ export const completeEvent = mutation({
       ["admin", "pro"],
       args.authEmail,
     );
-    if (!isPermitted) {
-      throw new Error("Only admins and pro can mark events as completed");
-    }
+    validateEventPermission(isPermitted);
 
     const event = await ctx.db.get(args.id);
-    if (!event) {
-      throw new Error("Event not found");
-    }
+    validateEventExists(event);
 
     await ctx.db.patch(args.id, {
-      status: "completed",
+      status: EVENT_STATUS.COMPLETED,
       updatedAt: Date.now(),
     });
 
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: user._id,
-      type: "event",
-      user: `${user.firstName} ${user.lastName}`,
-      action: "eventCompleted",
-      description: `marked event "${event.title}" as completed`,
-      metadata: {
-        eventId: args.id,
-        title: event.title,
-        user: `${user.firstName} ${user.lastName}`,
-      },
-      timestamp: Date.now(),
-    });
+    await logEventActivity(
+      ctx,
+      user._id,
+      `${user.firstName} ${user.lastName}`,
+      "eventCompleted",
+      `marked event "${event!.title}" as completed`,
+      { eventId: args.id, title: event!.title },
+    );
 
     await notifyAllMembers(ctx, {
       title: "Event Completed",
-      message: "Event is marked as completed: " + event.title,
+      message: `Event is marked as completed: ${event!.title}`,
       type: "event",
-      actionUrl: `/events/${event._id}`,
+      actionUrl: `/events/${event!._id}`,
       excludeUserId: user._id,
     });
 

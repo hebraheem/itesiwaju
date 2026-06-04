@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser, hasPermission } from "@/convex/utils";
 import { paginationOptsValidator } from "convex/server";
+import { ar } from "zod/v4/locales";
 
 // ============================================================================
 // CONSTANTS & TYPES
@@ -294,14 +295,7 @@ export const getAllAccounts = query({
 export const getAccountStats = query({
   args: { authEmail: v.string() },
   handler: async (ctx, args) => {
-    await getCurrentUser(args.authEmail, ctx);
-    const hasAccess = await hasPermission(
-      ctx,
-      ["admin", "treasurer"],
-      args.authEmail,
-    );
-    if (!hasAccess) throw new Error("Unauthorized: Only admin and treasurer can view statistics");
-    
+    await getCurrentUser(args.authEmail, ctx);   
     return await getTreasury(ctx);
   },
 });
@@ -665,6 +659,7 @@ export const recordDue = mutation({
     dueDate: v.number(),
     description: v.optional(v.string()),
     authEmail: v.string(),
+    payNow: v.optional(v.boolean())
   },
   handler: async (ctx, args) => {
     const authUser = await getCurrentUser(args.authEmail, ctx);
@@ -736,6 +731,10 @@ export const recordDue = mutation({
         user: userDetails?.firstName,
       },
     );
+
+    if(args?.payNow){
+      
+    }
 
     return account._id;
   },
