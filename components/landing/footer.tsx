@@ -102,7 +102,7 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3 text-muted-foreground">
                 <Phone className="w-4 h-4 text-orange-600" />
-                <span>+234 123 456 7890</span>
+                <span>+49 151 17289590, +49 176 31289780</span>
               </li>
               <li className="flex items-start gap-3 text-muted-foreground">
                 <MapPin className="w-4 h-4 text-orange-600 mt-1" />
@@ -122,7 +122,7 @@ export function Footer() {
               {t("privacy")}
             </Link>
             <Link
-              href="/terms"
+              href="/#rules"
               className="hover:text-orange-600 transition-colors"
             >
               {t("terms")}

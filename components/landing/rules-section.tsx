@@ -7,7 +7,6 @@ import {
   Shield,
   Lock,
   HandshakeIcon,
-  ArrowRight,
 } from "lucide-react";
 import MotionDiv from "@/components/animations/MotionDiv";
 import Link from "next/link";
@@ -39,9 +38,10 @@ export function RulesSection() {
             <p className="text-xl text-muted-foreground">{t("subtitle")}</p>
             <Link
               href="/rules"
+              download={true}
               className="flex items-center cursor-pointer justify-center text-orange-600 font-medium mt-2 hover:underline"
             >
-              {t("allRules")} <ArrowRight />
+              {t("downloadConstitution")}
             </Link>
           </div>
         </MotionDiv>
