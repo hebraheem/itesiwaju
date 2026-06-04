@@ -52,7 +52,7 @@ export function BenefitsSection() {
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4">{t("title")}</h2>
 
-          <div className="">
+          <div className="hidden">
             <p className="text-xl text-muted-foreground">{t("subtitle")}</p>
             <Link
               href="/benefits"

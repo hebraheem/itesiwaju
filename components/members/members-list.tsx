@@ -27,12 +27,12 @@ import { useAuth } from "@/lib/hooks/use-auth";
 export function MembersList() {
   const t = useTranslations("members");
   const { user } = useAuth();
-  const [query, setQuery] = useState({ search: "", limit: 10 });
+  const [query, setQuery] = useState({ search: "", limit: 100 });
   const { results, loadMore, isLoading, status } = usePaginatedQuery(
     api.users.getUsers,
     { userEmail: user?.email ?? "", ...query },
     {
-      initialNumItems: 10,
+      initialNumItems: 100,
     },
   );
 

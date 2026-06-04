@@ -1,3 +1,4 @@
+"use client"
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -5,9 +6,12 @@ import { ArrowRight, CheckCircle } from "lucide-react";
 import MotionDiv from "@/components/animations/MotionDiv";
 import MotionP from "@/components/animations/MotionP";
 import MotionH2 from "@/components/animations/MotionH2";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export function JoinUsSection() {
   const t = useTranslations("home.joinUs");
+  const stats = useQuery(api.appstat.getAppStats)
 
   return (
     <section
@@ -90,7 +94,7 @@ export function JoinUsSection() {
                 >
                   <CheckCircle className="w-5 h-5" />
                   <span className="text-sm font-medium">
-                    {item === "activeMembers" ? "248+ " : ""} {t(item)}
+                    {item === "activeMembers" ? stats?.members?.active : ""} {t(item)}
                   </span>
                 </MotionDiv>
               ),

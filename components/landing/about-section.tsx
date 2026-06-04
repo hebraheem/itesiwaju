@@ -1,12 +1,16 @@
+"use client"
 import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Target, Heart, Users, TrendingUp } from "lucide-react";
 import MotionDiv from "@/components/animations/MotionDiv";
 import Image from "next/image";
 import group from "@/public/images/members01.jpeg";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export function AboutSection() {
   const t = useTranslations("home.about");
+  const stats = useQuery(api.appstat.getAppStats)
 
   const container = {
     hidden: { opacity: 0 },
@@ -113,10 +117,10 @@ export function AboutSection() {
           className="grid grid-cols-2 md:grid-cols-4 gap-6"
         >
           {[
-            { icon: Users, value: "248+", label: "Members" },
-            { icon: TrendingUp, value: "5+", label: "Years" },
-            { icon: Target, value: "100+", label: "Events" },
-            { icon: Heart, value: "₦2.4M", label: "Collected" },
+            { icon: Users, value: stats?.members?.total, label: "Members" },
+            { icon: TrendingUp, value: stats?.ageInYears, label: "Years" },
+            { icon: Target, value: stats?.events.total, label: "Events" },
+            { icon: Heart, value: stats?.financials?.totalMoneyCollected, label: "Collected" },
           ].map((stat, index) => (
             <MotionDiv key={index} variants={item}>
               <Card className="text-center hover:shadow-lg transition-shadow">
