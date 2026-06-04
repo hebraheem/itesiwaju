@@ -11,6 +11,7 @@
 import type * as accounts from "../accounts.js";
 import type * as actionNode_notifications from "../actionNode/notifications.js";
 import type * as activities from "../activities.js";
+import type * as appstat from "../appstat.js";
 import type * as auth_actions from "../auth/actions.js";
 import type * as crons from "../crons.js";
 import type * as events from "../events.js";
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   accounts: typeof accounts;
   "actionNode/notifications": typeof actionNode_notifications;
   activities: typeof activities;
+  appstat: typeof appstat;
   "auth/actions": typeof auth_actions;
   crons: typeof crons;
   events: typeof events;

@@ -52,7 +52,7 @@ export const getUsers = query({
     // Verify user exists
     const currentUser = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.userEmail!))
+      .withIndex("by_email", (q) => q.eq("email", args.userEmail))
       .unique();
 
     if (!currentUser) {

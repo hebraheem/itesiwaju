@@ -5,10 +5,10 @@ export async function getCurrentUser(
   email: string,
   ctx: GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>,
 ) {
-  if (!email) throw new Error("Unauthorized");
+  if (!email) throw new Error("Unauthorized: Email must be provided");
   const user = await ctx.db
     .query("users")
-    .withIndex("by_email", (q) => q.eq("email", email!))
+    .withIndex("by_email", (q) => q.eq("email", email))
     .unique();
 
   if (!user) throw new Error("User not logged in or does not exist");
@@ -24,13 +24,10 @@ export async function hasPermission(
   try {
     const user = await getCurrentUser(email, ctx);
     if (!user) return false;
-
     if (user.role === "admin") return true;
-
     if (Array.isArray(role)) {
       return role.includes(user.role);
     }
-
     return user.role === role;
   } catch {
     return false;

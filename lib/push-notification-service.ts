@@ -3,7 +3,6 @@
 import { api } from "@/convex/_generated/api";
 import { convexServer } from "@/lib/convexServer";
 import { Id } from "@/convex/_generated/dataModel";
-import { getUserSubscriptions } from "@/convex/notifications";
 
 export class PushNotificationService {
   private static instance: PushNotificationService;

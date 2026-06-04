@@ -2,18 +2,208 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser, hasPermission } from "@/convex/utils";
 import { paginationOptsValidator } from "convex/server";
-import { parseDate } from "@/lib/utils";
 
-// Get account by user ID
+// ============================================================================
+// CONSTANTS & TYPES
+// ============================================================================
+
+/** Account status representing member's financial standing */
+export const ACCOUNT_STATUS = {
+  GOOD_STANDING: "good_standing",
+  OWING: "owing",
+  OVERDUE: "overdue",
+} as const;
+
+/** Payment types for financial transactions */
+export const PAYMENT_TYPE = {
+  FINE_PAYMENT: "fine_payment",
+  BORROW_PAYMENT: "borrow_payment",
+  DUE_PAYMENT: "due_payment",
+} as const;
+
+/** Business rules for financial transactions */
+export const BUSINESS_RULES = {
+  /** Maximum borrow amount for overdue members */
+  MAX_OVERDUE_BORROW: 500,
+  /** Currency used in the system */
+  CURRENCY: "EUR",
+} as const;
+
+type AccountStatus = typeof ACCOUNT_STATUS[keyof typeof ACCOUNT_STATUS];
+type PaymentType = typeof PAYMENT_TYPE[keyof typeof PAYMENT_TYPE];
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Calculates account status based on outstanding amounts and due date
+ * Status hierarchy: good_standing > owing > overdue
+ */
+function calculateAccountStatus(
+  outstandingBorrowed: number,
+  outstandingFine: number,
+  outstandingDues: number,
+  dueDate: number | undefined,
+): AccountStatus {
+  const totalOutstanding = outstandingBorrowed + outstandingFine + outstandingDues;
+
+  if (totalOutstanding === 0) {
+    return ACCOUNT_STATUS.GOOD_STANDING;
+  }
+
+  if (dueDate && dueDate < Date.now()) {
+    return ACCOUNT_STATUS.OVERDUE;
+  }
+
+  return ACCOUNT_STATUS.OWING;
+}
+
+/**
+ * Logs financial activities for audit trail and transparency
+ */
+async function logActivity(
+  ctx: any,
+  userId: string,
+  authUser: any,
+  action: string,
+  description: string,
+  metadata: Record<string, any>,
+) {
+  await ctx.db.insert("activities", {
+    userId,
+    type: "payment",
+    user: `${authUser.firstName} ${authUser.lastName}`,
+    action,
+    description,
+    metadata,
+    timestamp: Date.now(),
+  });
+}
+
+/**
+ * Formats currency amounts for display
+ */
+function formatCurrency(amount: number): string {
+  return `${BUSINESS_RULES.CURRENCY}${amount.toLocaleString()}`;
+}
+
+/**
+ * Retrieves treasury record with current member statistics
+ * Recalculates good standing count to ensure accuracy
+ */
+async function getTreasury(ctx: any) {
+  const treasury = await ctx.db.query("treasury").first();
+  if (!treasury) {
+    throw new Error("Treasury not initialized - please contact administrator");
+  }
+
+  // Recalculate good standing members for consistency
+  const accounts = await ctx.db.query("accounts").collect();
+  const goodStandingCount = accounts.filter(
+    (acc: any) => acc.status === ACCOUNT_STATUS.GOOD_STANDING,
+  ).length;
+
+  return {
+    ...treasury,
+    noOfGoodStandingMembers: goodStandingCount,
+  };
+}
+
+/**
+ * Retrieves account by user ID with validation
+ * Throws if account doesn't exist
+ */
+async function getAccountByUserIdOrThrow(ctx: any, userId: string) {
+  const account = await ctx.db
+    .query("accounts")
+    .withIndex("by_user", (q: any) => q.eq("userId", userId))
+    .unique();
+
+  if (!account) {
+    throw new Error(`Account not found for user ID: ${userId}`);
+  }
+
+  return account;
+}
+
+/**
+ * Validates that member has sufficient treasury funds for borrow operation
+ */
+function validateSufficientTreasuryFunds(
+  treasuryBalance: number,
+  requestedAmount: number,
+): void {
+  if (treasuryBalance < requestedAmount) {
+    throw new Error(
+      `Insufficient treasury funds. Available: ${formatCurrency(treasuryBalance)}, Requested: ${formatCurrency(requestedAmount)}`,
+    );
+  }
+}
+
+/**
+ * Validates that overdue members cannot borrow beyond limit
+ */
+function validateOverdueBorrowLimit(
+  accountStatus: AccountStatus,
+  currentBorrowedAmount: number,
+  newBorrowAmount: number,
+): void {
+  if (accountStatus === ACCOUNT_STATUS.OVERDUE) {
+    const totalWouldBe = currentBorrowedAmount + newBorrowAmount;
+    if (totalWouldBe > BUSINESS_RULES.MAX_OVERDUE_BORROW) {
+      throw new Error(
+        `Overdue members cannot borrow more than ${formatCurrency(BUSINESS_RULES.MAX_OVERDUE_BORROW)}. Current: ${formatCurrency(currentBorrowedAmount)}`,
+      );
+    }
+  }
+}
+
+/**
+ * Validates that payment amount doesn't exceed outstanding balance
+ */
+function validatePaymentAmount(
+  paymentType: PaymentType,
+  amount: number,
+  outstanding: number,
+  accountDetails: string,
+): void {
+  if (amount > outstanding) {
+    throw new Error(
+      `Payment amount (${formatCurrency(amount)}) exceeds outstanding ${paymentType} balance (${formatCurrency(outstanding)}) for ${accountDetails}`,
+    );
+  }
+}
+
+/**
+ * Validates that an outstanding balance exists for payment type
+ */
+function validateOutstandingBalance(
+  paymentType: PaymentType,
+  outstanding: number,
+  accountDetails: string,
+): void {
+  if (outstanding === 0) {
+    throw new Error(
+      `No outstanding ${paymentType} to process for ${accountDetails}`,
+    );
+  }
+}
+
+// ============================================================================
+// QUERIES
+// ============================================================================
+
+/**
+ * Retrieves account details for a specific user including user information
+ * Requires authentication but not role-based access
+ */
 export const getAccountByUserId = query({
   args: { userId: v.id("users"), authEmail: v.string() },
   handler: async (ctx, args) => {
     await getCurrentUser(args.authEmail, ctx);
     const user = await ctx.db.get(args.userId);
-    const account = await ctx.db
-      .query("accounts")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .unique();
+    const account = await getAccountByUserIdOrThrow(ctx, args.userId);
 
     return {
       ...account,
@@ -29,14 +219,17 @@ export const getAccountByUserId = query({
   },
 });
 
-// Get all accounts with user details
+/**
+ * Retrieves all accounts with optional filtering and pagination
+ * Restricted to admin and treasurer roles
+ */
 export const getAllAccounts = query({
   args: {
     status: v.optional(
       v.union(
-        v.literal("good_standing"),
-        v.literal("owing"),
-        v.literal("overdue"),
+        v.literal(ACCOUNT_STATUS.GOOD_STANDING),
+        v.literal(ACCOUNT_STATUS.OWING),
+        v.literal(ACCOUNT_STATUS.OVERDUE),
       ),
     ),
     search: v.optional(v.string()),
@@ -50,38 +243,37 @@ export const getAllAccounts = query({
       ["admin", "treasurer"],
       args.authEmail,
     );
-    if (!hasAccess) throw new Error("Unauthorized");
+    if (!hasAccess) throw new Error("Unauthorized: Only admin and treasurer can view all accounts");
 
-    let q;
-
+    // Build query based on filter type
+    let query;
     if (args.search) {
-      q = ctx.db
+      query = ctx.db
         .query("accounts")
-        .withSearchIndex("search_history", (q) =>
+        .withSearchIndex("search_history", (q: any) =>
           q.search("searchField", args.search!),
         );
     } else if (args.status) {
-      q = ctx.db
+      query = ctx.db
         .query("accounts")
-        .withIndex("by_status", (q) => q.eq("status", args.status!));
-    }
-    // 📂 Fallback
-    else {
-      q = ctx.db.query("accounts");
+        .withIndex("by_status", (q: any) => q.eq("status", args.status!));
+    } else {
+      query = ctx.db.query("accounts");
     }
 
-    const page = await q.paginate(args.paginationOpts);
+    const page = await query.paginate(args.paginationOpts);
 
+    // Enrich accounts with user details
     const enriched = await Promise.all(
-      page.page.map(async (account) => {
+      page.page.map(async (account: any) => {
         const user = await ctx.db.get(account.userId);
         return {
           ...account,
           user: user
             ? {
-                name: `${user.firstName} ${user.lastName}`,
-                email: user.email,
-                phone: user.phone,
+                name: `${(user as any).firstName} ${(user as any).lastName}`,
+                email: (user as any).email,
+                phone: (user as any).phone,
               }
             : null,
         };
@@ -95,16 +287,38 @@ export const getAllAccounts = query({
   },
 });
 
-// Get account statistics
+/**
+ * Retrieves treasury statistics including total balances and member counts
+ * Restricted to admin and treasurer roles
+ */
 export const getAccountStats = query({
   args: { authEmail: v.string() },
   handler: async (ctx, args) => {
     await getCurrentUser(args.authEmail, ctx);
+    const hasAccess = await hasPermission(
+      ctx,
+      ["admin", "treasurer"],
+      args.authEmail,
+    );
+    if (!hasAccess) throw new Error("Unauthorized: Only admin and treasurer can view statistics");
+    
     return await getTreasury(ctx);
   },
 });
 
-// Record borrowed amount
+// ============================================================================
+// MUTATIONS - FINANCIAL TRANSACTIONS
+// ============================================================================
+
+/**
+ * Records a borrow transaction for a member
+ * 
+ * Business Rules:
+ * - Only admin/treasurer can record borrows
+ * - Treasury must have sufficient funds
+ * - Overdue members cannot borrow beyond MAX_OVERDUE_BORROW limit
+ * - Due date in past automatically sets status to OVERDUE
+ */
 export const recordBorrow = mutation({
   args: {
     userId: v.id("users"),
@@ -120,39 +334,40 @@ export const recordBorrow = mutation({
       ["admin", "treasurer"],
       args.authEmail,
     );
-    if (!hasAccess) throw new Error("Unauthorized");
+    if (!hasAccess) {
+      throw new Error("Unauthorized: Only admin and treasurer can record borrows");
+    }
 
-    const account = await ctx.db
-      .query("accounts")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .unique();
-    if (!account) throw new Error("Account not found");
-
+    const account = await getAccountByUserIdOrThrow(ctx, args.userId);
     const user = await ctx.db.get(args.userId);
-
     const treasury = await getTreasury(ctx);
 
-    if (treasury.moneyAtHand < args.amount) {
-      throw new Error("Insufficient funds in treasury");
-    }
-    if (
-      account.status === "owing" &&
-      account.dueDate &&
-      account.dueDate < Date.now() &&
-      account.currentBorrowedAmount + args.amount > 500
-    ) {
-      throw new Error("Cannot borrow while account is not in good standing");
-    }
-    const currentBorrowedAmount = account.currentBorrowedAmount + args.amount;
+    // Validate treasury has funds
+    validateSufficientTreasuryFunds(treasury.moneyAtHand, args.amount);
 
-    const status = args.dueDate < Date.now() ? "overdue" : "owing";
+    // Validate overdue borrow limit
+    validateOverdueBorrowLimit(
+      account.status as AccountStatus,
+      account.currentBorrowedAmount,
+      args.amount,
+    );
 
+    // Calculate new amounts
+    const newBorrowedAmount = account.currentBorrowedAmount + args.amount;
+    const newStatus = calculateAccountStatus(
+      newBorrowedAmount,
+      account.currentFineAmount,
+      account.currentDuesAmount,
+      args.dueDate < Date.now() ? args.dueDate : account.dueDate,
+    );
+
+    // Update account with borrow record
     await ctx.db.patch(account._id, {
-      currentBorrowedAmount,
+      currentBorrowedAmount: newBorrowedAmount,
       borrowedAmountToBalance: account.borrowedAmountToBalance + args.amount,
       totalBorrowedAmount: account.totalBorrowedAmount + args.amount,
       dueDate: args.dueDate,
-      status,
+      status: newStatus,
       paymentHistory: [
         ...account.paymentHistory,
         {
@@ -165,35 +380,48 @@ export const recordBorrow = mutation({
       ],
     });
 
+    // Update treasury
+    const prevStatus = account.status;
+    const owingMemberDelta =
+      prevStatus === ACCOUNT_STATUS.GOOD_STANDING &&
+      newStatus !== ACCOUNT_STATUS.GOOD_STANDING
+        ? 1
+        : 0;
+
     await ctx.db.patch(treasury._id, {
       totalBorrowed: treasury.totalBorrowed + args.amount,
       totalOutStandingBorrow: treasury.totalOutStandingBorrow + args.amount,
-      noOfOwingMembers:
-        account.status === "good_standing"
-          ? treasury.noOfOwingMembers + 1
-          : treasury.noOfOwingMembers,
+      noOfOwingMembers: treasury.noOfOwingMembers + owingMemberDelta,
       moneyAtHand: treasury.moneyAtHand - args.amount,
     });
 
-    await ctx.db.insert("activities", {
-      userId: args.userId,
-      type: "payment",
-      user: `${authUser.firstName} ${authUser.lastName}`,
-      action: "record_borrow",
-      description: `recorded borrow of EUR${args.amount.toLocaleString()} for ${user?.firstName}`,
-      metadata: {
+    // Log activity
+    await logActivity(
+      ctx,
+      args.userId,
+      authUser,
+      "record_borrow",
+      `Recorded borrow of ${formatCurrency(args.amount)} for ${(user as any)?.firstName}`,
+      {
         amount: args.amount,
         dueDate: args.dueDate,
-        user: user?.firstName,
+        user: (user as any)?.firstName,
       },
-      timestamp: Date.now(),
-    });
+    );
 
     return account._id;
   },
 });
 
-// Record payment
+/**
+ * Records a payment for an outstanding balance (fine, borrowed amount, or dues)
+ * 
+ * Business Rules:
+ * - Payment amount cannot exceed outstanding balance
+ * - Account status is recalculated after payment
+ * - If all outstanding amounts are cleared, status returns to GOOD_STANDING
+ * - Treasury and member counts are updated accordingly
+ */
 export const recordPayment = mutation({
   args: {
     userId: v.id("users"),
@@ -201,9 +429,9 @@ export const recordPayment = mutation({
     description: v.optional(v.string()),
     authEmail: v.string(),
     paymentType: v.union(
-      v.literal("fine_payment"),
-      v.literal("borrow_payment"),
-      v.literal("due_payment"),
+      v.literal(PAYMENT_TYPE.FINE_PAYMENT),
+      v.literal(PAYMENT_TYPE.BORROW_PAYMENT),
+      v.literal(PAYMENT_TYPE.DUE_PAYMENT),
     ),
   },
   handler: async (ctx, args) => {
@@ -213,85 +441,76 @@ export const recordPayment = mutation({
       ["admin", "treasurer"],
       args.authEmail,
     );
-    if (!hasAccess) throw new Error("Unauthorized");
-
-    const account = await ctx.db
-      .query("accounts")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .unique();
-    if (!account) throw new Error("Account not found");
-
-    if (args.paymentType === "fine_payment" && !account.fineToBalance) {
-      throw new Error("No outstanding fines to record");
-    }
-    if (
-      args.paymentType === "borrow_payment" &&
-      !account.borrowedAmountToBalance
-    ) {
-      throw new Error("No outstanding borrowed amount to record");
-    }
-    if (args.paymentType === "due_payment" && !account.duesToBalance) {
-      throw new Error("No outstanding dues to record");
-    }
-    if (
-      args.paymentType === "fine_payment" &&
-      args.amount > account.fineToBalance
-    ) {
-      throw new Error("Payment amount exceeds outstanding fine balance");
+    if (!hasAccess) {
+      throw new Error("Unauthorized: Only admin and treasurer can record payments");
     }
 
+    const account = await getAccountByUserIdOrThrow(ctx, args.userId);
     const user = await ctx.db.get(args.userId);
+    const userDetails = user as any;
 
+    // Validate outstanding balance exists
+    const outstandingByType = {
+      [PAYMENT_TYPE.FINE_PAYMENT]: account.fineToBalance,
+      [PAYMENT_TYPE.BORROW_PAYMENT]: account.borrowedAmountToBalance,
+      [PAYMENT_TYPE.DUE_PAYMENT]: account.duesToBalance,
+    };
+
+    validateOutstandingBalance(
+      args.paymentType,
+      outstandingByType[args.paymentType],
+      `${userDetails?.firstName} ${userDetails?.lastName}`,
+    );
+
+    // Validate payment amount doesn't exceed outstanding
+    validatePaymentAmount(
+      args.paymentType,
+      args.amount,
+      outstandingByType[args.paymentType],
+      `${userDetails?.firstName} ${userDetails?.lastName}`,
+    );
+
+    // Calculate new amounts based on payment type
     let newBorrowed = account.currentBorrowedAmount;
     let newFine = account.currentFineAmount;
     let newDues = account.currentDuesAmount;
-    let newAmountToBalance = account.borrowedAmountToBalance;
+    let newBorrowedToBalance = account.borrowedAmountToBalance;
     let newFineToBalance = account.fineToBalance;
     let newDuesToBalance = account.duesToBalance;
 
     switch (args.paymentType) {
-      case "borrow_payment":
+      case PAYMENT_TYPE.BORROW_PAYMENT:
         newBorrowed = Math.max(0, account.currentBorrowedAmount - args.amount);
-        newAmountToBalance = Math.max(
-          0,
-          account.borrowedAmountToBalance - args.amount,
-        );
+        newBorrowedToBalance = Math.max(0, account.borrowedAmountToBalance - args.amount);
         break;
-      case "fine_payment":
+      case PAYMENT_TYPE.FINE_PAYMENT:
         newFine = Math.max(0, account.currentFineAmount - args.amount);
         newFineToBalance = Math.max(0, account.fineToBalance - args.amount);
         break;
-      case "due_payment":
+      case PAYMENT_TYPE.DUE_PAYMENT:
         newDues = Math.max(0, account.currentDuesAmount - args.amount);
         newDuesToBalance = Math.max(0, account.duesToBalance - args.amount);
         break;
     }
-    if (
-      newFineToBalance < 0 ||
-      newAmountToBalance < 0 ||
-      newDuesToBalance < 0
-    ) {
-      throw new Error("Payment amount exceeds outstanding balance");
-    }
 
-    const outstanding = newBorrowed + newFine + newDues;
+    // Calculate new status based on remaining outstanding
+    const newStatus = calculateAccountStatus(
+      newBorrowed,
+      newFine,
+      newDues,
+      account.dueDate,
+    );
 
-    const status =
-      outstanding === 0
-        ? "good_standing"
-        : account.dueDate && account.dueDate < Date.now()
-          ? "overdue"
-          : "owing";
-
+    // Update account
     await ctx.db.patch(account._id, {
       currentBorrowedAmount: newBorrowed,
       currentFineAmount: newFine,
       currentDuesAmount: newDues,
-      borrowedAmountToBalance: newAmountToBalance,
+      borrowedAmountToBalance: newBorrowedToBalance,
       fineToBalance: newFineToBalance,
       duesToBalance: newDuesToBalance,
-      dueDate: status === "good_standing" ? undefined : account.dueDate,
-      status,
+      dueDate: newStatus === ACCOUNT_STATUS.GOOD_STANDING ? undefined : account.dueDate,
+      status: newStatus,
       paymentHistory: [
         ...account.paymentHistory,
         {
@@ -303,54 +522,65 @@ export const recordPayment = mutation({
       ],
     });
 
+    // Update treasury
     const treasury = await getTreasury(ctx);
-
-    let outBorrow = treasury.totalOutStandingBorrow;
-    let outFine = treasury.totalOutStandingFine;
-    let outDues = treasury.totalOutStandingDues;
+    let outstandingBorrow = treasury.totalOutStandingBorrow;
+    let outstandingFine = treasury.totalOutStandingFine;
+    let outstandingDues = treasury.totalOutStandingDues;
 
     switch (args.paymentType) {
-      case "borrow_payment":
-        outBorrow = Math.max(0, outBorrow - args.amount);
+      case PAYMENT_TYPE.BORROW_PAYMENT:
+        outstandingBorrow = Math.max(0, outstandingBorrow - args.amount);
         break;
-      case "fine_payment":
-        outFine = Math.max(0, outFine - args.amount);
+      case PAYMENT_TYPE.FINE_PAYMENT:
+        outstandingFine = Math.max(0, outstandingFine - args.amount);
         break;
-      case "due_payment":
-        outDues = Math.max(0, outDues - args.amount);
+      case PAYMENT_TYPE.DUE_PAYMENT:
+        outstandingDues = Math.max(0, outstandingDues - args.amount);
         break;
     }
 
+    const prevStatus = account.status;
+    const owingMemberDelta =
+      prevStatus !== ACCOUNT_STATUS.GOOD_STANDING &&
+      newStatus === ACCOUNT_STATUS.GOOD_STANDING
+        ? -1
+        : 0;
+
     await ctx.db.patch(treasury._id, {
       moneyAtHand: treasury.moneyAtHand + args.amount,
-      totalOutStandingBorrow: outBorrow,
-      totalOutStandingFine: outFine,
-      totalOutStandingDues: outDues,
-      noOfOwingMembers:
-        status === "good_standing" && treasury.noOfOwingMembers
-          ? treasury.noOfOwingMembers - 1
-          : treasury.noOfOwingMembers,
+      totalOutStandingBorrow: outstandingBorrow,
+      totalOutStandingFine: outstandingFine,
+      totalOutStandingDues: outstandingDues,
+      noOfOwingMembers: Math.max(0, treasury.noOfOwingMembers + owingMemberDelta),
     });
 
-    await ctx.db.insert("activities", {
-      userId: args.userId,
-      type: "payment",
-      user: `${authUser.firstName} ${authUser.lastName}`,
-      action: "record_payment",
-      description: `recorded ${args.paymentType} payment of EUR${args.amount.toLocaleString()} for ${user?.firstName}`,
-      metadata: {
+    // Log activity
+    await logActivity(
+      ctx,
+      args.userId,
+      authUser,
+      "record_payment",
+      `Recorded ${args.paymentType} payment of ${formatCurrency(args.amount)} for ${userDetails?.firstName}`,
+      {
         paymentType: args.paymentType,
         amount: args.amount,
-        user: user?.firstName,
+        user: userDetails?.firstName,
       },
-      timestamp: Date.now(),
-    });
+    );
 
     return account._id;
   },
 });
 
-// Record fine
+/**
+ * Records a fine (penalty) against a member's account
+ * 
+ * Business Rules:
+ * - Only admin/treasurer can record fines
+ * - Automatically sets account status to OWING
+ * - Updates treasury fine totals and member count if member was in good standing
+ */
 export const recordFine = mutation({
   args: {
     userId: v.id("users"),
@@ -365,19 +595,21 @@ export const recordFine = mutation({
       ["admin", "treasurer"],
       args.authEmail,
     );
-    if (!hasAccess) throw new Error("Unauthorized");
+    if (!hasAccess) {
+      throw new Error("Unauthorized: Only admin and treasurer can record fines");
+    }
+
+    const account = await getAccountByUserIdOrThrow(ctx, args.userId);
     const user = await ctx.db.get(args.userId);
-    const account = await ctx.db
-      .query("accounts")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .unique();
-    if (!account) throw new Error("Account not found");
-    const prevAccountStatus = account.status;
+    const userDetails = user as any;
+    const prevStatus = account.status;
+
+    // Update account with fine
     await ctx.db.patch(account._id, {
       currentFineAmount: account.currentFineAmount + args.amount,
       fineToBalance: account.fineToBalance + args.amount,
       totalFineAmount: account.totalFineAmount + args.amount,
-      status: "owing",
+      status: ACCOUNT_STATUS.OWING,
       paymentHistory: [
         ...account.paymentHistory,
         {
@@ -389,156 +621,43 @@ export const recordFine = mutation({
       ],
     });
 
+    // Update treasury
     const treasury = await getTreasury(ctx);
+    const owingMemberDelta =
+      prevStatus === ACCOUNT_STATUS.GOOD_STANDING ? 1 : 0;
 
     await ctx.db.patch(treasury._id, {
       totalFines: treasury.totalFines + args.amount,
       totalOutStandingFine: treasury.totalOutStandingFine + args.amount,
-      noOfOwingMembers:
-        prevAccountStatus === "good_standing"
-          ? treasury.noOfOwingMembers + 1
-          : treasury.noOfOwingMembers,
+      noOfOwingMembers: treasury.noOfOwingMembers + owingMemberDelta,
     });
 
-    await ctx.db.insert("activities", {
-      userId: args.userId,
-      type: "payment",
-      user: `${authUser.firstName} ${authUser.lastName}`,
-      action: "record_fine",
-      description: `recorded fine of EUR${args.amount.toLocaleString()} for ${user?.firstName} for reason: ${args.reason}`,
-      metadata: {
+    // Log activity
+    await logActivity(
+      ctx,
+      args.userId,
+      authUser,
+      "record_fine",
+      `Recorded fine of ${formatCurrency(args.amount)} for ${userDetails?.firstName} for reason: ${args.reason}`,
+      {
         amount: args.amount,
         reason: args.reason,
-        user: user?.firstName,
+        user: userDetails?.firstName,
       },
-      timestamp: Date.now(),
-    });
+    );
+
     return account._id;
   },
 });
 
-// Update account status manually
-export const updateAccountStatus = mutation({
-  args: {
-    accountId: v.id("accounts"),
-    status: v.union(
-      v.literal("good_standing"),
-      v.literal("owing"),
-      v.literal("overdue"),
-    ),
-    authEmail: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const authUser = await getCurrentUser(args.authEmail, ctx);
-    const hasAccess = await hasPermission(
-      ctx,
-      ["admin", "treasurer"],
-      args.authEmail,
-    );
-    if (!hasAccess) {
-      throw new Error("Unauthorized");
-    }
-
-    const account = await ctx.db.get(args.accountId);
-    if (!account) {
-      throw new Error("Account not found");
-    }
-
-    const user = await ctx.db.get(account.userId);
-
-    await ctx.db.patch(args.accountId, { status: args.status });
-
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: account.userId,
-      type: "payment",
-      user: `${authUser.firstName} ${authUser.lastName}`,
-      action: "update_status",
-      description: `update payment status for ${user?.firstName}'s from ${account.status} to ${args.status}`,
-      metadata: {
-        oldStatus: account.status,
-        newStatus: args.status,
-        user: user?.firstName,
-      },
-      timestamp: Date.now(),
-    });
-
-    return args.accountId;
-  },
-});
-
-// Check and update overdue accounts
-export const updateOverdueAccounts = mutation({
-  handler: async (ctx) => {
-    const now = Date.now();
-    const overdue = await ctx.db
-      .query("accounts")
-      .withIndex("by_status", (q) => q.eq("status", "owing"))
-      .collect();
-
-    let updated = 0;
-
-    for (const acc of overdue) {
-      if (acc.dueDate && acc.dueDate < now) {
-        await ctx.db.patch(acc._id, {
-          status: "overdue",
-        });
-        updated++;
-      }
-    }
-
-    const treasury = await getTreasury(ctx);
-    const overdueCount = treasury.noOfOverdueMembers;
-
-    await ctx.db.patch(treasury._id, {
-      noOfOverdueMembers: overdueCount + updated,
-      noOfOwingMembers: treasury.noOfOwingMembers - updated,
-    });
-
-    return { updated };
-  },
-});
-
-// Delete an account
-export const deleteAccount = mutation({
-  args: { accountId: v.id("accounts"), authEmail: v.string() },
-  handler: async (ctx, args) => {
-    const authUser = await getCurrentUser(args.authEmail, ctx);
-    const hasAccess = await hasPermission(
-      ctx,
-      ["admin", "treasurer"],
-      args.authEmail,
-    );
-    if (!hasAccess) {
-      throw new Error("Unauthorized");
-    }
-    const account = await ctx.db.get(args.accountId);
-    if (!account) {
-      throw new Error("Account not found");
-    }
-
-    const user = await ctx.db.get(account.userId);
-
-    await ctx.db.delete(args.accountId);
-
-    // Create an activity log
-    await ctx.db.insert("activities", {
-      userId: account.userId,
-      type: "payment",
-      user: `${authUser.firstName} ${authUser.lastName}`,
-      action: "delete_account",
-      description: `deleted account for ${user?.firstName} ${user?.lastName}`,
-      metadata: {
-        user: user?.firstName,
-      },
-      timestamp: Date.now(),
-    });
-
-    return args.accountId;
-  },
-});
-
-// Record dues for a user
+/**
+ * Records membership dues for a member
+ * 
+ * Business Rules:
+ * - Only admin/treasurer can record dues
+ * - Due date in past automatically sets status to OVERDUE
+ * - Updates treasury dues totals and member count if member was in good standing
+ */
 export const recordDue = mutation({
   args: {
     userId: v.id("users"),
@@ -554,27 +673,30 @@ export const recordDue = mutation({
       ["admin", "treasurer"],
       args.authEmail,
     );
-    if (!hasAccess) throw new Error("Unauthorized");
+    if (!hasAccess) {
+      throw new Error("Unauthorized: Only admin and treasurer can record dues");
+    }
 
-    const account = await ctx.db
-      .query("accounts")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .unique();
-    if (!account) throw new Error("Account not found");
-
+    const account = await getAccountByUserIdOrThrow(ctx, args.userId);
     const user = await ctx.db.get(args.userId);
-    const treasury = await getTreasury(ctx);
+    const userDetails = user as any;
+    const prevStatus = account.status;
 
     const currentDuesAmount = account.currentDuesAmount + args.amount;
-    const status = args.dueDate < Date.now() ? "overdue" : "owing";
+    const newStatus = calculateAccountStatus(
+      account.currentBorrowedAmount,
+      account.currentFineAmount,
+      currentDuesAmount,
+      args.dueDate < Date.now() ? args.dueDate : account.dueDate,
+    );
 
-    // ---- UPDATE ACCOUNT ----
+    // Update account with dues
     await ctx.db.patch(account._id, {
       currentDuesAmount,
       duesToBalance: account.duesToBalance + args.amount,
       totalDuesAmount: account.totalDuesAmount + args.amount,
       dueDate: args.dueDate,
-      status,
+      status: newStatus,
       paymentHistory: [
         ...account.paymentHistory,
         {
@@ -587,35 +709,190 @@ export const recordDue = mutation({
       ],
     });
 
-    // ---- UPDATE TREASURY ----
+    // Update treasury
+    const treasury = await getTreasury(ctx);
+    const owingMemberDelta =
+      prevStatus === ACCOUNT_STATUS.GOOD_STANDING &&
+      newStatus !== ACCOUNT_STATUS.GOOD_STANDING
+        ? 1
+        : 0;
+
     await ctx.db.patch(treasury._id, {
       totalDues: treasury.totalDues + args.amount,
       totalOutStandingDues: treasury.totalOutStandingDues + args.amount,
-      noOfOwingMembers:
-        account.status === "good_standing"
-          ? treasury.noOfOwingMembers + 1
-          : treasury.noOfOwingMembers,
+      noOfOwingMembers: treasury.noOfOwingMembers + owingMemberDelta,
     });
 
-    // ---- ACTIVITY LOG ----
-    await ctx.db.insert("activities", {
-      userId: args.userId,
-      type: "payment",
-      user: `${authUser.firstName} ${authUser.lastName}`,
-      action: "record_due",
-      description: `recorded dues of EUR${args.amount.toLocaleString()} for ${user?.firstName}`,
-      metadata: {
+    // Log activity
+    await logActivity(
+      ctx,
+      args.userId,
+      authUser,
+      "record_due",
+      `Recorded dues of ${formatCurrency(args.amount)} for ${userDetails?.firstName}`,
+      {
         amount: args.amount,
         dueDate: args.dueDate,
-        user: user?.firstName,
+        user: userDetails?.firstName,
       },
-      timestamp: Date.now(),
-    });
+    );
 
     return account._id;
   },
 });
 
+/**
+ * Manually updates account status to a specific state
+ * 
+ * Use Cases:
+ * - Manual corrections for system state issues
+ * - Admin overrides for specific situations
+ */
+export const updateAccountStatus = mutation({
+  args: {
+    accountId: v.id("accounts"),
+    status: v.union(
+      v.literal(ACCOUNT_STATUS.GOOD_STANDING),
+      v.literal(ACCOUNT_STATUS.OWING),
+      v.literal(ACCOUNT_STATUS.OVERDUE),
+    ),
+    authEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const authUser = await getCurrentUser(args.authEmail, ctx);
+    const hasAccess = await hasPermission(
+      ctx,
+      ["admin", "treasurer"],
+      args.authEmail,
+    );
+    if (!hasAccess) {
+      throw new Error("Unauthorized: Only admin and treasurer can update account status");
+    }
+
+    const account = await ctx.db.get(args.accountId);
+    if (!account) {
+      throw new Error(`Account not found: ${args.accountId}`);
+    }
+
+    const user = await ctx.db.get(account.userId);
+    const userDetails = user as any;
+    const prevStatus = account.status;
+
+    // Update account status
+    await ctx.db.patch(args.accountId, { status: args.status });
+
+    // Log activity
+    await logActivity(
+      ctx,
+      account.userId,
+      authUser,
+      "update_status",
+      `Updated payment status for ${userDetails?.firstName} from ${prevStatus} to ${args.status}`,
+      {
+        oldStatus: prevStatus,
+        newStatus: args.status,
+        user: userDetails?.firstName,
+      },
+    );
+
+    return args.accountId;
+  },
+});
+
+/**
+ * Deletes an account and its associated data
+ * 
+ * Warning: This is a destructive operation that removes all financial records
+ */
+export const deleteAccount = mutation({
+  args: { accountId: v.id("accounts"), authEmail: v.string() },
+  handler: async (ctx, args) => {
+    const authUser = await getCurrentUser(args.authEmail, ctx);
+    const hasAccess = await hasPermission(
+      ctx,
+      ["admin", "treasurer"],
+      args.authEmail,
+    );
+    if (!hasAccess) {
+      throw new Error("Unauthorized: Only admin and treasurer can delete accounts");
+    }
+
+    const account = await ctx.db.get(args.accountId);
+    if (!account) {
+      throw new Error(`Account not found: ${args.accountId}`);
+    }
+
+    const user = await ctx.db.get(account.userId);
+    const userDetails = user as any;
+
+    // Delete account
+    await ctx.db.delete(args.accountId);
+
+    // Log activity
+    await logActivity(
+      ctx,
+      account.userId,
+      authUser,
+      "delete_account",
+      `Deleted account for ${userDetails?.firstName} ${userDetails?.lastName}`,
+      {
+        user: userDetails?.firstName,
+      },
+    );
+
+    return args.accountId;
+  },
+});
+
+/**
+ * Checks and updates all overdue accounts
+ * 
+ * Scheduled Operation:
+ * - Run periodically (e.g., daily cron job)
+ * - Converts OWING accounts to OVERDUE if due date has passed
+ * - Updates treasury member count statistics
+ */
+export const updateOverdueAccounts = mutation({
+  handler: async (ctx) => {
+    const now = Date.now();
+    const owingAccounts = await ctx.db
+      .query("accounts")
+      .withIndex("by_status", (q: any) => q.eq("status", ACCOUNT_STATUS.OWING))
+      .collect();
+
+    let updatedCount = 0;
+
+    // Update each overdue account
+    for (const account of owingAccounts) {
+      if (account.dueDate && account.dueDate < now) {
+        await ctx.db.patch(account._id, {
+          status: ACCOUNT_STATUS.OVERDUE,
+        });
+        updatedCount++;
+      }
+    }
+
+    // Update treasury statistics
+    if (updatedCount > 0) {
+      const treasury = await getTreasury(ctx);
+      await ctx.db.patch(treasury._id, {
+        noOfOverdueMembers: treasury.noOfOverdueMembers + updatedCount,
+        noOfOwingMembers: Math.max(0, treasury.noOfOwingMembers - updatedCount),
+      });
+    }
+
+    return { updated: updatedCount };
+  },
+});
+
+/**
+ * Initializes the treasury record (called once during system setup)
+ * 
+ * Treasury tracks aggregate financial metrics:
+ * - Total money in hand vs. outstanding obligations
+ * - Member financial standing distribution
+ * - Used for dashboard statistics and financial planning
+ */
 export const initTreasury = mutation({
   handler: async (ctx) => {
     const existing = await ctx.db.query("treasury").first();
@@ -635,13 +912,3 @@ export const initTreasury = mutation({
     }
   },
 });
-
-async function getTreasury(ctx: any) {
-  const t = await ctx.db.query("treasury").first();
-  const accounts = await ctx.db.query("accounts").collect();
-  t.noOfGoodStandingMembers = accounts.filter(
-    (acc: any) => acc.status === "good_standing",
-  ).length;
-  if (!t) throw new Error("Treasury not initialized");
-  return t;
-}
