@@ -1,16 +1,17 @@
-"use client"
+"use client";
 import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
-import { Target, Heart, Users, TrendingUp } from "lucide-react";
+import { Target, Heart, Users, TrendingUp, ArrowRight } from "lucide-react";
 import MotionDiv from "@/components/animations/MotionDiv";
 import Image from "next/image";
 import group from "@/public/images/members01.jpeg";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import Link from "next/link";
 
 export function AboutSection() {
   const t = useTranslations("home.about");
-  const stats = useQuery(api.appstat.getAppStats)
+  const stats = useQuery(api.appstat.getAppStats);
 
   const container = {
     hidden: { opacity: 0 },
@@ -120,9 +121,13 @@ export function AboutSection() {
             { icon: Users, value: stats?.members?.total, label: "Members" },
             { icon: TrendingUp, value: stats?.ageInYears, label: "Years" },
             { icon: Target, value: stats?.events.total, label: "Events" },
-            { icon: Heart, value: stats?.financials?.totalMoneyCollected, label: "Collected" },
-          ].map((stat, index) => (
-            <MotionDiv key={index} variants={item}>
+            {
+              icon: Heart,
+              value: stats?.financials?.totalMoneyCollected,
+              label: "Collected",
+            },
+          ].map((stat) => (
+            <MotionDiv key={stat.label} variants={item}>
               <Card className="text-center hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
                   <stat.icon className="w-8 h-8 mx-auto mb-3 text-orange-600" />
@@ -130,6 +135,9 @@ export function AboutSection() {
                   <div className="text-sm text-muted-foreground">
                     {t(stat.label.toLowerCase())}
                   </div>
+                  {stat.label === "Events" && (
+                      <Link href="/all-events" className="flex justify-center text-orange-600"> {t("viewEvents")} <ArrowRight /></Link>
+                  )}
                 </CardContent>
               </Card>
             </MotionDiv>

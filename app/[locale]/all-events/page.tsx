@@ -3,6 +3,7 @@ import NavBar from "@/components/common/NavBar";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { EventsPage } from "@/components/events/public-events";
 
 const Benefits = () => {
   const t = useTranslations("home.benefits");
@@ -16,7 +17,7 @@ const Benefits = () => {
         >
           <ArrowLeft /> {t("backToHome")}
         </Link>
-        Benefits
+        <EventsPage />;
       </section>
     </div>
   );
