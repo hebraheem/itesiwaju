@@ -123,7 +123,7 @@ export function AboutSection() {
             { icon: Target, value: stats?.events.total, label: "Events" },
             {
               icon: Heart,
-              value: stats?.financials?.totalMoneyCollected,
+              value: "€" + (stats?.financials?.totalMoneyCollected||0).toLocaleString(),
               label: "Collected",
             },
           ].map((stat) => (
