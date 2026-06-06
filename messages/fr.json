@@ -18,7 +18,8 @@
       "members": "Membres",
       "years": "Années",
       "events": "Événements Organisés",
-      "collected": "Collecté"
+      "collected": "Collecté",
+      "viewEvents": "Voir l'événement"
     },
     "rules": {
       "title": "Règles des Membres",

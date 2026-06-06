@@ -18,7 +18,8 @@
       "members": "Members",
       "years": "Years",
       "events": "Events Hosted",
-      "collected": "Collected"
+      "collected": "Collected",
+      "viewEvents": "View events"
     },
     "rules": {
       "title": "Member Rules",

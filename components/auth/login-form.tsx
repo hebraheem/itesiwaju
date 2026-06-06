@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "@/i18n/navigation";
-import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { loginAction } from "@/app/actions/login.action";
 import { useRouter } from "next/navigation";
@@ -53,6 +53,9 @@ export function LoginForm() {
     >
       <Card className="shadow-2xl border-2">
         <CardHeader className="text-center space-y-4">
+          <Link href="/">
+            <ArrowLeft />
+          </Link>{" "}
           <motion.div
             className="w-16 h-16 bg-linear-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto"
             whileHover={{ rotate: 360 }}
